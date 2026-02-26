@@ -1,0 +1,37 @@
+{
+  "5f5d7f5c": [
+    {
+      "timestamp": "2026-02-26T08:31:47.342753",
+      "user": "hola de params",
+      "bot": "That's interesting, tell me more"
+    }
+  ],
+  "7d25a733": [
+    {
+      "timestamp": "2026-02-26T09:36:46.731563",
+      "user": "hola desde adapter_test",
+      "bot": "I see. Could you elaborate?"
+    }
+  ],
+  "10195b1e": [
+    {
+      "timestamp": "2026-02-26T11:17:19.735101",
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you"
+    }
+  ],
+  "8e7226da": [
+    {
+      "timestamp": "2026-02-26T12:12:55.938280",
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you"
+    }
+  ],
+  "d1b7b037": [
+    {
+      "timestamp": "2026-02-26T12:15:32.172578",
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you"
+    }
+  ]
+}

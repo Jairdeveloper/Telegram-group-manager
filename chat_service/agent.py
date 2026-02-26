@@ -1,0 +1,98 @@
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
+
+from .pattern_engine import PatternEngine, Tokenizer, PronounTranslator
+
+
+@dataclass
+class Response:
+    text: str
+    confidence: float = 1.0
+    pattern_matched: bool = False
+    source: str = "default"
+    metadata: dict = field(default_factory=dict)
+
+
+class Agent:
+    """Orquestador/Agent: procesa entrada, matchea patrones y genera respuestas"""
+
+    def __init__(
+        self,
+        pattern_responses: List[Tuple[List, List]],
+        default_responses: List[List[str]],
+    ): 
+        self.pattern_responses = pattern_responses
+        self.default_responses = default_responses
+
+        self.pattern_engine = PatternEngine()
+        self.pronoun_translator = PronounTranslator()
+        self.tokenizer = Tokenizer()
+
+        self.username = ""
+        self.username_tag = "Username"
+        self.default_response_index = 0
+
+    def process(self, user_input: str) -> Response:
+        tokens = self.tokenizer.tokenize(user_input)
+        input_text = self.tokenizer.detokenize(tokens)
+
+        matched_pattern = None
+        binding_list = None
+        response_template = None
+
+        for pattern, response_tmpl in self.pattern_responses:
+            bl = self.pattern_engine.match(pattern, input_text)
+            if bl is not None:
+                matched_pattern = pattern
+                binding_list = bl
+                response_template = response_tmpl
+                break
+
+        if binding_list is None:
+            response = self._generate_default_response()
+            response.source = "default"
+        else:
+            translated_bindings = self.pronoun_translator.translate(binding_list)
+            response_text = self._build_reply(response_template, translated_bindings)
+            response = Response(
+                text=response_text,
+                confidence=0.9,
+                pattern_matched=True,
+                source="pattern",
+                metadata={"pattern": matched_pattern, "bindings": translated_bindings},
+            )
+
+        return response
+
+    def _generate_default_response(self) -> Response:
+        resp = self.default_responses[self.default_response_index]
+        text = " ".join(resp)
+        self.default_response_index = (self.default_response_index + 1) % len(self.default_responses)
+        return Response(text=text, source="default")
+
+    def _build_reply(self, response_template: List, binding_list: List[List[str]]) -> str:
+        binding_dict = {}
+
+        for binding in binding_list:
+            if isinstance(binding, list) and len(binding) > 0:
+                key = binding[0]
+                values = binding[1:]
+
+                if key == self.username_tag and values:
+                    if self.username and self.username != values[0]:
+                        response = [values[0], "eh?", "what", "ever", "happened", "to", self.username]
+                        return " ".join(response)
+                    self.username = values[0]
+
+                binding_dict[key] = values
+
+        reply = []
+        for elem in response_template:
+            if isinstance(elem, list) and len(elem) > 1:
+                binding_key = elem[1]
+                if binding_key in binding_dict:
+                    reply.extend(binding_dict[binding_key])
+            else:
+                reply.append(str(elem))
+
+        return " ".join(reply)

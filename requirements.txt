@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-telegram-bot
+httpx
+requests
+sentence-transformers
+openai
+sqlalchemy
+pydantic
+pydantic-settings
+pgvector
+psycopg2-binary
+redis

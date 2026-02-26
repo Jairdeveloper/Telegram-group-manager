@@ -1,0 +1,92 @@
+# Deployment, Service and Ingress example for telegram_webhook
+# Replace image with your built image (e.g., registry/your-app:tag)
+# Assumes your app listens on port 80 (uvicorn telegram_webhook:app --host 0.0.0.0 --port 80)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegram-webhook
+  labels:
+    app: telegram-webhook
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: telegram-webhook
+  template:
+    metadata:
+      labels:
+        app: telegram-webhook
+    spec:
+      containers:
+        - name: telegram-webhook
+          image: registry/your-chatbot-image:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-bot-secret
+                  key: bot_token
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telegram-webhook-svc
+  labels:
+    app: telegram-webhook
+spec:
+  selector:
+    app: telegram-webhook
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# Ingress using nginx-ingress + cert-manager for TLS (Let's Encrypt)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: telegram-webhook-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  tls:
+    - hosts:
+        - chat.example.com
+      secretName: telegram-tls
+  rules:
+    - host: chat.example.com
+      http:
+        paths:
+          - path: /webhook/(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: telegram-webhook-svc
+                port:
+                  number: 80
+
+# Notes:
+# - Replace chat.example.com with your domain.
+# - Create a Kubernetes Secret named `telegram-bot-secret` with key `bot_token`.
+#   Example: kubectl create secret generic telegram-bot-secret --from-literal=bot_token="123:ABC"
+# - Ensure cert-manager is installed and a ClusterIssuer named `letsencrypt-prod` exists,
+#   or change the annotation to your issuer.
+# - After deploying, register the webhook with Telegram:
+#   https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://chat.example.com/webhook/<YOUR_BOT_TOKEN>
