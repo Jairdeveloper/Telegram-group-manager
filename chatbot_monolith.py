@@ -65,7 +65,8 @@ class Settings:
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
     # API
-    API_HOST = "127.0.0.1" if not os.getenv("DOCKER_CONTAINER") else "0.0.0.0"
+    # Allow overriding host via env `API_HOST` (use 0.0.0.0 in containers)
+    API_HOST = os.getenv("API_HOST", "127.0.0.1")
     API_PORT = int(os.getenv("API_PORT", "8000"))
     API_WORKERS = 4
 

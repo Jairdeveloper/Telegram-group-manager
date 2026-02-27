@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegram-webhook
+  labels:
+    app: telegram-webhook
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: telegram-webhook
+  template:
+    metadata:
+      labels:
+        app: telegram-webhook
+    spec:
+      containers:
+        - name: telegram-webhook
+          image: registry/your-chatbot-image:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-bot-secret
+                  key: bot_token
+            - name: REDIS_URL
+              value: redis://redis:6379/0
+            - name: PROCESS_ASYNC
+              value: "true"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telegram-webhook-svc
+  labels:
+    app: telegram-webhook
+spec:
+  selector:
+    app: telegram-webhook
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: telegram-webhook-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  tls:
+    - hosts:
+        - chat.example.com
+      secretName: telegram-tls
+  rules:
+    - host: chat.example.com
+      http:
+        paths:
+          - path: /webhook/(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: telegram-webhook-svc
+                port:
+                  number: 80
