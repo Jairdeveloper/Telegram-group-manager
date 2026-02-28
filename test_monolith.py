@@ -16,7 +16,7 @@ def run_test_conversation():
     
     # Importa el chatbot
     sys.path.insert(0, '.')
-    from chatbot_evolution.chatbot_monolitic.chatbot_monolith import Actor, get_default_brain, SimpleConversationStorage
+    from chatbot_monolith import Actor, get_default_brain, SimpleConversationStorage
     
     # Inicializa
     pattern_responses, default_responses = get_default_brain()
