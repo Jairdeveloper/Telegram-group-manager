@@ -532,90 +532,42 @@ def run_cli():
 # PARTE 9: API REST (OPCIONAL - CON FASTAPI)
 # =============================================================================
 
+def create_api_app():
+    """Build FastAPI app delegating routes to modular app/api package."""
+    try:
+        from app.api.factory import create_api_app as create_modular_api_app
+    except ImportError:
+        print("ERROR: FastAPI no instalado. Instala con: pip install fastapi uvicorn")
+        sys.exit(1)
+
+    pattern_responses, default_responses = get_default_brain()
+    actor = Actor(pattern_responses, default_responses)
+    storage = SimpleConversationStorage()
+
+    return create_modular_api_app(
+        app_name=settings.APP_NAME,
+        app_version=settings.APP_VERSION,
+        app_description="Monolithic Chatbot with NLP, Embeddings, and LLM Fallback",
+        actor=actor,
+        storage=storage,
+    )
+
+
 def run_api():
     """Modo API REST"""
     try:
-        from fastapi import FastAPI, HTTPException
-        from fastapi.middleware.cors import CORSMiddleware
         import uvicorn
     except ImportError:
         print("ERROR: FastAPI no instalado. Instala con: pip install fastapi uvicorn")
         sys.exit(1)
-    
+
     logger.info("Starting ChatBot API (Monolithic Version)")
-    
-    # Inicializa componentes
-    pattern_responses, default_responses = get_default_brain()
-    actor = Actor(pattern_responses, default_responses)
-    storage = SimpleConversationStorage()
-    
-    # Crea app FastAPI
-    app = FastAPI(
-        title=settings.APP_NAME,
-        version=settings.APP_VERSION,
-        description="Monolithic Chatbot with NLP, Embeddings, and LLM Fallback"
-    )
-    
-    # CORS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    
-    @app.get("/health")
-    async def health():
-        """Health check"""
-        return {"status": "ok", "version": settings.APP_VERSION}
-    
-    @app.post("/api/v1/chat")
-    async def chat(message: str, session_id: Optional[str] = None):
-        """Endpoint principal de chat"""
-        if not session_id:
-            session_id = str(uuid.uuid4())[:8]
-        
-        if not message or not message.strip():
-            raise HTTPException(status_code=400, detail="message required")
-        
-        response = actor.process(message)
-        storage.save(session_id, message, response.text)
-        
-        return {
-            "session_id": session_id,
-            "message": message,
-            "response": response.text,
-            "confidence": response.confidence,
-            "source": response.source,
-            "pattern_matched": response.pattern_matched,
-        }
-    
-    @app.get("/api/v1/history/{session_id}")
-    async def history(session_id: str):
-        """Obtiene historial de sesión"""
-        return {"session_id": session_id, "history": storage.get_history(session_id)}
-    
-    @app.get("/api/v1/stats")
-    async def stats():
-        """Estadísticas del chatbot"""
-        return {
-            "app_name": settings.APP_NAME,
-            "version": settings.APP_VERSION,
-            "total_sessions": len(storage.data),
-            "total_messages": sum(len(msgs) for msgs in storage.data.values()),
-        }
-    
-    # Inicia servidor
+    app = create_api_app()
+
     print(f"\n✅ API running at http://{settings.API_HOST}:{settings.API_PORT}")
     print(f"📖 Swagger docs: http://{settings.API_HOST}:{settings.API_PORT}/docs\n")
-    
-    uvicorn.run(
-        app,
-        host=settings.API_HOST,
-        port=settings.API_PORT,
-        log_level="info",
-    )
+
+    uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT, log_level="info")
 
 
 # =============================================================================
