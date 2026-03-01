@@ -533,71 +533,24 @@ def run_cli():
 # =============================================================================
 
 def create_api_app():
-    """Build FastAPI app to support both runtime and tests."""
+    """Build FastAPI app delegating routes to modular app/api package."""
     try:
-        from fastapi import FastAPI, HTTPException
-        from fastapi.middleware.cors import CORSMiddleware
+        from app.api.factory import create_api_app as create_modular_api_app
     except ImportError:
         print("ERROR: FastAPI no instalado. Instala con: pip install fastapi uvicorn")
         sys.exit(1)
 
-    # Inicializa componentes
     pattern_responses, default_responses = get_default_brain()
     actor = Actor(pattern_responses, default_responses)
     storage = SimpleConversationStorage()
 
-    app = FastAPI(
-        title=settings.APP_NAME,
-        version=settings.APP_VERSION,
-        description="Monolithic Chatbot with NLP, Embeddings, and LLM Fallback",
+    return create_modular_api_app(
+        app_name=settings.APP_NAME,
+        app_version=settings.APP_VERSION,
+        app_description="Monolithic Chatbot with NLP, Embeddings, and LLM Fallback",
+        actor=actor,
+        storage=storage,
     )
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    @app.get("/health")
-    async def health():
-        return {"status": "ok", "version": settings.APP_VERSION}
-
-    @app.post("/api/v1/chat")
-    async def chat(message: str, session_id: Optional[str] = None):
-        if not session_id:
-            session_id = str(uuid.uuid4())[:8]
-
-        if not message or not message.strip():
-            raise HTTPException(status_code=400, detail="message required")
-
-        response = actor.process(message)
-        storage.save(session_id, message, response.text)
-
-        return {
-            "session_id": session_id,
-            "message": message,
-            "response": response.text,
-            "confidence": response.confidence,
-            "source": response.source,
-            "pattern_matched": response.pattern_matched,
-        }
-
-    @app.get("/api/v1/history/{session_id}")
-    async def history(session_id: str):
-        return {"session_id": session_id, "history": storage.get_history(session_id)}
-
-    @app.get("/api/v1/stats")
-    async def stats():
-        return {
-            "app_name": settings.APP_NAME,
-            "version": settings.APP_VERSION,
-            "total_sessions": len(storage.data),
-            "total_messages": sum(len(msgs) for msgs in storage.data.values()),
-        }
-
-    return app
 
 
 def run_api():
