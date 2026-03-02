@@ -13,7 +13,7 @@ class _DummyResponse:
         self.pattern_matched = True
 
 
-class _DummyActor:
+class _DummyAgent:
     def process(self, message: str):
         return _DummyResponse(f"echo:{message}")
 
@@ -36,7 +36,7 @@ def test_modular_api_factory_exposes_chat_route():
         app_name="Test API",
         app_version="1.0",
         app_description="test",
-        actor=_DummyActor(),
+        agent=_DummyAgent(),
         storage=_DummyStorage(),
     )
     client = TestClient(app)

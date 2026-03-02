@@ -1,42 +1,140 @@
-# Robot Chatbot
+# Robot Chatbot - Plan de Debug
 
-## Testing
+Este README define un plan operativo para debuguear el proyecto actual sin romper contratos.
 
-- Run all tests locally:
+## 1. Objetivo del debug
+
+Validar y aislar fallos en:
+- API (`/api/v1/chat`)
+- Webhook (`/webhook/{token}`)
+- Flujo dedup (`update_id`)
+- Integracion Chat API <-> Telegram
+- Cableado modular (`app/api`, `app/webhook`) vs entrypoints legacy
+
+Referencia de contratos:
+- `design/contratos.md`
+
+## 2. Baseline rapido
+
+1. Verificar entorno Python y dependencias.
+2. Ejecutar suite completa:
 
 ```bash
 pytest -q
 ```
 
-Current suite covers:
-- Unit tests for `chat_service` (`PatternEngine`, `Agent`)
-- API contract tests for `/api/v1/chat`
-- Webhook contract tests (`/webhook/{token}`, dedup, token validation)
-- Ingress rewrite regression checks
-- Modular entrypoint checks for `app/api` and `app/webhook`
+3. Si falla, ejecutar modulo por modulo:
 
-## CI
+```bash
+pytest -q tests/test_api_contract.py
+pytest -q tests/test_webhook_contract.py
+pytest -q tests/test_modular_entrypoints.py
+pytest -q tests/test_webhook_handlers_unit.py
+pytest -q tests/test_agent_unit.py tests/test_pattern_engine_unit.py
+```
 
-The CI workflow is in:
-- `.github/workflows/ci.yml`
+## 3. Variables de entorno clave
 
-It runs on `pull_request` and `push`, and executes:
-1. Python 3.11 setup
-2. `pip install -r requirements.txt`
-3. `pytest -q`
+Para webhook/API:
+- `TELEGRAM_BOT_TOKEN`
+- `CHATBOT_API_URL` (default `http://127.0.0.1:8000/api/v1/chat`)
+- `REDIS_URL` (opcional)
+- `PROCESS_ASYNC` (`true/false`)
+- `DEDUP_TTL` (default `86400`)
 
-## Modular structure (current migration state)
+Para API monolith wrapper:
+- `API_HOST`
+- `API_PORT`
+- `LOG_LEVEL`
 
-- `app/api`
-  - `factory.py`: FastAPI app factory
-  - `routes.py`: `/api/v1/chat`, `/api/v1/history/{session_id}`, `/api/v1/stats`
-- `app/webhook`
-  - `entrypoint.py`: wrapper to expose the webhook app while preserving current runtime compatibility
+Comprobacion rapida (PowerShell):
 
-`chatbot_monolith.py` now delegates API app creation to `app/api`.
+```powershell
+$env:TELEGRAM_BOT_TOKEN
+$env:CHATBOT_API_URL
+$env:REDIS_URL
+$env:PROCESS_ASYNC
+$env:DEDUP_TTL
+```
 
-## Branch protection (manual GitHub step)
+## 4. Plan de debug por capa
 
-Configure in repository settings:
-1. Require pull request before merging
-2. Require status check `pytest`
+### 4.1 API
+
+Archivos foco:
+- `app/api/factory.py`
+- `app/api/routes.py`
+- `chatbot_monolith.py`
+
+Pasos:
+1. Confirmar contrato `POST /api/v1/chat` con test de contrato.
+2. Verificar validacion de `message` vacio (`400 message required`).
+3. Revisar dependencias inyectadas (`actor`, `storage`).
+
+### 4.2 Webhook
+
+Archivos foco:
+- `telegram_webhook_prod.py`
+- `app/webhook/handlers.py`
+- `app/webhook/entrypoint.py`
+
+Pasos:
+1. Token invalido debe devolver `403`.
+2. Token ausente en config debe devolver `500`.
+3. `update_id` repetido debe no reprocesar y devolver `{"ok": true}`.
+4. Confirmar camino sync (`PROCESS_ASYNC=false`) y async (`PROCESS_ASYNC=true` + queue).
+
+### 4.3 Infra (requests/redis/rq)
+
+Archivos foco:
+- `telegram_webhook_prod.py`
+- `webhook_tasks.py`
+- `worker.py`
+
+Pasos:
+1. Simular sin Redis (`REDIS_URL` vacio) y validar fallback dedup en memoria.
+2. Simular con Redis y validar `setnx + expire`.
+3. En async, validar enqueue en cola `telegram_tasks`.
+
+## 5. Casos negativos minimos a repetir
+
+1. Chat API caido o timeout -> webhook no debe romper contrato de respuesta.
+2. Error al enviar a Telegram -> registrar error y continuar.
+3. Payload sin `message` ni `edited_message` -> no explotar.
+4. Duplicado de `update_id` -> no reprocesar.
+
+## 6. Comandos utiles de diagnostico
+
+Estado de cambios antes de debug:
+
+```bash
+git status --short --branch
+git diff --name-status
+```
+
+Correr una prueba concreta con detalle:
+
+```bash
+pytest -q tests/test_webhook_contract.py -k deduplicates -vv
+```
+
+## 7. Checklist de cierre
+
+- [ ] `pytest -q` en verde.
+- [ ] Contratos HTTP siguen intactos (`design/contratos.md`).
+- [ ] No hay cambios no relacionados en el commit.
+- [ ] README y documentos de migracion actualizados si hubo cambios de comportamiento.
+
+## 8. Riesgos conocidos actuales
+
+- Configuracion distribuida en varios archivos (`os.getenv` disperso).
+- Acoplamiento directo a infraestructura en adapters actuales.
+- Codigo legacy aun activo (transicion no cerrada).
+
+## 9. Siguiente mejora recomendada
+
+Ejecutar la migracion Semana 2-3 pendiente:
+1. Centralizar settings.
+2. Aislar interfaces de infraestructura.
+3. Aumentar pruebas negativas de webhook.
+4. Plan de retiro progresivo de legacy.

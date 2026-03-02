@@ -123,7 +123,7 @@ class Response:
 # PARTE 4: ACTOR ORQUESTADOR
 # =============================================================================
 
-class Actor:
+class Orquestador:
     """Orquestador: procesa entrada, matchea patrones, genera respuestas"""
     
     def __init__(
@@ -494,7 +494,7 @@ def run_cli():
     
     # Inicializa componentes
     pattern_responses, default_responses = get_default_brain()
-    actor = Actor(pattern_responses, default_responses)
+    agent = Agent(pattern_responses, default_responses)
     storage = SimpleConversationStorage()
     session_id = str(uuid.uuid4())[:8]
     
@@ -518,7 +518,7 @@ def run_cli():
                 print("Bye!")
                 break
             
-            response = actor.process(user_input)
+            response = agent.process(user_input)
             print(f"Bot: {response.text}")
             
             # Guarda conversación
@@ -541,14 +541,14 @@ def create_api_app():
         sys.exit(1)
 
     pattern_responses, default_responses = get_default_brain()
-    actor = Actor(pattern_responses, default_responses)
+    agent = Agent(pattern_responses, default_responses)
     storage = SimpleConversationStorage()
 
     return create_modular_api_app(
         app_name=settings.APP_NAME,
         app_version=settings.APP_VERSION,
         app_description="Monolithic Chatbot with NLP, Embeddings, and LLM Fallback",
-        actor=actor,
+        agent=agent,
         storage=storage,
     )
 

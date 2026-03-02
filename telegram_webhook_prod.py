@@ -9,10 +9,7 @@ Features:
 """
 import os
 import logging
-import time
 import uuid
-import hmac
-import hashlib
 from typing import Any, Dict
 
 import requests
@@ -29,6 +26,12 @@ except Exception:
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 from dotenv import load_dotenv
+from app.webhook.handlers import (
+    dedup_update_impl,
+    handle_webhook_impl,
+    process_update_sync_impl,
+    send_message_impl,
+)
 
 load_dotenv()
 
@@ -56,103 +59,52 @@ app = FastAPI()
 
 
 def dedup_update(update_id: int) -> bool:
-    """Return True if update is new (not duplicate). Uses Redis if available, else in-memory fallback."""
-    key = f"tg:update:{update_id}"
-    try:
-        if redis_client:
-            # SETNX + expire
-            added = redis_client.setnx(key, "1")
-            if added:
-                redis_client.expire(key, DEDUP_TTL)
-                return True
-            return False
-        else:
-            # naive in-memory fallback (not for prod)
-            if not hasattr(dedup_update, "_seen"):
-                dedup_update._seen = set()
-            if update_id in dedup_update._seen:
-                return False
-            dedup_update._seen.add(update_id)
-            return True
-    except Exception:
-        LOGGER.exception("Dedup check failed")
-        return True
+    """Return True if update is new (not duplicate)."""
+    if not hasattr(dedup_update, "_seen"):
+        dedup_update._seen = set()
+    return dedup_update_impl(
+        update_id,
+        redis_client=redis_client,
+        dedup_ttl=DEDUP_TTL,
+        memory_store=dedup_update._seen,
+        logger=LOGGER,
+    )
 
 
 def send_message(chat_id: int, text: str) -> Dict[str, Any]:
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = {"chat_id": chat_id, "text": text}
-    resp = requests.post(url, json=payload, timeout=10)
-    return {"status_code": resp.status_code, "text": resp.text}
+    return send_message_impl(
+        bot_token=BOT_TOKEN,
+        chat_id=chat_id,
+        text=text,
+        requests_module=requests,
+    )
 
 
 def process_update_sync(update: Dict[str, Any]):
-    """Process an update synchronously: call Chat API and send reply via Telegram"""
-    start = time.time()
-    chat = update.get("message") or update.get("edited_message")
-    if not chat:
-        return
-
-    chat_id = chat["chat"]["id"]
-    text = chat.get("text", "")
-    session_id = str(chat_id)
-
-    try:
-        r = requests.post(CHAT_API, params={"message": text, "session_id": session_id}, timeout=15)
-        if r.status_code == 200:
-            data = r.json()
-            reply = data.get("response", "(no response)")
-        else:
-            reply = "(chat api error)"
-    except Exception:
-        LOGGER.exception("Chat API call failed")
-        reply = "(internal error)"
-
-    # send reply
-    try:
-        send_message(chat_id, reply)
-    except Exception:
-        LOGGER.exception("Failed to send message to Telegram")
-
-    PROCESS_TIME.observe(time.time() - start)
+    """Process an update synchronously: call Chat API and send reply via Telegram."""
+    process_update_sync_impl(
+        update,
+        chat_api=CHAT_API,
+        send_message=send_message,
+        requests_module=requests,
+        process_time_metric=PROCESS_TIME,
+        logger=LOGGER,
+    )
 
 
 @app.post("/webhook/{token}")
 async def webhook(token: str, request: Request):
-    if not BOT_TOKEN:
-        raise HTTPException(status_code=500, detail="BOT_TOKEN not configured")
-
-    if token != BOT_TOKEN:
-        REQUESTS.labels(status="forbidden").inc()
-        raise HTTPException(status_code=403, detail="Invalid token")
-
-    update = await request.json()
-    update_id = update.get("update_id")
-
-    # Deduplicate
-    if update_id is not None and not dedup_update(update_id):
-        LOGGER.info("Duplicate update ignored", extra={"update_id": update_id})
-        REQUESTS.labels(status="duplicate").inc()
-        return {"ok": True}
-
-    # Enqueue or process inline
-    try:
-        if PROCESS_ASYNC and queue is not None:
-            # enqueue job
-            job = queue.enqueue(process_update_sync, update, job_id=str(uuid.uuid4()))
-            # RQ Job id is available as `id` attribute
-            LOGGER.info("Enqueued update", extra={"job_id": getattr(job, 'id', None), "update_id": update_id})
-        else:
-            # synchronous processing (fast path)
-            process_update_sync(update)
-
-        REQUESTS.labels(status="ok").inc()
-        return {"ok": True}
-    except Exception:
-        LOGGER.exception("Failed handling update")
-        REQUESTS.labels(status="error").inc()
-        # Always return 200 to Telegram to avoid retry storms; rely on background retry or DLQ
-        return {"ok": True}
+    return await handle_webhook_impl(
+        token=token,
+        request=request,
+        bot_token=BOT_TOKEN,
+        dedup_update=dedup_update,
+        process_async=PROCESS_ASYNC,
+        queue=queue,
+        process_update_sync=process_update_sync,
+        requests_metric=REQUESTS,
+        logger=LOGGER,
+    )
 
 
 @app.get("/health")

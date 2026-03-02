@@ -11,7 +11,7 @@ def create_api_app(
     app_name: str,
     app_version: str,
     app_description: str,
-    actor,
+    agent,
     storage,
 ) -> FastAPI:
     app = FastAPI(
@@ -34,7 +34,7 @@ def create_api_app(
 
     app.include_router(
         create_chat_router(
-            actor=actor,
+            agent=agent,
             storage=storage,
             app_name=app_name,
             app_version=app_version,
