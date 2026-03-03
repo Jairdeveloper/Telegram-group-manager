@@ -41,24 +41,26 @@ def process_update_impl(
 ) -> None:
     """Process update by querying Chat API and sending Telegram response."""
     start = time.time()
+    update_id = update.get("update_id")
     payload = extract_chat_payload(update)
     if not payload:
-        logger.info("No message to process")
+        logger.info("webhook.no_message", extra={"update_id": update_id})
         return
 
     chat_id, text = payload
     session_id = str(chat_id)
+    log_ctx = {"update_id": update_id, "chat_id": chat_id}
 
     try:
         reply = chat_api_client.ask(message=text, session_id=session_id)
     except Exception:
-        logger.exception("Chat API call failed")
+        logger.exception("webhook.chat_api_error", extra=log_ctx)
         reply = "(internal error)"
 
     try:
         telegram_client.send_message(chat_id=chat_id, text=reply)
     except Exception:
-        logger.exception("Failed to send message to Telegram")
+        logger.exception("webhook.telegram_send_error", extra=log_ctx)
 
     if process_time_metric is not None:
         process_time_metric.observe(time.time() - start)
@@ -86,22 +88,28 @@ async def handle_webhook_impl(
 
     update = await request.json()
     update_id = update.get("update_id")
+    payload = extract_chat_payload(update)
+    chat_id = payload[0] if payload else None
+    log_ctx = {"update_id": update_id, "chat_id": chat_id}
 
     if update_id is not None and not dedup_update(update_id):
-        logger.info("Duplicate update ignored", extra={"update_id": update_id})
+        logger.info("webhook.duplicate_update", extra=log_ctx)
         requests_metric.labels(status="duplicate").inc()
         return {"ok": True}
 
     try:
         if process_async and task_queue is not None:
             job_id = task_queue.enqueue_process_update(update=update)
-            logger.info("Enqueued update", extra={"job_id": job_id, "update_id": update_id})
+            logger.info("webhook.enqueued_update", extra={**log_ctx, "job_id": job_id})
+        elif process_async and task_queue is None:
+            logger.warning("webhook.async_queue_unavailable", extra=log_ctx)
+            process_update_sync(update)
         else:
             process_update_sync(update)
 
         requests_metric.labels(status="ok").inc()
         return {"ok": True}
     except Exception:
-        logger.exception("Failed handling update")
+        logger.exception("webhook.handle_error", extra=log_ctx)
         requests_metric.labels(status="error").inc()
         return {"ok": True}
