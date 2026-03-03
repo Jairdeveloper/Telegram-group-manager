@@ -13,7 +13,7 @@ services:
       - CHATBOT_API_URL=http://chatapi:8000/api/v1/chat
       - REDIS_URL=redis://redis:6379/0
       - PROCESS_ASYNC=true
-    command: ["uvicorn", "telegram_webhook_prod:app", "--host", "0.0.0.0", "--port", "80"]
+    command: ["uvicorn", "app.webhook.entrypoint:app", "--host", "0.0.0.0", "--port", "80", "--timeout-keep-alive", "30", "--timeout-graceful-shutdown", "30"]
     ports:
       - "8001:80"
     depends_on:
@@ -26,14 +26,15 @@ services:
     command: ["python", "worker.py"]
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - CHATBOT_API_URL=http://chatapi:8000/api/v1/chat
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
     depends_on:
       - redis
 
-# Optional local chat API stub for testing (uses chatbot_monolith API)
+# Optional local chat API stub for testing (modular API entrypoint)
   chatapi:
     build: .
-    command: ["python", "chatbot_monolith.py", "--mode", "api"]
+    command: ["uvicorn", "app.api.entrypoint:app", "--host", "0.0.0.0", "--port", "8000"]
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8000

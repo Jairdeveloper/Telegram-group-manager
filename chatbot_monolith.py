@@ -27,6 +27,7 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any, Tuple
 from dataclasses import dataclass, field
 from contextlib import contextmanager
+from app.config.settings import load_api_settings
 
 # =============================================================================
 # PARTE 1: CONFIGURACIÓN Y LOGGING
@@ -34,13 +35,14 @@ from contextlib import contextmanager
 
 class Settings:
     """Configuración centralizada"""
-    
+    _api = load_api_settings()
+
     APP_NAME = "ChatBot Evolution"
     APP_VERSION = "2.1"
-    DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+    DEBUG = _api.debug
     
     # Database
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./chatbot.db")
+    DATABASE_URL = _api.database_url
     SQLALCHEMY_ECHO = False
     
     # NLP
@@ -54,21 +56,21 @@ class Settings:
     
     # LLM Fallback
     USE_LLM_FALLBACK = True
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_API_KEY = _api.openai_api_key
     OLLAMA_BASE_URL = "http://localhost:11434"
     OLLAMA_MODEL = "mistral"
     LLM_TEMPERATURE = 0.7
     LLM_MAX_TOKENS = 150
     
     # Logging
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+    LOG_LEVEL = _api.log_level
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
     # API
     # Allow overriding host via env `API_HOST` (use 0.0.0.0 in containers)
-    API_HOST = os.getenv("API_HOST", "127.0.0.1")
-    API_PORT = int(os.getenv("API_PORT", "8000"))
-    API_WORKERS = 4
+    API_HOST = _api.api_host
+    API_PORT = _api.api_port
+    API_WORKERS = _api.api_workers
 
 
 settings = Settings()
@@ -123,7 +125,7 @@ class Response:
 # PARTE 4: ACTOR ORQUESTADOR
 # =============================================================================
 
-class Actor:
+class Orquestador:
     """Orquestador: procesa entrada, matchea patrones, genera respuestas"""
     
     def __init__(
@@ -494,7 +496,7 @@ def run_cli():
     
     # Inicializa componentes
     pattern_responses, default_responses = get_default_brain()
-    actor = Actor(pattern_responses, default_responses)
+    agent = Agent(pattern_responses, default_responses)
     storage = SimpleConversationStorage()
     session_id = str(uuid.uuid4())[:8]
     
@@ -518,7 +520,7 @@ def run_cli():
                 print("Bye!")
                 break
             
-            response = actor.process(user_input)
+            response = agent.process(user_input)
             print(f"Bot: {response.text}")
             
             # Guarda conversación
@@ -541,14 +543,14 @@ def create_api_app():
         sys.exit(1)
 
     pattern_responses, default_responses = get_default_brain()
-    actor = Actor(pattern_responses, default_responses)
+    agent = Agent(pattern_responses, default_responses)
     storage = SimpleConversationStorage()
 
     return create_modular_api_app(
         app_name=settings.APP_NAME,
         app_version=settings.APP_VERSION,
         app_description="Monolithic Chatbot with NLP, Embeddings, and LLM Fallback",
-        actor=actor,
+        agent=agent,
         storage=storage,
     )
 

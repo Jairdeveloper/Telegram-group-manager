@@ -1,10 +1,19 @@
 """Entrypoint for RQ worker (Docker / k8s)."""
-import os
-from redis import Redis
-from rq import Worker, Queue
+import sys
 
-listen = ["telegram_tasks"]
-redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
+from redis import Redis
+try:
+    from rq import Worker, Queue
+except Exception as exc:
+    print(f"Failed to import RQ worker runtime: {exc}")
+    print("Install compatible dependencies and run worker in a supported runtime (recommended: Docker/Linux).")
+    sys.exit(1)
+
+from app.config.settings import load_worker_settings
+
+WORKER_SETTINGS = load_worker_settings()
+listen = WORKER_SETTINGS.queue_names
+redis_url = WORKER_SETTINGS.redis_url
 conn = Redis.from_url(redis_url)
 
 if __name__ == "__main__":

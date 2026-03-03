@@ -6,8 +6,8 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 
 
-def create_chat_router(actor, storage, app_name: str, app_version: str) -> APIRouter:
-    """Create chat routes using injected actor and storage dependencies."""
+def create_chat_router(agent, storage, app_name: str, app_version: str) -> APIRouter:
+    """Create chat routes using injected agent and storage dependencies."""
     router = APIRouter()
 
     @router.post("/chat")
@@ -18,7 +18,7 @@ def create_chat_router(actor, storage, app_name: str, app_version: str) -> APIRo
         if not message or not message.strip():
             raise HTTPException(status_code=400, detail="message required")
 
-        response = actor.process(message)
+        response = agent.process(message)
         storage.save(session_id, message, response.text)
 
         return {

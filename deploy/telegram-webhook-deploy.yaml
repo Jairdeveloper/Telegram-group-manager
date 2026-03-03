@@ -1,6 +1,6 @@
-# Deployment, Service and Ingress example for telegram_webhook
+# Deployment, Service and Ingress example for modular webhook entrypoint
 # Replace image with your built image (e.g., registry/your-app:tag)
-# Assumes your app listens on port 80 (uvicorn telegram_webhook:app --host 0.0.0.0 --port 80)
+# Assumes your app listens on port 80 (uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 80)
 
 apiVersion: apps/v1
 kind: Deployment
@@ -22,6 +22,7 @@ spec:
         - name: telegram-webhook
           image: registry/your-chatbot-image:latest
           imagePullPolicy: IfNotPresent
+          command: ["uvicorn", "app.webhook.entrypoint:app", "--host", "0.0.0.0", "--port", "80", "--timeout-keep-alive", "30", "--timeout-graceful-shutdown", "30"]
           ports:
             - containerPort: 80
           env:
