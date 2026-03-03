@@ -6,6 +6,7 @@ Canonical source now lives in `app.webhook.entrypoint`.
 from app.webhook.entrypoint import (  # noqa: F401
     BOT_TOKEN,
     CHAT_API,
+    CHATBOT_API_URL,
     DEDUP_STORE,
     DEDUP_TTL,
     LOGGER,

@@ -8,8 +8,8 @@ from app.webhook.infrastructure import RequestsChatApiClient, RequestsTelegramCl
 LOGGER = logging.getLogger("webhook_tasks")
 WEBHOOK_SETTINGS = load_webhook_settings()
 BOT_TOKEN = WEBHOOK_SETTINGS.telegram_bot_token
-CHAT_API = WEBHOOK_SETTINGS.chatbot_api_url
-CHAT_API_CLIENT = RequestsChatApiClient(chat_api_url=CHAT_API)
+CHATBOT_API_URL = WEBHOOK_SETTINGS.chatbot_api_url
+CHAT_API_CLIENT = RequestsChatApiClient(chat_api_url=CHATBOT_API_URL)
 TELEGRAM_CLIENT = RequestsTelegramClient(bot_token=BOT_TOKEN or "")
 
 
