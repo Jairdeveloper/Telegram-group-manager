@@ -12,12 +12,12 @@ except Exception as exc:
 from app.config.settings import load_worker_settings
 
 WORKER_SETTINGS = load_worker_settings()
-listen = WORKER_SETTINGS.queue_names
-redis_url = WORKER_SETTINGS.redis_url
-conn = Redis.from_url(redis_url)
+QUEUE_NAMES = WORKER_SETTINGS.queue_names
+REDIS_URL = WORKER_SETTINGS.redis_url
+REDIS_CONN = Redis.from_url(REDIS_URL)
 
 if __name__ == "__main__":
-    # Create Queue objects bound to the Redis connection and start the worker
-    queues = [Queue(name, connection=conn) for name in listen]
-    worker = Worker(queues, connection=conn)
+    # Build queue bindings explicitly for readability and observability.
+    queues = [Queue(name, connection=REDIS_CONN) for name in QUEUE_NAMES]
+    worker = Worker(queues, connection=REDIS_CONN)
     worker.work()

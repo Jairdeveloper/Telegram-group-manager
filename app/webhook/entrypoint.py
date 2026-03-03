@@ -28,32 +28,42 @@ except Exception:
 
 load_dotenv()
 
+# Logging
 LOGGER = logging.getLogger("telegram_webhook")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
+# Settings
 WEBHOOK_SETTINGS = load_webhook_settings()
 BOT_TOKEN = WEBHOOK_SETTINGS.telegram_bot_token
-CHAT_API = WEBHOOK_SETTINGS.chatbot_api_url
+CHATBOT_API_URL = WEBHOOK_SETTINGS.chatbot_api_url
 REDIS_URL = WEBHOOK_SETTINGS.redis_url
 PROCESS_ASYNC = WEBHOOK_SETTINGS.process_async
 DEDUP_TTL = WEBHOOK_SETTINGS.dedup_ttl
 QUEUE_NAME = "telegram_tasks"
 
 redis_client = None
-queue = None
+rq_queue = None
 if REDIS_URL and Redis is not None:
     redis_client = Redis.from_url(REDIS_URL)
     if Queue is not None:
-        queue = Queue(QUEUE_NAME, connection=redis_client)
+        rq_queue = Queue(QUEUE_NAME, connection=redis_client)
 
-CHAT_API_CLIENT = RequestsChatApiClient(chat_api_url=CHAT_API)
+# Infrastructure adapters
+CHAT_API_CLIENT = RequestsChatApiClient(chat_api_url=CHATBOT_API_URL)
 TELEGRAM_CLIENT = RequestsTelegramClient(bot_token=BOT_TOKEN or "")
 if redis_client is not None:
     DEDUP_STORE = RedisDedupStore(redis_client=redis_client)
 else:
     _SEEN = set()
     DEDUP_STORE = InMemoryDedupStore(memory_store=_SEEN)
-TASK_QUEUE = RqTaskQueue(queue=queue, process_update_callable=process_update_task) if queue is not None else None
+TASK_QUEUE = (
+    RqTaskQueue(queue=rq_queue, process_update_callable=process_update_task)
+    if rq_queue is not None
+    else None
+)
+
+# Backward-compatible alias used by legacy wrappers.
+CHAT_API = CHATBOT_API_URL
 
 if PROCESS_ASYNC and TASK_QUEUE is None:
     LOGGER.warning(
@@ -116,4 +126,5 @@ async def metrics():
 
 
 def create_webhook_app():
+    """Factory-compatible accessor for webhook app."""
     return app
