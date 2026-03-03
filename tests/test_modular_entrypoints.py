@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 os.environ["DEDUP_TTL"] = "86400"
 
-import telegram_webhook_prod as twp
+import app.webhook.entrypoint as twp
 from app.api.factory import create_api_app
 from app.webhook import create_webhook_app
 

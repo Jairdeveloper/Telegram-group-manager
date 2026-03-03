@@ -1,10 +1,12 @@
 import os
 
+import pytest
 from fastapi.testclient import TestClient
 
 os.environ["DEDUP_TTL"] = "86400"
 
-import telegram_webhook_prod as twp
+import app.webhook.entrypoint as twp
+from app.webhook.infrastructure import InMemoryDedupStore
 
 
 def _sample_update(update_id: int = 1):
@@ -15,6 +17,11 @@ def _sample_update(update_id: int = 1):
             "text": "hola",
         },
     }
+
+
+@pytest.fixture(autouse=True)
+def _force_inmemory_dedup(monkeypatch):
+    monkeypatch.setattr(twp, "DEDUP_STORE", InMemoryDedupStore(memory_store=set()))
 
 
 def test_webhook_rejects_invalid_token(monkeypatch):
@@ -36,9 +43,6 @@ def test_webhook_accepts_valid_token_and_processes(monkeypatch):
         assert update["message"]["chat"]["id"] == 12345
 
     monkeypatch.setattr(twp, "process_update_sync", fake_process)
-    if hasattr(twp.dedup_update, "_seen"):
-        twp.dedup_update._seen.clear()
-
     client = TestClient(twp.app)
     response = client.post("/webhook/valid-token", json=_sample_update(update_id=10))
 
@@ -58,9 +62,6 @@ def test_webhook_deduplicates_update_id(monkeypatch):
         calls["count"] += 1
 
     monkeypatch.setattr(twp, "process_update_sync", fake_process)
-    if hasattr(twp.dedup_update, "_seen"):
-        twp.dedup_update._seen.clear()
-
     client = TestClient(twp.app)
     payload = _sample_update(update_id=77)
 
@@ -111,9 +112,6 @@ def test_webhook_chat_api_exception_returns_ok_and_internal_error_reply(monkeypa
     monkeypatch.setattr(twp, "CHAT_API_CLIENT", _ChatApiRaises())
     telegram = _TelegramRecorder()
     monkeypatch.setattr(twp, "TELEGRAM_CLIENT", telegram)
-    if hasattr(twp.dedup_update, "_seen"):
-        twp.dedup_update._seen.clear()
-
     client = TestClient(twp.app)
     response = client.post("/webhook/valid-token", json=_sample_update(update_id=81))
 
@@ -129,9 +127,6 @@ def test_webhook_chat_api_non_200_path_returns_ok_and_chat_api_error_reply(monke
     monkeypatch.setattr(twp, "CHAT_API_CLIENT", _ChatApiReturnsError())
     telegram = _TelegramRecorder()
     monkeypatch.setattr(twp, "TELEGRAM_CLIENT", telegram)
-    if hasattr(twp.dedup_update, "_seen"):
-        twp.dedup_update._seen.clear()
-
     client = TestClient(twp.app)
     response = client.post("/webhook/valid-token", json=_sample_update(update_id=82))
 
@@ -146,9 +141,6 @@ def test_webhook_telegram_send_failure_still_returns_ok(monkeypatch):
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
     monkeypatch.setattr(twp, "CHAT_API_CLIENT", _ChatApiReturnsError())
     monkeypatch.setattr(twp, "TELEGRAM_CLIENT", _TelegramRecorder(should_raise=True))
-    if hasattr(twp.dedup_update, "_seen"):
-        twp.dedup_update._seen.clear()
-
     client = TestClient(twp.app)
     response = client.post("/webhook/valid-token", json=_sample_update(update_id=83))
 
