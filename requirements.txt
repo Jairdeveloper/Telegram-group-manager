@@ -11,7 +11,7 @@ pydantic-settings
 pgvector
 psycopg2-binary
 redis
-rq
+rq<2
 prometheus-client
 pytest
 python-dotenv
