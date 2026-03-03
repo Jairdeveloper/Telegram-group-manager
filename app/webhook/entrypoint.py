@@ -1,77 +1,31 @@
 """Canonical webhook entrypoint (composition root)."""
 
-import logging
 from typing import Any, Dict
 
-from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
-from app.config.settings import load_webhook_settings
 from app.webhook.handlers import dedup_update_impl, handle_webhook_impl, process_update_impl
-from app.webhook.infrastructure import (
-    InMemoryDedupStore,
-    RedisDedupStore,
-    RequestsChatApiClient,
-    RequestsTelegramClient,
-    RqTaskQueue,
-)
+from app.webhook.infrastructure import InMemoryDedupStore
+from app.webhook.bootstrap import build_webhook_runtime
 from webhook_tasks import process_update as process_update_task
 
-try:
-    from redis import Redis
-    from rq import Queue
-except Exception:
-    Redis = None
-    Queue = None
+runtime = build_webhook_runtime(process_update_callable=process_update_task)
 
-load_dotenv()
-
-# Logging
-LOGGER = logging.getLogger("telegram_webhook")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-
-# Settings
-WEBHOOK_SETTINGS = load_webhook_settings()
-BOT_TOKEN = WEBHOOK_SETTINGS.telegram_bot_token
-CHATBOT_API_URL = WEBHOOK_SETTINGS.chatbot_api_url
-REDIS_URL = WEBHOOK_SETTINGS.redis_url
-PROCESS_ASYNC = WEBHOOK_SETTINGS.process_async
-DEDUP_TTL = WEBHOOK_SETTINGS.dedup_ttl
-QUEUE_NAME = "telegram_tasks"
-
-redis_client = None
-rq_queue = None
-if REDIS_URL and Redis is not None:
-    redis_client = Redis.from_url(REDIS_URL)
-    if Queue is not None:
-        rq_queue = Queue(QUEUE_NAME, connection=redis_client)
-
-# Infrastructure adapters
-CHAT_API_CLIENT = RequestsChatApiClient(chat_api_url=CHATBOT_API_URL)
-TELEGRAM_CLIENT = RequestsTelegramClient(bot_token=BOT_TOKEN or "")
-if redis_client is not None:
-    DEDUP_STORE = RedisDedupStore(redis_client=redis_client)
-else:
-    _SEEN = set()
-    DEDUP_STORE = InMemoryDedupStore(memory_store=_SEEN)
-TASK_QUEUE = (
-    RqTaskQueue(queue=rq_queue, process_update_callable=process_update_task)
-    if rq_queue is not None
-    else None
-)
-
-# Backward-compatible alias used by legacy wrappers.
+# Re-exported runtime state (kept mutable for tests/legacy wrappers).
+LOGGER = runtime.logger
+BOT_TOKEN = runtime.bot_token
+CHATBOT_API_URL = runtime.chatbot_api_url
+PROCESS_ASYNC = runtime.process_async
+DEDUP_TTL = runtime.dedup_ttl
+DEDUP_STORE = runtime.dedup_store
+TASK_QUEUE = runtime.task_queue
+CHAT_API_CLIENT = runtime.chat_api_client
+TELEGRAM_CLIENT = runtime.telegram_client
+REQUESTS = runtime.requests_metric
+PROCESS_TIME = runtime.process_time_metric
 CHAT_API = CHATBOT_API_URL
-
-if PROCESS_ASYNC and TASK_QUEUE is None:
-    LOGGER.warning(
-        "PROCESS_ASYNC=true but async queue is unavailable; falling back to synchronous processing"
-    )
-
-REQUESTS = Counter("telegram_webhook_requests_total", "Total webhook requests", ["status"])
-PROCESS_TIME = Histogram("telegram_webhook_process_seconds", "Time spent processing webhook")
 
 app = FastAPI()
 
