@@ -1,10 +1,12 @@
 """Entrypoint for RQ worker (Docker / k8s)."""
-import os
 from redis import Redis
 from rq import Worker, Queue
 
-listen = ["telegram_tasks"]
-redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
+from app.config.settings import load_worker_settings
+
+WORKER_SETTINGS = load_worker_settings()
+listen = WORKER_SETTINGS.queue_names
+redis_url = WORKER_SETTINGS.redis_url
 conn = Redis.from_url(redis_url)
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ def test_webhook_rejects_invalid_token(monkeypatch):
 def test_webhook_accepts_valid_token_and_processes(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
-    monkeypatch.setattr(twp, "queue", None)
+    monkeypatch.setattr(twp, "TASK_QUEUE", None)
 
     calls = {"count": 0}
 
@@ -46,7 +46,7 @@ def test_webhook_accepts_valid_token_and_processes(monkeypatch):
 def test_webhook_deduplicates_update_id(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
-    monkeypatch.setattr(twp, "queue", None)
+    monkeypatch.setattr(twp, "TASK_QUEUE", None)
 
     calls = {"count": 0}
 
@@ -66,4 +66,3 @@ def test_webhook_deduplicates_update_id(monkeypatch):
     assert first.status_code == 200
     assert second.status_code == 200
     assert calls["count"] == 1
-

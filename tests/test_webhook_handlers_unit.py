@@ -3,6 +3,7 @@ import asyncio
 from fastapi import HTTPException
 
 from app.webhook.handlers import dedup_update_impl, handle_webhook_impl
+from app.webhook.infrastructure import InMemoryDedupStore
 
 
 class _DummyRequest:
@@ -41,9 +42,10 @@ class _DummyLogger:
 def test_dedup_update_impl_memory_store():
     seen = set()
     logger = _DummyLogger()
+    dedup_store = InMemoryDedupStore(memory_store=seen)
 
-    first = dedup_update_impl(100, redis_client=None, dedup_ttl=60, memory_store=seen, logger=logger)
-    second = dedup_update_impl(100, redis_client=None, dedup_ttl=60, memory_store=seen, logger=logger)
+    first = dedup_update_impl(100, dedup_store=dedup_store, dedup_ttl=60, logger=logger)
+    second = dedup_update_impl(100, dedup_store=dedup_store, dedup_ttl=60, logger=logger)
 
     assert first is True
     assert second is False
@@ -60,7 +62,7 @@ def test_handle_webhook_impl_rejects_invalid_token():
                 bot_token="valid",
                 dedup_update=lambda _update_id: True,
                 process_async=False,
-                queue=None,
+                task_queue=None,
                 process_update_sync=lambda _update: None,
                 requests_metric=metric,
                 logger=_DummyLogger(),

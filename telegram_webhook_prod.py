@@ -7,12 +7,9 @@ Features:
 - Supports synchronous fallback (no Redis)
 - Exposes /metrics for Prometheus
 """
-import os
 import logging
-import uuid
 from typing import Any, Dict
 
-import requests
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import PlainTextResponse
 
@@ -26,30 +23,49 @@ except Exception:
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 from dotenv import load_dotenv
+from app.config.settings import load_webhook_settings
 from app.webhook.handlers import (
     dedup_update_impl,
     handle_webhook_impl,
-    process_update_sync_impl,
-    send_message_impl,
+    process_update_impl,
 )
+from app.webhook.infrastructure import (
+    InMemoryDedupStore,
+    RedisDedupStore,
+    RequestsChatApiClient,
+    RequestsTelegramClient,
+    RqTaskQueue,
+)
+from webhook_tasks import process_update as process_update_task
 
 load_dotenv()
 
 LOGGER = logging.getLogger("telegram_webhook")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_API = os.getenv("CHATBOT_API_URL", "http://127.0.0.1:8000/api/v1/chat")
-REDIS_URL = os.getenv("REDIS_URL")
-PROCESS_ASYNC = os.getenv("PROCESS_ASYNC", "true").lower() in ("1", "true", "yes")
-DEDUP_TTL = int(os.getenv("DEDUP_TTL", "86400"))
+WEBHOOK_SETTINGS = load_webhook_settings()
+BOT_TOKEN = WEBHOOK_SETTINGS.telegram_bot_token
+CHAT_API = WEBHOOK_SETTINGS.chatbot_api_url
+REDIS_URL = WEBHOOK_SETTINGS.redis_url
+PROCESS_ASYNC = WEBHOOK_SETTINGS.process_async
+DEDUP_TTL = WEBHOOK_SETTINGS.dedup_ttl
+QUEUE_NAME = "telegram_tasks"
 
 redis_client = None
 queue = None
 if REDIS_URL and Redis is not None:
     redis_client = Redis.from_url(REDIS_URL)
     if Queue is not None:
-        queue = Queue("telegram_tasks", connection=redis_client)
+        queue = Queue(QUEUE_NAME, connection=redis_client)
+
+CHAT_API_CLIENT = RequestsChatApiClient(chat_api_url=CHAT_API)
+TELEGRAM_CLIENT = RequestsTelegramClient(bot_token=BOT_TOKEN or "")
+if redis_client is not None:
+    DEDUP_STORE = RedisDedupStore(redis_client=redis_client)
+else:
+    _SEEN = set()
+    DEDUP_STORE = InMemoryDedupStore(memory_store=_SEEN)
+TASK_QUEUE = RqTaskQueue(queue=queue, process_update_callable=process_update_task) if queue is not None else None
 
 # Metrics
 REQUESTS = Counter("telegram_webhook_requests_total", "Total webhook requests", ["status"])
@@ -60,33 +76,22 @@ app = FastAPI()
 
 def dedup_update(update_id: int) -> bool:
     """Return True if update is new (not duplicate)."""
-    if not hasattr(dedup_update, "_seen"):
-        dedup_update._seen = set()
+    if isinstance(DEDUP_STORE, InMemoryDedupStore):
+        dedup_update._seen = DEDUP_STORE.seen
     return dedup_update_impl(
         update_id,
-        redis_client=redis_client,
+        dedup_store=DEDUP_STORE,
         dedup_ttl=DEDUP_TTL,
-        memory_store=dedup_update._seen,
         logger=LOGGER,
     )
 
 
-def send_message(chat_id: int, text: str) -> Dict[str, Any]:
-    return send_message_impl(
-        bot_token=BOT_TOKEN,
-        chat_id=chat_id,
-        text=text,
-        requests_module=requests,
-    )
-
-
 def process_update_sync(update: Dict[str, Any]):
-    """Process an update synchronously: call Chat API and send reply via Telegram."""
-    process_update_sync_impl(
+    """Process an update synchronously using domain service."""
+    process_update_impl(
         update,
-        chat_api=CHAT_API,
-        send_message=send_message,
-        requests_module=requests,
+        chat_api_client=CHAT_API_CLIENT,
+        telegram_client=TELEGRAM_CLIENT,
         process_time_metric=PROCESS_TIME,
         logger=LOGGER,
     )
@@ -100,7 +105,7 @@ async def webhook(token: str, request: Request):
         bot_token=BOT_TOKEN,
         dedup_update=dedup_update,
         process_async=PROCESS_ASYNC,
-        queue=queue,
+        task_queue=TASK_QUEUE,
         process_update_sync=process_update_sync,
         requests_metric=REQUESTS,
         logger=LOGGER,

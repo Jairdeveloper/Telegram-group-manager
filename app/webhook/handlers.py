@@ -1,84 +1,67 @@
-"""Webhook business logic extracted from transport layer."""
+"""Webhook domain logic decoupled from infrastructure libraries."""
 
 import time
-import uuid
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from fastapi import HTTPException, Request
+
+from .ports import ChatApiClient, DedupStore, TaskQueue, TelegramClient
+
+
+def extract_chat_payload(update: Dict[str, Any]) -> Optional[Tuple[int, str]]:
+    """Extract chat_id/text from Telegram update."""
+    chat = update.get("message") or update.get("edited_message")
+    if not chat:
+        return None
+    return chat["chat"]["id"], chat.get("text", "")
 
 
 def dedup_update_impl(
     update_id: int,
     *,
-    redis_client,
+    dedup_store: DedupStore,
     dedup_ttl: int,
-    memory_store: set,
     logger,
 ) -> bool:
     """Return True if update is new; False if duplicate."""
-    key = f"tg:update:{update_id}"
     try:
-        if redis_client:
-            added = redis_client.setnx(key, "1")
-            if added:
-                redis_client.expire(key, dedup_ttl)
-                return True
-            return False
-
-        if update_id in memory_store:
-            return False
-        memory_store.add(update_id)
-        return True
+        return dedup_store.mark_if_new(update_id=update_id, ttl_seconds=dedup_ttl)
     except Exception:
         logger.exception("Dedup check failed")
         return True
 
 
-def send_message_impl(*, bot_token: str, chat_id: int, text: str, requests_module) -> Dict[str, Any]:
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = {"chat_id": chat_id, "text": text}
-    resp = requests_module.post(url, json=payload, timeout=10)
-    return {"status_code": resp.status_code, "text": resp.text}
-
-
-def process_update_sync_impl(
+def process_update_impl(
     update: Dict[str, Any],
     *,
-    chat_api: str,
-    send_message: Callable[[int, str], Dict[str, Any]],
-    requests_module,
-    process_time_metric,
+    chat_api_client: ChatApiClient,
+    telegram_client: TelegramClient,
     logger,
+    process_time_metric=None,
 ) -> None:
-    """Process an update synchronously by querying Chat API and replying in Telegram."""
+    """Process update by querying Chat API and sending Telegram response."""
     start = time.time()
-    chat = update.get("message") or update.get("edited_message")
-    if not chat:
+    payload = extract_chat_payload(update)
+    if not payload:
+        logger.info("No message to process")
         return
 
-    chat_id = chat["chat"]["id"]
-    text = chat.get("text", "")
+    chat_id, text = payload
     session_id = str(chat_id)
 
     try:
-        r = requests_module.post(
-            chat_api, params={"message": text, "session_id": session_id}, timeout=15
-        )
-        if r.status_code == 200:
-            data = r.json()
-            reply = data.get("response", "(no response)")
-        else:
-            reply = "(chat api error)"
+        reply = chat_api_client.ask(message=text, session_id=session_id)
     except Exception:
         logger.exception("Chat API call failed")
         reply = "(internal error)"
 
     try:
-        send_message(chat_id, reply)
+        telegram_client.send_message(chat_id=chat_id, text=reply)
     except Exception:
         logger.exception("Failed to send message to Telegram")
 
-    process_time_metric.observe(time.time() - start)
+    if process_time_metric is not None:
+        process_time_metric.observe(time.time() - start)
 
 
 async def handle_webhook_impl(
@@ -88,7 +71,7 @@ async def handle_webhook_impl(
     bot_token: Optional[str],
     dedup_update: Callable[[int], bool],
     process_async: bool,
-    queue,
+    task_queue: Optional[TaskQueue],
     process_update_sync: Callable[[Dict[str, Any]], None],
     requests_metric,
     logger,
@@ -110,12 +93,9 @@ async def handle_webhook_impl(
         return {"ok": True}
 
     try:
-        if process_async and queue is not None:
-            job = queue.enqueue(process_update_sync, update, job_id=str(uuid.uuid4()))
-            logger.info(
-                "Enqueued update",
-                extra={"job_id": getattr(job, "id", None), "update_id": update_id},
-            )
+        if process_async and task_queue is not None:
+            job_id = task_queue.enqueue_process_update(update=update)
+            logger.info("Enqueued update", extra={"job_id": job_id, "update_id": update_id})
         else:
             process_update_sync(update)
 
@@ -125,4 +105,3 @@ async def handle_webhook_impl(
         logger.exception("Failed handling update")
         requests_metric.labels(status="error").inc()
         return {"ok": True}
-
