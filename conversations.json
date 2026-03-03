@@ -109,6 +109,11 @@
       "timestamp": "2026-03-03T10:00:36.493388",
       "user": "hello",
       "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T10:21:35.732781",
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you"
     }
   ],
   "e998aa0f": [
@@ -130,6 +135,21 @@
       "timestamp": "2026-03-02T16:16:57.651245",
       "user": "hola",
       "bot": "That's interesting, tell me more"
+    },
+    {
+      "timestamp": "2026-03-03T11:33:40.660415",
+      "user": "hola",
+      "bot": "That's interesting, tell me more"
+    },
+    {
+      "timestamp": "2026-03-03T13:01:37.097371",
+      "user": "hola",
+      "bot": "That's interesting, tell me more"
+    },
+    {
+      "timestamp": "2026-03-03T13:41:19.105187",
+      "user": "hola",
+      "bot": "I understand. What else?"
     }
   ],
   "999": [
@@ -137,6 +157,31 @@
       "timestamp": "2026-03-02T16:17:41.067748",
       "user": "hola",
       "bot": "I see. Could you elaborate?"
+    },
+    {
+      "timestamp": "2026-03-03T11:34:58.021575",
+      "user": "hola",
+      "bot": "I see. Could you elaborate?"
+    },
+    {
+      "timestamp": "2026-03-03T11:43:04.257211",
+      "user": "hola",
+      "bot": "That's a great point"
+    },
+    {
+      "timestamp": "2026-03-03T13:01:57.122529",
+      "user": "hola",
+      "bot": "I see. Could you elaborate?"
+    },
+    {
+      "timestamp": "2026-03-03T13:02:59.081395",
+      "user": "hola ext",
+      "bot": "That's a great point"
+    },
+    {
+      "timestamp": "2026-03-03T13:42:05.047616",
+      "user": "hola from ext",
+      "bot": "In other words, you're saying...?"
     }
   ],
   "-5264029543": [
@@ -152,6 +197,61 @@
     },
     {
       "timestamp": "2026-03-02T17:01:06.405512",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T11:33:49.172962",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T11:33:49.414437",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T11:40:53.739832",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T12:59:55.547605",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T13:06:26.425839",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T13:07:55.710937",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T13:15:34.027878",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T13:39:14.649271",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T13:40:33.522709",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T13:47:08.738624",
+      "user": "Hello",
+      "bot": "Hello! It's nice to meet you"
+    },
+    {
+      "timestamp": "2026-03-03T14:34:10.226759",
       "user": "Hello",
       "bot": "Hello! It's nice to meet you"
     }
@@ -186,6 +286,13 @@
       "timestamp": "2026-03-02T17:53:43.373005",
       "user": "nice too meet you to",
       "bot": "That's a great point"
+    }
+  ],
+  "test_async_compose": [
+    {
+      "timestamp": "2026-03-03T14:19:37.650365",
+      "user": "hola",
+      "bot": "Can you give me an example?"
     }
   ]
 }

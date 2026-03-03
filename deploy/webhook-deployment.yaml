@@ -18,6 +18,7 @@ spec:
         - name: telegram-webhook
           image: registry/your-chatbot-image:latest
           imagePullPolicy: IfNotPresent
+          command: ["uvicorn", "app.webhook.entrypoint:app", "--host", "0.0.0.0", "--port", "80", "--timeout-keep-alive", "30", "--timeout-graceful-shutdown", "30"]
           ports:
             - containerPort: 80
           env:

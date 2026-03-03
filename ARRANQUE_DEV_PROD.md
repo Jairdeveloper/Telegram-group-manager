@@ -26,6 +26,14 @@ API_PORT=8000
 LOG_LEVEL=INFO
 ```
 
+Para local sin Docker Compose, usa:
+
+```env
+REDIS_URL=redis://127.0.0.1:6379/0
+```
+
+`redis://redis:6379/0` aplica cuando el webhook/worker corren dentro de la red de Docker Compose.
+
 ## 3. Modo Dev (local)
 
 ### 3.1 Validar tests antes de arrancar
@@ -48,7 +56,7 @@ API disponible en:
 ### 3.3 Levantar webhook (otra terminal)
 
 ```bash
-uvicorn telegram_webhook_prod:app --host 0.0.0.0 --port 80
+uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 80 --timeout-keep-alive 30 --timeout-graceful-shutdown 30
 ```
 
 Webhook disponible en:
@@ -81,10 +89,32 @@ docker compose up --build
 Con dominio publico y TLS:
 
 ```bash
-python set_webhook_prod.py set https://<tu-dominio>/webhook/<TELEGRAM_BOT_TOKEN>
+
+$env:TELEGRAM_BOT_TOKEN=(Get-Content .env | ? { $_ -like 'TELEGRAM_BOT_TOKEN=*' } | % { $_.Split('=')[1] })
+python set_webhook_prod.py set "https://sulkiest-unworkmanlike-shondra.ngrok-free.dev/webhook/$env:TELEGRAM_BOT_TOKEN"
+
 ```
 
+### 4.4 Auto-sync webhook con ngrok (cambio de URL)
+
+Cuando ngrok cambia la URL publica, ejecuta:
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/sync_ngrok_webhook.ps1
+```
+
+El script:
+- lee la URL HTTPS activa desde `http://127.0.0.1:4040/api/tunnels`
+- construye `/webhook/<TELEGRAM_BOT_TOKEN>`
+- ejecuta `setWebhook` y valida `getWebhookInfo`
+
 ## 5. Pruebas rapidas de contrato
+
+### 5.0 webhook state
+```bash
+curl "https://api.telegram.org/bot$env:TELEGRAM_BOT_TOKEN/getWebhookInfo"
+
+ ```
 
 ### 5.1 API chat
 
@@ -105,3 +135,12 @@ Esperado: `403 Invalid token`.
 - Si falla import/config: revisa `.env` y `app/config/settings.py`.
 - Si webhook no procesa en async: valida `REDIS_URL` y que `worker.py` este corriendo.
 - Si Telegram no entrega updates: revisar `set_webhook_prod.py`, dominio publico y certificado TLS.
+
+## 7. Canonical entrypoints (Fase 4)
+
+- Webhook canónico: `app.webhook.entrypoint:app`
+- API canónica: `app.api.entrypoint:app`
+- Legacy temporal de compatibilidad:
+  - `telegram_webhook_prod.py`
+  - `telegram_webhook.py`
+  - `chatbot_monolith.py`

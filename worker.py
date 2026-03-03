@@ -1,6 +1,13 @@
 """Entrypoint for RQ worker (Docker / k8s)."""
+import sys
+
 from redis import Redis
-from rq import Worker, Queue
+try:
+    from rq import Worker, Queue
+except Exception as exc:
+    print(f"Failed to import RQ worker runtime: {exc}")
+    print("Install compatible dependencies and run worker in a supported runtime (recommended: Docker/Linux).")
+    sys.exit(1)
 
 from app.config.settings import load_worker_settings
 

@@ -31,7 +31,7 @@ Por eso: en producción preferimos webhooks; para desarrollo y pruebas rápidas,
 ## 4) Cómo los usamos aquí (arquitectura y flujo)
 
 1. Telegram envía un POST a `https://<your-domain>/webhook/<BOT_TOKEN>` configurado mediante `setWebhook`.
-2. `telegram_webhook.py` (FastAPI) recibe la petición y valida el token en la ruta (y opcionalmente cabeceras o firma).
+2. `app.webhook.entrypoint` (FastAPI) recibe la petición y valida el token en la ruta (y opcionalmente cabeceras o firma).
 3. El adapter extrae `chat_id` y `text` y reenvía la entrada al Chat API interno (`/api/v1/chat`) para procesamiento por el `Agent`.
 4. Para respuestas rápidas, el adapter puede:
    - Llamar a `/api/v1/chat` y, cuando obtenga la respuesta, invocar `sendMessage` de la API de Telegram para publicar la respuesta.
@@ -68,7 +68,7 @@ Recomendaciones concretas para producción:
 
 ## 8) Implementación recomendada para este proyecto
 
-1. En contenedores: desplegar `telegram_webhook.py` (FastAPI) detrás de un Ingress con TLS y autenticar la ruta con el `BOT_TOKEN`.
+1. En contenedores: desplegar `app.webhook.entrypoint:app` (FastAPI) detrás de un Ingress con TLS y autenticar la ruta con el `BOT_TOKEN`.
 2. Ingress + cert-manager: ejemplo de anotaciones para cert-manager (NGINX ingress):
 
 ```yaml
@@ -108,7 +108,8 @@ Nota: configura la ruta final `/webhook/<BOT_TOKEN>` con la misma configuración
 
 ## 10) Cómo usar las utilidades del repo
 
-- `telegram_webhook.py`: adaptador webhook (FastAPI). Desplegar este servicio accesible por HTTPS.
+- `app.webhook.entrypoint:app`: entrypoint canónico del webhook (FastAPI).
+- `telegram_webhook.py` y `telegram_webhook_prod.py`: wrappers legacy de compatibilidad.
 - `set_telegram_webhook.py`: script para hacer `setWebhook` con la URL pública.
 - `telegram_adapter.py`: implementación de long-polling para desarrollo — no usar en producción.
 
@@ -120,7 +121,7 @@ Ejemplo rápido de registro del webhook (local con ngrok):
 python chatbot_monolith.py --mode api
 
 # terminal B
-uvicorn telegram_webhook:app --host 0.0.0.0 --port 8001
+uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 8001
 ```
 2. Exponer con ngrok:
 ```bash
@@ -138,6 +139,7 @@ python set_telegram_webhook.py https://<ngrok-id>.ngrok.io/webhook/123:ABC
 - 401/403 en webhook: revisar token en la ruta y que `BOT_TOKEN` coincide.
 - Retries constantes: tu endpoint retorna error o tarda demasiado; devolver 200 rápido y procesar asíncronamente.
 - Mensajes duplicados: implementar deduplicación por `update_id`.
+- Worker async no inicia en local Windows: ejecutar en Docker/Linux para producción y asegurar `rq<2` instalado en entorno local.
 
 ---
 

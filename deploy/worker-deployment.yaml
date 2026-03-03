@@ -21,6 +21,8 @@ spec:
           env:
             - name: REDIS_URL
               value: redis://redis:6379/0
+            - name: CHATBOT_API_URL
+              value: http://chatapi:8000/api/v1/chat
             - name: TELEGRAM_BOT_TOKEN
               valueFrom:
                 secretKeyRef:
