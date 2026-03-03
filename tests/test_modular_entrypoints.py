@@ -1,4 +1,8 @@
+import os
+
 from fastapi.testclient import TestClient
+
+os.environ["DEDUP_TTL"] = "86400"
 
 import telegram_webhook_prod as twp
 from app.api.factory import create_api_app
@@ -49,8 +53,8 @@ def test_modular_api_factory_exposes_chat_route():
 
 def test_webhook_wrapper_returns_operational_app(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
-    monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
-    monkeypatch.setattr(twp, "queue", None)
+    monkeypatch.setattr(twp, "PROCESS_ASYNC", True)
+    monkeypatch.setattr(twp, "TASK_QUEUE", None)
     monkeypatch.setattr(twp, "process_update_sync", lambda update: None)
     if hasattr(twp.dedup_update, "_seen"):
         twp.dedup_update._seen.clear()

@@ -8,7 +8,8 @@ from app.config.settings import (
 )
 
 
-def test_webhook_settings_defaults(monkeypatch):
+def test_webhook_settings_defaults(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("CHATBOT_API_URL", raising=False)
     monkeypatch.delenv("PROCESS_ASYNC", raising=False)
     monkeypatch.delenv("DEDUP_TTL", raising=False)
@@ -37,7 +38,8 @@ def test_settings_parse_bool_and_int(monkeypatch):
     assert api_settings.api_port == 9001
 
 
-def test_webhook_required_token_validation(monkeypatch):
+def test_webhook_required_token_validation(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "")
     settings = WebhookSettings(telegram_bot_token="")
 
@@ -45,7 +47,8 @@ def test_webhook_required_token_validation(monkeypatch):
         settings.require_bot_token()
 
 
-def test_worker_settings_defaults(monkeypatch):
+def test_worker_settings_defaults(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("REDIS_URL", raising=False)
     monkeypatch.delenv("QUEUE_NAME", raising=False)
 
