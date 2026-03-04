@@ -118,7 +118,7 @@ Ejemplo rápido de registro del webhook (local con ngrok):
 1. Inicia API y webhook service localmente:
 ```powershell
 # terminal A
-python chatbot_monolith.py --mode api
+uvicorn app.api.entrypoint:app --host 0.0.0.0 --port 8000
 
 # terminal B
 uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 8001

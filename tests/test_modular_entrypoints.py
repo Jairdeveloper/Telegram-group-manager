@@ -1,11 +1,13 @@
 import os
 
+import pytest
 from fastapi.testclient import TestClient
 
 os.environ["DEDUP_TTL"] = "86400"
 
 import app.webhook.entrypoint as twp
 from app.api.factory import create_api_app
+from app.webhook.infrastructure import InMemoryDedupStore
 from app.webhook import create_webhook_app
 
 
@@ -33,6 +35,11 @@ class _DummyStorage:
 
     def get_history(self, session_id: str):
         return self.data.get(session_id, [])
+
+
+@pytest.fixture(autouse=True)
+def _force_inmemory_dedup(monkeypatch):
+    monkeypatch.setattr(twp, "DEDUP_STORE", InMemoryDedupStore(memory_store=set()))
 
 
 def test_modular_api_factory_exposes_chat_route():

@@ -30,9 +30,9 @@ pip install -r requirements.txt
 ```
 
 Ejecución MVP (local)
-1) Levantar la API (chat engine)
+1) Levantar la API (chat engine) usando entrypoint canonico
 ```bash
-python chatbot_monolith.py --mode api
+uvicorn app.api.entrypoint:app --host 0.0.0.0 --port 8000
 ```
 2) En otra terminal, iniciar el adapter de Telegram (long-polling)
 ```bash

@@ -45,13 +45,15 @@ pytest -q
 ### 3.2 Levantar API
 
 ```bash
-python chatbot_monolith.py --mode api
+uvicorn app.api.entrypoint:app --host 0.0.0.0 --port 8000
 ```
 
 API disponible en:
 - `http://127.0.0.1:8000`
 - Health: `GET /health`
 - Docs: `GET /docs`
+
+Nota: `chatbot_monolith.py --mode api` queda como compatibilidad legacy temporal, no como ruta operativa principal.
 
 ### 3.3 Levantar webhook (otra terminal)
 
