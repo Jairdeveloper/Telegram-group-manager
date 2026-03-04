@@ -1,6 +1,7 @@
 """Legacy compatibility wrapper for webhook runtime.
 
 Canonical source now lives in `app.webhook.entrypoint`.
+Do not add business logic here.
 """
 
 from app.webhook.entrypoint import (  # noqa: F401

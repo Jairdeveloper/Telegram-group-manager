@@ -75,7 +75,7 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
 
     if process_async and task_queue is None:
         logger.warning(
-            "PROCESS_ASYNC=true but async queue is unavailable; falling back to synchronous processing"
+            "webhook.async_queue_unavailable_on_startup"
         )
 
     requests_metric = Counter("telegram_webhook_requests_total", "Total webhook requests", ["status"])
