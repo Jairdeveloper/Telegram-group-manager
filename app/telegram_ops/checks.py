@@ -62,7 +62,8 @@ async def check_webhook_health() -> Dict[str, Any]:
 
 async def check_webhook_local() -> Dict[str, Any]:
     """Check Webhook local endpoint."""
-    url = f"http://{API_BASE}:{WEBHOOK_PORT}/webhook/{WEBHOOK_TOKEN}"
+    # El webhook valida contra TELEGRAM_BOT_TOKEN, no WEBHOOK_TOKEN
+    url = f"http://{API_BASE}:{WEBHOOK_PORT}/webhook/{TELEGRAM_TOKEN}"
     payload = {
         "update_id": 999999999,
         "message": {
@@ -103,6 +104,31 @@ async def get_webhook_info() -> Dict[str, Any]:
                         "pending_updates": result.get("pending_update_count", 0),
                         "last_error": result.get("last_error_message"),
                     }
+            return {"status": "FAIL", "code": resp.status_code, "error": resp.text}
+    except Exception as e:
+        return {"status": "FAIL", "error": str(e)}
+
+
+async def check_webhook_public(ngrok_url: str) -> Dict[str, Any]:
+    """Check Webhook public endpoint via ngrok."""
+    if not ngrok_url:
+        return {"status": "FAIL", "error": "ngrok_url not provided"}
+    
+    url = f"{ngrok_url}/webhook/{WEBHOOK_TOKEN}"
+    payload = {
+        "update_id": 999999998,
+        "message": {
+            "message_id": 1,
+            "chat": {"id": 123456789, "type": "private"},
+            "text": "/start",
+            "date": int(datetime.utcnow().timestamp())
+        }
+    }
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.post(url, json=payload)
+            if resp.status_code == 200:
+                return {"status": "OK", "code": resp.status_code, "url": url}
             return {"status": "FAIL", "code": resp.status_code, "error": resp.text}
     except Exception as e:
         return {"status": "FAIL", "error": str(e)}

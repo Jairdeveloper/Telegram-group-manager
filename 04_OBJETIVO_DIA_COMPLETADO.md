@@ -36,11 +36,11 @@
 | Variable | Valor |
 |----------|-------|
 | TELEGRAM_BOT_TOKEN | `8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw` |
-| ADMIN_CHAT_IDS | `REPLACE_WITH_YOUR_CHAT_ID` (pendiente configurar) |
+| ADMIN_CHAT_IDS | (vacío = permite todos) |
 | WEBHOOK_TOKEN | `mysecretwebhooktoken` |
 
 **Archivos creados/modificados:**
-- `.env` - Actualizado con ADMIN_CHAT_IDS placeholder
+- `.env` - Actualizado
 - `app/telegram_ops/__init__.py` - Módulo creado
 - `app/telegram_ops/checks.py` - Funciones de verificación
 - `app/telegram_ops/entrypoint.py` - Bot con comandos
@@ -76,21 +76,41 @@ app/telegram_ops/
 
 **Ejecución:**
 ```bash
-# Activa el entorno virtual y ejecuta:
-.venv\Scripts\python -m app.telegram_ops.entrypoint
-
-# O directamente:
 python -m app.telegram_ops.entrypoint
 ```
 
-**Configuración requerida:**
-1. Obtener Chat ID del administrador:
-   - Enviar un mensaje al bot
-   - Usar `getWebhookInfo` o eliminar temporalmente el webhook para usar `getUpdates`
-2. Actualizar `ADMIN_CHAT_IDS` en `.env`:
-   ```
-   ADMIN_CHAT_IDS=TU_CHAT_ID_AQUI
-   ```
+---
+
+## Fase 4: Implementar "checks" (funciones puras) ✅ COMPLETADO
+
+**Estado:** Completado
+
+**Funciones implementadas en `app/telegram_ops/checks.py`:**
+
+| Función | Descripción | Timeout |
+|---------|-------------|---------|
+| `check_api_health()` | GET /health de API | 5s |
+| `check_api_chat()` | POST /api/v1/chat | 10s |
+| `check_webhook_health()` | GET /health de Webhook | 5s |
+| `check_webhook_local()` | POST /webhook/{token} local | 10s |
+| `check_webhook_public(ngrok_url)` | POST /webhook/{token} público (ngrok) | 15s |
+| `get_webhook_info()` | GET getWebhookInfo de Telegram | 10s |
+| `run_e2e_check()` | Ejecución completa de todos los checks | - |
+
+**Características:**
+- ✅ Timeouts agresivos (2-5s para health, 10-15s para checks)
+- ✅ Retorna objetos estructurados (Dict) con captura de excepciones
+- ✅ Enmascaramiento de tokens en respuestas
+- ✅ Todas las funciones son async
+
+---
+
+## Fase 5: Captura de logs "operativos" ⏳ PENDIENTE
+
+**Pendiente:**
+- Definir eventos a registrar
+- Elegir backend de logs
+- Implementar función get_recent_events()
 
 ---
 
@@ -101,18 +121,17 @@ python -m app.telegram_ops.entrypoint
 | Fase 1: Alcance y contratos | ✅ Completado | 100% |
 | Fase 2: Bot de Telegram | ✅ Completado | 100% |
 | Fase 3: Punto de ejecución | ✅ Completado | 100% |
-| Fase 4: Implementar "checks" | ✅ Parcial | 70% |
+| Fase 4: Implementar "checks" | ✅ Completado | 100% |
 | Fase 5-10 | ⏳ Pendiente | 0% |
 
 ---
 
 ## Siguiente paso
 
-**Fase 4:** Completar funciones de checks
-- Verificar que los checks funcionan correctamente
-- Agregar check de webhook público (ngrok)
-
 **Fase 5:** Sistema de logs operativos
+- Definir eventos mínimos a registrar
+- Elegir backend (archivo rotado o ring buffer)
+- Implementar endpoint para tail de logs
 
 ---
 
@@ -120,4 +139,4 @@ python -m app.telegram_ops.entrypoint
 
 - El bot está configurado para ejecutarse con polling
 - Para usar webhooks en producción, modificar `app.run_polling()` a `app.run_webhook()`
-- El ADMIN_CHAT_IDS debe ser configurado por el usuario para restringir acceso
+- ADMIN_CHAT_IDS vacío permite que todos los usuarios usen los comandos

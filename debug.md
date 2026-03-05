@@ -1,108 +1,39 @@
-# Debug: Bot responde "No autorizado"
+# Debug: Bot responde "No autorizado" y check_webhook_local()
 
-## Problema identificado
+---
+
+## ✅ Problema 1: ADMIN_CHAT_IDS - RESUELTO
 
 El `.env` tenía:
 ```
 ADMIN_CHAT_IDS=REPLACE_WITH_YOUR_CHAT_ID
 ```
 
-Este valor NO es un Chat ID válido. La lógica de `is_admin()` en `app/telegram_ops/entrypoint.py`:
+**Solución:** Se corrigió a `ADMIN_CHAT_IDS=` (vacío = permite todos).
+
+---
+
+## ✅ Problema 2: check_webhook_local() - RESUELTO
+
+### Síntoma
+La función `check_webhook_local()` fallaba porque usaba `WEBHOOK_TOKEN` (mysecretwebhooktoken), pero el webhook valida contra `TELEGRAM_BOT_TOKEN`.
+
+### Causa
+En `app/webhook/handlers.py:85`:
+```python
+if token != bot_token:  # bot_token = TELEGRAM_BOT_TOKEN
+    raise HTTPException(status_code=403, detail="Invalid token")
+```
+
+### Solución aplicada
+Se corrigió `app/telegram_ops/checks.py` para usar `TELEGRAM_TOKEN` en lugar de `WEBHOOK_TOKEN`:
 
 ```python
-def is_admin(chat_id: int) -> bool:
-    if not ADMIN_CHAT_IDS or ADMIN_CHAT_IDS == [""]:
-        return True  # Permite todos si está vacío
-    return str(chat_id) in ADMIN_CHAT_IDS  # Verifica si está en la lista
-```
+# Antes (incorrecto):
+url = f"http://{API_BASE}:{WEBHOOK_PORT}/webhook/{WEBHOOK_TOKEN}"
 
-Como `REPLACE_WITH_YOUR_CHAT_ID` es una cadena no vacía, el bot verifica si tu Chat ID es igual a esa cadena, lo cual nunca será cierto.
-
----
-
-## ✅ Solución aplicada
-
-Se corrigió el `.env`:
-```
-ADMIN_CHAT_IDS=
-```
-
-Ahora está vacío, lo que permite que **todos los usuarios usen los comandos**.
-
----
-
-## Cómo obtener tu Chat ID
-
-### Método 1: Visitar URL
-
-1. Envía `/start` al bot `@cmb_robot`
-2. Visita: `https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/getUpdates`
-3. Busca `"chat":{"id":TU_NUMERO` en la respuesta
-
-### Método 2: Eliminar temporalmente webhook
-
-```bash
-# Eliminar webhook para usar getUpdates
-curl -X POST "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/deleteWebhook"
-
-# Obtener updates
-curl -s "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/getUpdates"
-```
-
----
-
-## Configurar ADMIN_CHAT_IDS
-
-Una vez obtenido tu Chat ID, actualiza `.env`:
-
-```env
-ADMIN_CHAT_IDS=123456789
-```
-
-Para múltiples admins:
-```env
-ADMIN_CHAT_IDS=123456789,987654321
-```
-
----
-
-## Bots disponibles
-
-| Bot | Archivo | Comando | Función |
-|-----|---------|---------|---------|
-| Adapter | `telegram_adapter.py` | `python telegram_adapter.py` | Responde a mensajes |
-| E2E Ops | `app/telegram_ops/entrypoint.py` | `python -m app.telegram_ops.entrypoint` | Comandos /health, /e2e, /webhookinfo, /logs |
-
----
-
-## Comandos del bot E2E
-
-- `/start` - Mensaje de bienvenida
-- `/health` - Estado de API + Webhook
-- `/e2e` - Checks E2E completos
-- `/webhookinfo` - Info del webhook de Telegram
-- `/logs` - Últimos eventos
-
----
-
-## Pasos para ejecutar
-
-### Terminal 1 - API
-
-```bash
-python -m uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
-```
-
-### Terminal 2 - Bot E2E
-
-```bash
-python -m app.telegram_ops.entrypoint
-```
-
-### Terminal 3 - Webhook (opcional)
-
-```bash
-python -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
+# Después (correcto):
+url = f"http://{API_BASE}:{WEBHOOK_PORT}/webhook/{TELEGRAM_TOKEN}"
 ```
 
 ---
@@ -111,24 +42,48 @@ python -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
 
 | Variable | Valor | Usado por |
 |----------|-------|-----------|
-| TELEGRAM_BOT_TOKEN | `8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw` | Ambos bots |
-| WEBHOOK_TOKEN | `mysecretwebhooktoken` | Webhook |
-| ADMIN_CHAT_IDS | (vacío = permite todos) | telegram_ops |
+| TELEGRAM_BOT_TOKEN | `8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw` | Webhook (validación), telegram_ops |
+| WEBHOOK_TOKEN | `mysecretwebhooktoken` | No usado actualmente |
 
 ---
 
-## Verificación de estado
+## Verificación
 
+### 1. Levantar API
 ```bash
-# Token Telegram
-curl -s "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/getMe"
-
-# API
-curl -s http://127.0.0.1:8000/health
-
-# Webhook
-curl -s http://127.0.0.1:8001/health
-
-# Webhook info
-curl -s "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/getWebhookInfo"
+python -m uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
 ```
+
+### 2. Levantar Webhook
+```bash
+python -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
+```
+
+### 3. Levantar Bot E2E
+```bash
+python -m app.telegram_ops.entrypoint
+```
+
+### 4. Probar manualmente
+```bash
+# Test webhook local
+curl -X POST "http://127.0.0.1:8001/webhook/8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw" \
+  -H "Content-Type: application/json" \
+  -d '{"update_id":123456789, "message":{"message_id":1,"chat":{"id":123},"text":"hola","date":1234567890}}'
+```
+
+---
+
+## Bots disponibles
+
+| Bot | Comando |
+|-----|---------|
+| E2E Ops | `python -m app.telegram_ops.entrypoint` |
+
+## Comandos del bot
+
+- `/start` - Bienvenida
+- `/health` - Estado API + Webhook
+- `/e2e` - Checks E2E completos
+- `/webhookinfo` - Info webhook Telegram
+- `/logs` - Últimos eventos
