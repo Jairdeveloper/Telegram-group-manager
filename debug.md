@@ -1,171 +1,134 @@
-# Debug: Bot no responde y endpoints responden "No autorizado"
+# Debug: Bot responde "No autorizado"
 
-## Estado de las pruebas de debug
+## Problema identificado
 
-### ✅ 1. Token de Telegram verificado
-
-```json
-{"ok":true,"result":{"id":8588716358,"is_bot":true,"first_name":"manager-bot","username":"cmb_robot"}}
+El `.env` tenía:
+```
+ADMIN_CHAT_IDS=REPLACE_WITH_YOUR_CHAT_ID
 ```
 
-**Resultado:** Token válido, bot activo.
+Este valor NO es un Chat ID válido. La lógica de `is_admin()` en `app/telegram_ops/entrypoint.py`:
+
+```python
+def is_admin(chat_id: int) -> bool:
+    if not ADMIN_CHAT_IDS or ADMIN_CHAT_IDS == [""]:
+        return True  # Permite todos si está vacío
+    return str(chat_id) in ADMIN_CHAT_IDS  # Verifica si está en la lista
+```
+
+Como `REPLACE_WITH_YOUR_CHAT_ID` es una cadena no vacía, el bot verifica si tu Chat ID es igual a esa cadena, lo cual nunca será cierto.
 
 ---
 
-### ❌ 2. API no está corriendo
+## ✅ Solución aplicada
 
-```bash
-curl -s http://127.0.0.1:8000/health
-# Resultado: Connection refused
+Se corrigió el `.env`:
+```
+ADMIN_CHAT_IDS=
 ```
 
-**Solución:** Levantar la API:
+Ahora está vacío, lo que permite que **todos los usuarios usen los comandos**.
+
+---
+
+## Cómo obtener tu Chat ID
+
+### Método 1: Visitar URL
+
+1. Envía `/start` al bot `@cmb_robot`
+2. Visita: `https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/getUpdates`
+3. Busca `"chat":{"id":TU_NUMERO` en la respuesta
+
+### Método 2: Eliminar temporalmente webhook
+
 ```bash
-python -m uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
+# Eliminar webhook para usar getUpdates
+curl -X POST "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/deleteWebhook"
+
+# Obtener updates
+curl -s "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/getUpdates"
 ```
 
 ---
 
-### ❌ 3. Webhook no está corriendo
+## Configurar ADMIN_CHAT_IDS
 
-```bash
-curl -s http://127.0.0.1:8001/health
-# Resultado: Connection refused
+Una vez obtenido tu Chat ID, actualiza `.env`:
+
+```env
+ADMIN_CHAT_IDS=123456789
 ```
 
-**Solución:** Levantar el webhook:
-```bash
-python -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
+Para múltiples admins:
+```env
+ADMIN_CHAT_IDS=123456789,987654321
 ```
 
 ---
 
-### ✅ 4. Webhook de Telegram NO configurado
+## Bots disponibles
 
-```json
-{"ok":true,"result":{"url":"","has_custom_certificate":false,"pending_update_count":0}}
-```
+| Bot | Archivo | Comando | Función |
+|-----|---------|---------|---------|
+| Adapter | `telegram_adapter.py` | `python telegram_adapter.py` | Responde a mensajes |
+| E2E Ops | `app/telegram_ops/entrypoint.py` | `python -m app.telegram_ops.entrypoint` | Comandos /health, /e2e, /webhookinfo, /logs |
 
-**Resultado:** No hay webhook configurado - el bot funciona en modo polling.
+---
+
+## Comandos del bot E2E
+
+- `/start` - Mensaje de bienvenida
+- `/health` - Estado de API + Webhook
+- `/e2e` - Checks E2E completos
+- `/webhookinfo` - Info del webhook de Telegram
+- `/logs` - Últimos eventos
 
 ---
 
 ## Pasos para ejecutar
 
-### Paso 1: Levantar la API
+### Terminal 1 - API
 
 ```bash
-# Terminal 1
 python -m uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
 ```
 
-Verificar:
-```bash
-curl -s http://127.0.0.1:8000/health
-# Debe responder: {"status":"ok"}
-```
-
-### Paso 2: Levantar el bot (polling)
+### Terminal 2 - Bot E2E
 
 ```bash
-# Terminal 2
-python telegram_adapter.py
+python -m app.telegram_ops.entrypoint
 ```
 
-Ver logs:
-```
-INFO: Started Telegram adapter (python-telegram-bot, long-polling)
-```
+### Terminal 3 - Webhook (opcional)
 
-### Paso 3: Probar el bot
-
-1. Enviar `/start` al bot `@cmb_robot`
-2. El bot debe responder
-
----
-
-## Troubleshooting adicional
-
-### Si el bot no responde después de levantar
-
-1. **Verificar que no hay conflicto de webhook:**
-   ```bash
-   curl -X POST "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/deleteWebhook"
-   ```
-
-2. **Verificar que el adapter tiene el token correcto:**
-   ```bash
-   grep -n "TELEGRAM_TOKEN" telegram_adapter.py
-   # Debe mostrar: 8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw
-   ```
-
-3. **Verificar la API:**
-   ```bash
-   curl -X POST "http://127.0.0.1:8000/api/v1/chat?message=hola&session_id=test"
-   ```
-
----
-
-## Diagrama de flujo
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     MODO POLLING                             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Telegram ──► Bot (@cmb_robot) ──► telegram_adapter.py    │
-│                    (run_polling)    │                        │
-│                                       ▼                        │
-│                               API (puerto 8000)              │
-│                               /api/v1/chat                   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                     MODO WEBHOOK                            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Telegram ──► Internet ──► ngrok (8001) ──► webhook        │
-│                    (webhook URL)        app (puerto 8001)   │
-│                                       │                        │
-│                                       ▼                        │
-│                               API (puerto 8000)              │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```bash
+python -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
 ```
 
 ---
 
 ## Tabla de tokens
 
-| Variable | Valor correcto | Usado por |
-|----------|---------------|-----------|
-| TELEGRAM_BOT_TOKEN | `8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw` | telegram_adapter.py, webhook (validación) |
-| WEBHOOK_TOKEN | `mysecretwebhooktoken` | No usado actualmente (ver Issue #1) |
-| ADMIN_CHAT_IDS | Tu Chat ID | telegram_ops (solo para comandos) |
+| Variable | Valor | Usado por |
+|----------|-------|-----------|
+| TELEGRAM_BOT_TOKEN | `8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw` | Ambos bots |
+| WEBHOOK_TOKEN | `mysecretwebhooktoken` | Webhook |
+| ADMIN_CHAT_IDS | (vacío = permite todos) | telegram_ops |
 
 ---
 
-## Issue #1: WEBHOOK_TOKEN no se usa
-
-**Problema:** El `.env` tiene `WEBHOOK_TOKEN=mysecretwebhooktoken` pero el código del webhook valida contra `TELEGRAM_BOT_TOKEN`.
-
-**Solución implementada:** Corregido el código para usar `WEBHOOK_TOKEN` en validación.
-
----
-
-## Comandos completos de arranque
+## Verificación de estado
 
 ```bash
-# Terminal 1 - API
-python -m uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
+# Token Telegram
+curl -s "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/getMe"
 
-# Terminal 2 - Bot (polling)
-python telegram_adapter.py
+# API
+curl -s http://127.0.0.1:8000/health
 
-# Terminal 3 - Webhook (opcional, solo si usas webhook)
-python -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
+# Webhook
+curl -s http://127.0.0.1:8001/health
 
-# Terminal 4 - ngrok (si usas webhook)
-ngrok http 8001
+# Webhook info
+curl -s "https://api.telegram.org/bot8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw/getWebhookInfo"
 ```
