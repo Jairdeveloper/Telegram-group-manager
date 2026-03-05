@@ -15,3 +15,4 @@ rq<2
 prometheus-client
 pytest
 python-dotenv
+greenlet==2.0.2

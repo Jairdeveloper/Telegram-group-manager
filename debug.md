@@ -1,89 +1,70 @@
-# Debug: Bot responde "No autorizado" y check_webhook_local()
+# Debug: Aplicación/Bot no responde
+
+## Estado: ⏳ EN PROGRESO
+
+### Archivos de debug por fase
+
+| Fase | Archivo | Estado |
+|------|---------|--------|
+| Fase 0 | debug/00_debug.md | ✅ Completado |
+| Fase 1 | debug/01_debug.md | ⏳ Pendiente ejecutar |
 
 ---
 
-## ✅ Problema 1: ADMIN_CHAT_IDS - RESUELTO
+## Resumen de problemas identificados
 
-El `.env` tenía:
-```
-ADMIN_CHAT_IDS=REPLACE_WITH_YOUR_CHAT_ID
-```
-
-**Solución:** Se corrigió a `ADMIN_CHAT_IDS=` (vacío = permite todos).
+### Problemas resueltos
+| Problema | Solución |
+|----------|----------|
+| ADMIN_CHAT_IDS inválido | Cambiado a vacío (permite todos) |
+| check_webhook_local() usaba WEBHOOK_TOKEN | Corregido a TELEGRAM_TOKEN |
+| WEBHOOK_PORT=8443 | Corregido a 8001 |
 
 ---
 
-## ✅ Problema 2: check_webhook_local() - RESUELTO
+## Ejecución de Debug
 
-### Síntoma
-La función `check_webhook_local()` fallaba porque usaba `WEBHOOK_TOKEN` (mysecretwebhooktoken), pero el webhook valida contra `TELEGRAM_BOT_TOKEN`.
+### Paso 1: Ejecutar comandos en Terminal
 
-### Causa
-En `app/webhook/handlers.py:85`:
-```python
-if token != bot_token:  # bot_token = TELEGRAM_BOT_TOKEN
-    raise HTTPException(status_code=403, detail="Invalid token")
+Los servicios deben estar corriendo. Ver `debug/01_debug.md` para detalles.
+
+### Resumen de comandos:
+
+```powershell
+# Terminal 1: API
+.\.venv\Scripts\python.exe -m uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
+
+# Terminal 2: Webhook
+.\.venv\Scripts\python.exe -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
+
+# Terminal 3: Bot
+.\.venv\Scripts\python.exe -m app.telegram_ops.entrypoint
 ```
 
-### Solución aplicada
-Se corrigió `app/telegram_ops/checks.py` para usar `TELEGRAM_TOKEN` en lugar de `WEBHOOK_TOKEN`:
+### Paso 2: Verificar
 
-```python
-# Antes (incorrecto):
-url = f"http://{API_BASE}:{WEBHOOK_PORT}/webhook/{WEBHOOK_TOKEN}"
-
-# Después (correcto):
-url = f"http://{API_BASE}:{WEBHOOK_PORT}/webhook/{TELEGRAM_TOKEN}"
+```bash
+curl http://127.0.0.1:8000/health  # Debe dar {"status":"ok"}
+curl http://127.0.0.1:8001/health  # Debe dar {"status":"ok"}
 ```
 
 ---
 
 ## Tabla de tokens
 
-| Variable | Valor | Usado por |
-|----------|-------|-----------|
-| TELEGRAM_BOT_TOKEN | `8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw` | Webhook (validación), telegram_ops |
-| WEBHOOK_TOKEN | `mysecretwebhooktoken` | No usado actualmente |
+| Variable | Valor |
+|----------|-------|
+| TELEGRAM_BOT_TOKEN | 8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw |
+| WEBHOOK_TOKEN | mysecretwebhooktoken |
+| ADMIN_CHAT_IDS | (vacío = permite todos) |
 
 ---
 
-## Verificación
+## Si sigue sin funcionar
 
-### 1. Levantar API
-```bash
-python -m uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
-```
+1. Verificar que el entorno virtual tiene las dependencias:
+   ```bash
+   .\.venv\Scripts\pip.exe install -r requirements.txt
+   ```
 
-### 2. Levantar Webhook
-```bash
-python -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
-```
-
-### 3. Levantar Bot E2E
-```bash
-python -m app.telegram_ops.entrypoint
-```
-
-### 4. Probar manualmente
-```bash
-# Test webhook local
-curl -X POST "http://127.0.0.1:8001/webhook/8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw" \
-  -H "Content-Type: application/json" \
-  -d '{"update_id":123456789, "message":{"message_id":1,"chat":{"id":123},"text":"hola","date":1234567890}}'
-```
-
----
-
-## Bots disponibles
-
-| Bot | Comando |
-|-----|---------|
-| E2E Ops | `python -m app.telegram_ops.entrypoint` |
-
-## Comandos del bot
-
-- `/start` - Bienvenida
-- `/health` - Estado API + Webhook
-- `/e2e` - Checks E2E completos
-- `/webhookinfo` - Info webhook Telegram
-- `/logs` - Últimos eventos
+2. Verificar que no hay errores en los logs de las terminales

@@ -114,7 +114,7 @@ async def check_webhook_public(ngrok_url: str) -> Dict[str, Any]:
     if not ngrok_url:
         return {"status": "FAIL", "error": "ngrok_url not provided"}
     
-    url = f"{ngrok_url}/webhook/{WEBHOOK_TOKEN}"
+    url = f"{ngrok_url}/webhook/{TELEGRAM_TOKEN}"
     payload = {
         "update_id": 999999998,
         "message": {

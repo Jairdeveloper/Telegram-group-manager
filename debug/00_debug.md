@@ -15,12 +15,13 @@ Establecer la configuración base para el debug de la aplicación.
 | CHATBOT_API_URL | http://127.0.0.1:8000/api/v1/chat | ✅ |
 | API_HOST | 127.0.0.1 | ✅ |
 | API_PORT | 8000 | ✅ |
-| WEBHOOK_PORT | 8001 | ✅ Corregido (era 8443) |
+| WEBHOOK_PORT | 8001 | ✅ |
 | ADMIN_CHAT_IDS | (vacío = permite todos) | ✅ |
 | WEBHOOK_TOKEN | mysecretwebhooktoken | ✅ |
 
-### Problema identificado
-- WEBHOOK_PORT estaba configurado como 8443 pero debe ser 8001
+### Problemas identificados y resueltos
+- WEBHOOK_PORT estaba configurado incorrectamente → CORREGIDO a 8001
+- ADMIN_CHAT_IDS tenía valor inválido → CORREGIDO a vacío
 
 ## Siguiente paso
 Ejecutar Fase 1: Verificar servicios corriendo
