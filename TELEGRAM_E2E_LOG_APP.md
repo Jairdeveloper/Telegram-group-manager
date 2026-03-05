@@ -10,7 +10,7 @@ Premisas del proyecto actual:
 
 ---
 
-## Fase: Alcance y contratos
+## Fase 1: Alcance y contratos
 
 Tareas:
 1. Definir qué significa “E2E OK”:
@@ -29,7 +29,7 @@ Tareas:
 
 ---
 
-## Fase: Bot de Telegram (credenciales y seguridad)
+## Fase 2: Bot de Telegram (credenciales y seguridad)
 
 Tareas:
 1. Crear bot con BotFather y guardar token en `.env`:
@@ -44,7 +44,7 @@ Tareas:
 
 ---
 
-## Fase: Punto de ejecución (dónde vive “la app”)
+## Fase 3: Punto de ejecución (dónde vive “la app”)
 
 Opción A (recomendada): servicio separado `telegram_ops` (proceso/servicio aparte).
 Tareas:
@@ -61,7 +61,7 @@ Tareas:
 
 ---
 
-## Fase: Implementar “checks” (funciones puras)
+## Fase 4: Implementar “checks” (funciones puras)
 
 Tareas:
 1. Implementar `check_api_health()`:
@@ -85,7 +85,7 @@ Notas:
 
 ---
 
-## Fase: Captura de logs “operativos” dentro del repo
+## Fase 5: Captura de logs “operativos” dentro del repo
 
 Objetivo: que el bot pueda responder “qué pasó” sin abrir consola.
 
@@ -104,7 +104,7 @@ Tareas:
 
 ---
 
-## Fase: Ejecución desde Telegram (comandos)
+## Fase 6: Ejecución desde Telegram (comandos)
 
 Tareas:
 1. Implementar parser de comandos:
@@ -121,7 +121,7 @@ Tareas:
 
 ---
 
-## Fase: Tunel y registro de webhook (ngrok)
+## Fase 7: Tunel y registro de webhook (ngrok)
 
 Tareas:
 1. Estándar local:
@@ -134,7 +134,7 @@ Tareas:
 
 ---
 
-## Fase: Modo async (opcional, cuando quieras volver a `PROCESS_ASYNC=true`)
+## Fase 8: Modo async (opcional, cuando quieras volver a `PROCESS_ASYNC=true`)
 
 Tareas:
 1. Levantar Redis local o vía Docker:
@@ -148,7 +148,7 @@ Tareas:
 
 ---
 
-## Fase: Runbook E2E (comandos exactos)
+## Fase 9: Runbook E2E (comandos exactos)
 
 Local (PowerShell):
 ```powershell
@@ -173,7 +173,7 @@ curl.exe http://127.0.0.1:8001/health
 
 ---
 
-## Fase: Criterios de salida (listo para usar)
+## Fase 10: Criterios de salida (listo para usar)
 
 Tareas:
 1. `/health` devuelve OK/FAIL para API+Webhook en <3s.

@@ -1,15 +1,11 @@
 # 03_OBJETIVO_DIA.md
 
-## Fase: Alcance y contratos
+## Fase 1: Alcance y contratos
 
 **Fecha:** 2026-03-05
-**Estado:** EN PROGRESO
+**Estado:** COMPLETADO
 
----
-
-## Tareas a ejecutar
-
-### 1. Definir qué significa "E2E OK"
+### Tareas
 
 | Componente | Criterio OK |
 |------------|-------------|
@@ -19,59 +15,85 @@
 | Webhook | `POST /webhook/{token}` con payload válido retorna 200 |
 | Telegram | `getWebhookInfo` sin errores recientes y `pending_update_count` estable |
 
-### 2. Definir comandos de Telegram (MVP)
+### Comandos de Telegram (MVP)
 
 | Comando | Descripción |
 |---------|-------------|
 | `/health` | Devuelve estado de API + Webhook |
-| `/e2e` | Ejecuta secuencia completa (API -> Webhook local -> Webhook público -> Telegram) |
-| `/webhookinfo` | Devuelve resumen de `getWebhookInfo` (url + last_error_message + pending_update_count) |
-| `/logs` | Devuelve últimos N eventos relevantes (webhook recibido, chat api ok/error, sendMessage ok/error) |
+| `/e2e` | Ejecuta secuencia completa |
+| `/webhookinfo` | Devuelve resumen de `getWebhookInfo` |
+| `/logs` | Devuelve últimos N eventos relevantes |
 
-### 3. Definir formato de reporte
+### Formato de reporte
 
 ```
 🕐 Timestamp UTC: 2026-03-05T14:30:00Z
 
 📊 Estado E2E:
   ✅ API Health: OK
-  ✅ API Chat: OK
-  ✅ Webhook Health: OK
-  ✅ Webhook Local: OK
-  ✅ Webhook Público: OK
+  ✅ Webhook: OK
   ✅ Telegram: OK
 
 🔗 Run ID: abc123
 ```
 
-**Formato por etapa:**
-- Timestamp UTC
-- Resultado por etapa: `OK/FAIL`
-- Error corto + "pista" (qué revisar)
+---
+
+## Fase 2: Bot de Telegram (credenciales y seguridad)
+
+**Fecha:** 2026-03-05
+**Estado:** EN PROGRESO
+
+### Tareas
+
+1. **Crear bot con BotFather**
+   - ✅ Ya existe: `TELEGRAM_BOT_TOKEN=8588716358:...` (en `.env`)
+
+2. **Restringir quién puede ejecutar comandos**
+   - [ ] Agregar `ADMIN_CHAT_IDS` o `ADMIN_USERNAMES` en `.env`
+   - [ ] Implementar verificación en handlers
+
+3. **Definir "canal" de reporte**
+   - [ ] DM del admin o grupo privado
+   - [ ] Configurar `ADMIN_CHAT_ID` en `.env`
+
+4. **Manejo de secretos**
+   - [ ] Nunca enviar tokens completos al chat
+   - [ ] Enmascarar tokens: `123456...abcd`
+
+### Variables de entorno requeridas
+
+```bash
+ADMIN_CHAT_IDS=123456789
+ADMIN_USERNAMES=usuario1,usuario2
+```
 
 ---
 
 ## Estado del código existente
 
 ### API (`app/api/entrypoint.py`)
-- ✅ `GET /health` - Implementado
-- ✅ `POST /api/v1/chat` - Implementado
-- ✅ `GET /api/v1/history/{session_id}` - Implementado
-- ✅ `GET /api/v1/stats` - Implementado
+- ✅ `GET /health`
+- ✅ `POST /api/v1/chat`
+- ✅ `GET /api/v1/history/{session_id}`
+- ✅ `GET /api/v1/stats`
 
 ### Webhook (`app/webhook/entrypoint.py`)
-- ✅ `GET /health` - Implementado
-- ✅ `POST /webhook/{token}` - Implementado
-- ✅ `GET /metrics` - Implementado (Prometheus)
+- ✅ `GET /health`
+- ✅ `POST /webhook/{token}`
+- ✅ `GET /metrics`
 
 ---
 
 ## Pendiente de implementar
 
-- [ ] Bot de Telegram con comandos `/health`, `/e2e`, `/webhookinfo`, `/logs`
-- [ ] Implementar funciones de check (check_api_health, check_api_chat, etc.)
-- [ ] Sistema de logs operativos
-- [ ] Formato de reporte estructurado
+- [ ] Fase 2: Configurar ADMIN_CHAT_IDS en .env
+- [ ] Fase 2: Implementar verificación de acceso en handlers
+- [ ] Fase 3: Crear servicio telegram_ops
+- [ ] Fase 4: Implementar funciones de check
+- [ ] Fase 5: Sistema de logs operativos
+- [ ] Fase 6: Comandos Telegram
+- [ ] Fase 7: Configurar ngrok
 
 ---
 
