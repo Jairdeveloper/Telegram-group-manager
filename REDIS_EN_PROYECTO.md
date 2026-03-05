@@ -13,7 +13,7 @@ Cuando `PROCESS_ASYNC=true`:
 4. El worker llama al Chat API y envia la respuesta a Telegram.
 
 Archivos clave:
-- `telegram_webhook_prod.py` (webhook + cola)
+- Webhook modular (`app.webhook.entrypoint:app`) + cola RQ
 - `app/webhook/handlers.py` (flujo y enqueue)
 - `worker.py` (consumidor de cola RQ)
 - `webhook_tasks.py` (tarea que responde a Telegram)
@@ -49,8 +49,8 @@ PROCESS_ASYNC=true
 3. Levanta API, webhook y worker en terminales separadas:
 
 ```bash
-python chatbot_monolith.py --mode api
-uvicorn telegram_webhook_prod:app --host 0.0.0.0 --port 80
+uvicorn app.api.entrypoint:app --host 0.0.0.0 --port 8000
+uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 80
 python worker.py
 ```
 
@@ -67,3 +67,6 @@ Asi el webhook procesa y responde de forma sincrona (sin cola).
 - `PROCESS_ASYNC=true` pero `worker.py` no esta corriendo.
 - `REDIS_URL` apunta a `redis://redis:6379/0` fuera de Docker (en local normal suele ser `127.0.0.1`).
 - Webhook activo pero Chat API caida.
+
+
+

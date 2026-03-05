@@ -1,4 +1,4 @@
-# Contratos observados del proyecto
+﻿# Contratos observados del proyecto
 
 ## 1) Contratos HTTP
 
@@ -35,7 +35,7 @@ Origen: `app/api/routes.py`, `tests/test_api_contract.py`
   - Respuesta `200`: `{"status": "ok", "version": <app_version>}`
 
 ### Webhook Telegram (FastAPI)
-Origen: `telegram_webhook_prod.py`, `app/webhook/handlers.py`, `tests/test_webhook_contract.py`
+Origen: `app/webhook/entrypoint.py`, `app/webhook/handlers.py`, `tests/test_webhook_contract.py`
 
 - `POST /webhook/{token}`
   - Validaciones:
@@ -97,7 +97,7 @@ Origen: `app/webhook/entrypoint.py`, `app/webhook/__init__.py`
 
 ## 3) Contratos operativos (env vars)
 
-Origen: `telegram_webhook_prod.py`, `worker.py`, `webhook_tasks.py`, `chatbot_monolith.py`
+Origen: `app/webhook/entrypoint.py`, `worker.py`, `webhook_tasks.py`, `app/api/entrypoint.py`
 
 - Webhook/API runtime:
   - `TELEGRAM_BOT_TOKEN`
@@ -123,3 +123,5 @@ Origen: `telegram_webhook_prod.py`, `worker.py`, `webhook_tasks.py`, `chatbot_mo
 
 - Estos contratos deben tratarse como baseline para la migracion a arquitectura modular completa.
 - Si se cambia algun contrato HTTP o de modulo, actualizar primero tests de contrato y luego consumidores.
+
+

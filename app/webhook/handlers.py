@@ -99,8 +99,17 @@ async def handle_webhook_impl(
 
     try:
         if process_async and task_queue is not None:
-            job_id = task_queue.enqueue_process_update(update=update)
-            logger.info("webhook.enqueued_update", extra={**log_ctx, "job_id": job_id})
+            try:
+                job_id = task_queue.enqueue_process_update(update=update)
+                logger.info(
+                    "webhook.enqueued_update", extra={**log_ctx, "job_id": job_id}
+                )
+            except Exception:
+                # If the queue is misconfigured or Redis is down, fall back to
+                # sync processing so Telegram still gets a timely response.
+                logger.exception("webhook.enqueue_failed", extra=log_ctx)
+                logger.warning("webhook.fallback_sync_after_enqueue_failure", extra=log_ctx)
+                process_update_sync(update)
         elif process_async and task_queue is None:
             logger.warning("webhook.async_queue_unavailable", extra=log_ctx)
             process_update_sync(update)

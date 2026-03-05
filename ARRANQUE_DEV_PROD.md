@@ -23,7 +23,10 @@ PROCESS_ASYNC=true
 DEDUP_TTL=86400
 API_HOST=127.0.0.1
 API_PORT=8000
+WEBHOOK_PORT=8001
 LOG_LEVEL=INFO
+ADMIN_CHAT_IDS=
+WEBHOOK_TOKEN=mysecretwebhooktoken
 ```
 
 Para local sin Docker Compose, usa:
@@ -33,6 +36,11 @@ REDIS_URL=redis://127.0.0.1:6379/0
 ```
 
 `redis://redis:6379/0` aplica cuando el webhook/worker corren dentro de la red de Docker Compose.
+
+**Variables específicas para Telegram OPS:**
+- `ADMIN_CHAT_IDS`: Lista de Chat IDs separados por coma que pueden ejecutar comandos (dejar vacío para permitir todos)
+- `WEBHOOK_TOKEN`: Token del webhook local (default: `mysecretwebhooktoken`)
+- `WEBHOOK_PORT`: Puerto del webhook (default: `8001`)
 
 ## 3. Modo Dev (local)
 
@@ -45,7 +53,7 @@ pytest -q
 ### 3.2 Levantar API
 
 ```bash
-uvicorn app.api.entrypoint:app --host 0.0.0.0 --port 8000
+python -m uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
 ```
 
 API disponible en:
@@ -53,12 +61,12 @@ API disponible en:
 - Health: `GET /health`
 - Docs: `GET /docs`
 
-Nota: `chatbot_monolith.py --mode api` queda como compatibilidad legacy temporal, no como ruta operativa principal.
+Nota: el entrypoint canonico de API es `app.api.entrypoint:app` (Paso C elimino entrypoints legacy).
 
 ### 3.3 Levantar webhook (otra terminal)
 
 ```bash
-uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 80 --timeout-keep-alive 30 --timeout-graceful-shutdown 30
+python -m uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001 --timeout-keep-alive 30 --timeout-graceful-shutdown 30
 ```
 
 Webhook disponible en:
@@ -66,11 +74,37 @@ Webhook disponible en:
 - `GET /health`
 - `GET /metrics`
 
+Nota: en Docker Compose el contenedor escucha en `80` y se publica como `8001:80`. En local es recomendable usar `8001` para evitar puertos privilegiados.
+
 ### 3.4 Levantar worker (si `PROCESS_ASYNC=true`)
 
 ```bash
 python worker.py
 ```
+
+### 3.5 Levantar Bot de Telegram OPS (otra terminal)
+
+```bash
+python -m app.telegram_ops.entrypoint
+```
+
+El bot de Telegram provee comandos para verificar el estado E2E:
+- `/health` - Estado de API + Webhook
+- `/e2e` - Checks E2E completos
+- `/webhookinfo` - Info del webhook de Telegram
+- `/logs` - Últimos eventos (pendiente)
+
+**Configuración requerida:**
+1. Obtener tu Chat ID y configurarlo en `.env`:
+   ```
+   ADMIN_CHAT_IDS=TU_CHAT_ID
+   ```
+2. Buscar el bot en Telegram por username: `cmb_robot`
+3. Enviar `/start` para comenzar
+
+**Seguridad:**
+- Rate limiting: 30 segundos entre ejecuciones de `/e2e`
+- Solo admins configurados en `ADMIN_CHAT_IDS` pueden usar comandos
 
 ## 4. Modo Produccion (recomendado con Docker Compose)
 
@@ -83,8 +117,8 @@ docker compose up --build
 ### 4.2 Verificar estado
 
 - API: `GET http://localhost:8000/health`
-- Webhook: `GET http://localhost:<puerto_webhook>/health`
-- Metrics webhook: `GET /metrics`
+- Webhook: `GET http://localhost:8001/health`
+- Metrics webhook: `GET http://localhost:8001/metrics`
 
 ### 4.3 Registrar webhook en Telegram
 
@@ -95,6 +129,12 @@ Con dominio publico y TLS:
 $env:TELEGRAM_BOT_TOKEN=(Get-Content .env | ? { $_ -like 'TELEGRAM_BOT_TOKEN=*' } | % { $_.Split('=')[1] })
 python set_webhook_prod.py set "https://sulkiest-unworkmanlike-shondra.ngrok-free.dev/webhook/$env:TELEGRAM_BOT_TOKEN"
 
+```
+
+### Arrancar ngrok 
+
+```
+ngrok 8001
 ```
 
 ### 4.4 Auto-sync webhook con ngrok (cambio de URL)
@@ -127,7 +167,7 @@ curl -X POST "http://127.0.0.1:8000/api/v1/chat?message=hola&session_id=s1"
 ### 5.2 Webhook token invalido
 
 ```bash
-curl -X POST "http://127.0.0.1/webhook/token-invalido" -H "Content-Type: application/json" -d "{\"update_id\":1}"
+curl -X POST "http://127.0.0.1:8001/webhook/token-invalido" -H "Content-Type: application/json" -d "{\"update_id\":1}"
 ```
 
 Esperado: `403 Invalid token`.
@@ -140,9 +180,56 @@ Esperado: `403 Invalid token`.
 
 ## 7. Canonical entrypoints (Fase 4)
 
-- Webhook canónico: `app.webhook.entrypoint:app`
-- API canónica: `app.api.entrypoint:app`
-- Legacy temporal de compatibilidad:
-  - `telegram_webhook_prod.py`
-  - `telegram_webhook.py`
-  - `chatbot_monolith.py`
+- Webhook canonico: `app.webhook.entrypoint:app`
+- API canonica: `app.api.entrypoint:app`
+- Telegram OPS: `app.telegram_ops.entrypoint`
+- Paso C (2026-03-04): entrypoints legacy eliminados (usar solo rutas canonicas).
+
+## 8. Telegram OPS Bot (E2E Checks)
+
+### 8.1 Obtener tu Chat ID
+
+1. Envía un mensaje al bot `@cmb_robot`
+2. Visita: `https://api.telegram.org/bot<TOKEN>/getUpdates`
+3. Encuentra tu `chat.id` en la respuesta
+
+### 8.2 Configurar acceso admin
+
+Edita `.env`:
+```env
+ADMIN_CHAT_IDS=123456789
+```
+
+### 8.3 Comandos disponibles
+
+| Comando | Descripción |
+|---------|-------------|
+| `/start` | Mensaje de bienvenida |
+| `/health` | Estado de API + Webhook |
+| `/e2e` | Checks E2E completos |
+| `/webhookinfo` | Info del webhook de Telegram |
+| `/logs` | Últimos eventos |
+
+### 8.4 Formato de respuesta E2E
+
+```
+🕐 E2E Check
+Timestamp: 2026-03-05T14:30:00Z
+
+✅ api_health: OK
+✅ api_chat: OK
+✅ webhook_health: OK
+✅ webhook_local: OK
+✅ telegram_webhook_info: OK
+
+✅ Overall: OK
+```
+
+### 8.5 Producción
+
+Para ejecutar en producción:
+```bash
+python -m app.telegram_ops.entrypoint
+```
+
+O configurarlo como servicio/systemd para auto-arranque.

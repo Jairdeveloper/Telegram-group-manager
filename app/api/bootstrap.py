@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 from app.config.settings import load_api_settings
 from chat_service.agent import Agent
-from chatbot_monolith import SimpleConversationStorage, get_default_brain
+from chat_service.brain import get_default_brain
+from chat_service.storage import SimpleConversationStorage
 
 
 @dataclass

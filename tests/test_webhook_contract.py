@@ -73,6 +73,30 @@ def test_webhook_deduplicates_update_id(monkeypatch):
     assert calls["count"] == 1
 
 
+def test_webhook_async_enqueue_failure_falls_back_to_sync(monkeypatch):
+    monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "PROCESS_ASYNC", True)
+
+    class _QueueRaises:
+        def enqueue_process_update(self, *, update):
+            raise RuntimeError("enqueue failed")
+
+    monkeypatch.setattr(twp, "TASK_QUEUE", _QueueRaises())
+
+    calls = {"count": 0}
+
+    def fake_process(update):
+        calls["count"] += 1
+
+    monkeypatch.setattr(twp, "process_update_sync", fake_process)
+    client = TestClient(twp.app)
+    response = client.post("/webhook/valid-token", json=_sample_update(update_id=90))
+
+    assert response.status_code == 200
+    assert response.json()["ok"] is True
+    assert calls["count"] == 1
+
+
 class _ChatApiRaises:
     def ask(self, *, message: str, session_id: str) -> str:
         raise TimeoutError("timeout")

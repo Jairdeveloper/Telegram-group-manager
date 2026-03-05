@@ -1,4 +1,4 @@
-# Estabilizacion ngrok - Pasos 4 y 6
+﻿# Estabilizacion ngrok - Pasos 4 y 6
 
 Fecha: 2026-03-03
 
@@ -35,7 +35,7 @@ Que hace:
 
 1. Arranca API y webhook:
 ```powershell
-python chatbot_monolith.py --mode api
+uvicorn app.api.entrypoint:app --host 0.0.0.0 --port 8000
 uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 80 --timeout-keep-alive 30 --timeout-graceful-shutdown 30
 ```
 
@@ -68,10 +68,10 @@ Si ngrok cambia la URL (comun en plan free), debes re-ejecutar `scripts/sync_ngr
 Usa ngrok con subdominio reservado (plan de pago) para URL fija.
 Sin URL fija, cada reinicio rompe webhook.
 
-Mantén ngrok como servicio, no en terminal manual.
+MantÃ©n ngrok como servicio, no en terminal manual.
 En Windows puedes usar nssm/Task Scheduler para autoarranque y autorestart.
 
-Fija región cercana y baja latencia:
+Fija regiÃ³n cercana y baja latencia:
 
 ngrok http --region=eu 8001
 Configura keepalive y timeouts en tu app/proxy (ya tienes endpoint liviano, bien).
@@ -79,12 +79,12 @@ Evita que el webhook tarde demasiado antes de responder 200.
 
 Monitorea salud continuamente:
 
-GET /health local y público.
+GET /health local y pÃºblico.
 getWebhookInfo (last_error_message, pending_update_count).
 Auto-reconfigura webhook cuando cambie URL ngrok (si usas free).
 Script al arrancar ngrok:
 
 lee URL del API local de ngrok (http://127.0.0.1:4040/api/tunnels)
 ejecuta set_webhook_prod.py set <url>/webhook/<token>.
-Para producción real, evita ngrok y usa dominio propio + reverse proxy (Nginx/Caddy) + TLS estable.
-Es la forma más confiable para Telegram webhooks.
+Para producciÃ³n real, evita ngrok y usa dominio propio + reverse proxy (Nginx/Caddy) + TLS estable.
+Es la forma mÃ¡s confiable para Telegram webhooks.
