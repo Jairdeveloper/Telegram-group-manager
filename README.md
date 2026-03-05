@@ -1,4 +1,4 @@
-# Robot Chatbot - Plan de Debug
+﻿# Robot Chatbot - Plan de Debug
 
 Este README define un plan operativo para debuguear el proyecto actual sin romper contratos.
 
@@ -64,7 +64,7 @@ $env:DEDUP_TTL
 Archivos foco:
 - `app/api/factory.py`
 - `app/api/routes.py`
-- `chatbot_monolith.py`
+
 
 Pasos:
 1. Confirmar contrato `POST /api/v1/chat` con test de contrato.
@@ -74,7 +74,7 @@ Pasos:
 ### 4.2 Webhook
 
 Archivos foco:
-- `telegram_webhook_prod.py`
+
 - `app/webhook/handlers.py`
 - `app/webhook/entrypoint.py`
 
@@ -87,7 +87,7 @@ Pasos:
 ### 4.3 Infra (requests/redis/rq)
 
 Archivos foco:
-- `telegram_webhook_prod.py`
+
 - `webhook_tasks.py`
 - `worker.py`
 
@@ -138,3 +138,5 @@ Ejecutar la migracion Semana 2-3 pendiente:
 2. Aislar interfaces de infraestructura.
 3. Aumentar pruebas negativas de webhook.
 4. Plan de retiro progresivo de legacy.
+
+

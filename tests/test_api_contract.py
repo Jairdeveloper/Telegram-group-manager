@@ -1,11 +1,10 @@
 from fastapi.testclient import TestClient
 
-from chatbot_monolith import create_api_app
+import app.api.entrypoint as api_entry
 
 
 def test_chat_endpoint_contract():
-    app = create_api_app()
-    client = TestClient(app)
+    client = TestClient(api_entry.app)
 
     response = client.post("/api/v1/chat", params={"message": "hello", "session_id": "s1"})
     assert response.status_code == 200
@@ -19,9 +18,7 @@ def test_chat_endpoint_contract():
 
 
 def test_chat_rejects_empty_message():
-    app = create_api_app()
-    client = TestClient(app)
+    client = TestClient(api_entry.app)
 
     response = client.post("/api/v1/chat", params={"message": "   "})
     assert response.status_code == 400
-

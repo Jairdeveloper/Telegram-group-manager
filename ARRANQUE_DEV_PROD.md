@@ -1,4 +1,4 @@
-# Arranque del Proyecto (Dev y Produccion)
+﻿# Arranque del Proyecto (Dev y Produccion)
 
 ## 1. Requisitos
 
@@ -45,7 +45,7 @@ pytest -q
 ### 3.2 Levantar API
 
 ```bash
-uvicorn app.api.entrypoint:app --host 0.0.0.0 --port 8000
+uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
 ```
 
 API disponible en:
@@ -53,18 +53,20 @@ API disponible en:
 - Health: `GET /health`
 - Docs: `GET /docs`
 
-Nota: `chatbot_monolith.py --mode api` queda como compatibilidad legacy temporal, no como ruta operativa principal.
+Nota: el entrypoint canonico de API es `app.api.entrypoint:app` (Paso C elimino entrypoints legacy).
 
 ### 3.3 Levantar webhook (otra terminal)
 
 ```bash
-uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 80 --timeout-keep-alive 30 --timeout-graceful-shutdown 30
+uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001 --timeout-keep-alive 30 --timeout-graceful-shutdown 30
 ```
 
 Webhook disponible en:
 - `POST /webhook/{token}`
 - `GET /health`
 - `GET /metrics`
+
+Nota: en Docker Compose el contenedor escucha en `80` y se publica como `8001:80`. En local es recomendable usar `8001` para evitar puertos privilegiados.
 
 ### 3.4 Levantar worker (si `PROCESS_ASYNC=true`)
 
@@ -83,8 +85,8 @@ docker compose up --build
 ### 4.2 Verificar estado
 
 - API: `GET http://localhost:8000/health`
-- Webhook: `GET http://localhost:<puerto_webhook>/health`
-- Metrics webhook: `GET /metrics`
+- Webhook: `GET http://localhost:8001/health`
+- Metrics webhook: `GET http://localhost:8001/metrics`
 
 ### 4.3 Registrar webhook en Telegram
 
@@ -127,7 +129,7 @@ curl -X POST "http://127.0.0.1:8000/api/v1/chat?message=hola&session_id=s1"
 ### 5.2 Webhook token invalido
 
 ```bash
-curl -X POST "http://127.0.0.1/webhook/token-invalido" -H "Content-Type: application/json" -d "{\"update_id\":1}"
+curl -X POST "http://127.0.0.1:8001/webhook/token-invalido" -H "Content-Type: application/json" -d "{\"update_id\":1}"
 ```
 
 Esperado: `403 Invalid token`.
@@ -140,9 +142,6 @@ Esperado: `403 Invalid token`.
 
 ## 7. Canonical entrypoints (Fase 4)
 
-- Webhook canónico: `app.webhook.entrypoint:app`
-- API canónica: `app.api.entrypoint:app`
-- Legacy temporal de compatibilidad:
-  - `telegram_webhook_prod.py`
-  - `telegram_webhook.py`
-  - `chatbot_monolith.py`
+- Webhook canonico: `app.webhook.entrypoint:app`
+- API canonica: `app.api.entrypoint:app`
+- Paso C (2026-03-04): entrypoints legacy eliminados (usar solo rutas canonicas).

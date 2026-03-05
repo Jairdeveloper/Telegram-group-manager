@@ -1,8 +1,4 @@
-"""Canonical API entrypoint.
-
-This is a transitional modular entrypoint that still reuses legacy runtime
-components from `chatbot_monolith.py` while deploys migrate to `app/api/*`.
-"""
+"""Canonical API entrypoint (composition root)."""
 
 from app.api.factory import create_api_app as create_modular_api_app
 from app.api.bootstrap import build_api_runtime
