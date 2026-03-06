@@ -8,7 +8,7 @@
 |------|---------|--------|
 | Fase 0 | debug/00_debug.md | ✅ Completado |
 | Fase 1 | debug/01_debug.md | ⏳ Pendiente ejecutar |
-
+| Fase 2 | debug/02_debug.md | Pendiente |
 ---
 
 ## Resumen de problemas identificados

@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 from fastapi import HTTPException, Request
 
 from .ports import ChatApiClient, DedupStore, TaskQueue, TelegramClient
+from app.ops.events import record_event
 
 
 def extract_chat_payload(update: Dict[str, Any]) -> Optional[Tuple[int, str]]:
@@ -45,22 +46,57 @@ def process_update_impl(
     payload = extract_chat_payload(update)
     if not payload:
         logger.info("webhook.no_message", extra={"update_id": update_id})
+        record_event(component="webhook", event="webhook.no_message", update_id=update_id)
         return
 
     chat_id, text = payload
     session_id = str(chat_id)
     log_ctx = {"update_id": update_id, "chat_id": chat_id}
+    record_event(
+        component="webhook",
+        event="webhook.process_start",
+        update_id=update_id,
+        chat_id=chat_id,
+        text_len=len(text or ""),
+    )
 
     try:
         reply = chat_api_client.ask(message=text, session_id=session_id)
+        record_event(
+            component="webhook",
+            event="webhook.chat_api.ok",
+            update_id=update_id,
+            chat_id=chat_id,
+            reply_len=len(reply or ""),
+        )
     except Exception:
         logger.exception("webhook.chat_api_error", extra=log_ctx)
+        record_event(
+            component="webhook",
+            event="webhook.chat_api.error",
+            level="ERROR",
+            update_id=update_id,
+            chat_id=chat_id,
+        )
         reply = "(internal error)"
 
     try:
         telegram_client.send_message(chat_id=chat_id, text=reply)
+        record_event(
+            component="webhook",
+            event="webhook.telegram_send.ok",
+            update_id=update_id,
+            chat_id=chat_id,
+        )
     except Exception:
         logger.exception("webhook.telegram_send_error", extra=log_ctx)
+        record_event(
+            component="webhook",
+            event="webhook.telegram_send.error",
+            level="ERROR",
+            update_id=update_id,
+            chat_id=chat_id,
+        )
 
     if process_time_metric is not None:
         process_time_metric.observe(time.time() - start)
@@ -84,6 +120,7 @@ async def handle_webhook_impl(
 
     if token != bot_token:
         requests_metric.labels(status="forbidden").inc()
+        record_event(component="webhook", event="webhook.forbidden", level="WARN")
         raise HTTPException(status_code=403, detail="Invalid token")
 
     update = await request.json()
@@ -91,9 +128,17 @@ async def handle_webhook_impl(
     payload = extract_chat_payload(update)
     chat_id = payload[0] if payload else None
     log_ctx = {"update_id": update_id, "chat_id": chat_id}
+    record_event(
+        component="webhook",
+        event="webhook.received",
+        update_id=update_id,
+        chat_id=chat_id,
+        process_async=process_async,
+    )
 
     if update_id is not None and not dedup_update(update_id):
         logger.info("webhook.duplicate_update", extra=log_ctx)
+        record_event(component="webhook", event="webhook.dedup.duplicate", update_id=update_id, chat_id=chat_id)
         requests_metric.labels(status="duplicate").inc()
         return {"ok": True}
 
@@ -104,14 +149,35 @@ async def handle_webhook_impl(
                 logger.info(
                     "webhook.enqueued_update", extra={**log_ctx, "job_id": job_id}
                 )
+                record_event(
+                    component="webhook",
+                    event="webhook.enqueue.ok",
+                    update_id=update_id,
+                    chat_id=chat_id,
+                    job_id=job_id,
+                )
             except Exception:
                 # If the queue is misconfigured or Redis is down, fall back to
                 # sync processing so Telegram still gets a timely response.
                 logger.exception("webhook.enqueue_failed", extra=log_ctx)
                 logger.warning("webhook.fallback_sync_after_enqueue_failure", extra=log_ctx)
+                record_event(
+                    component="webhook",
+                    event="webhook.enqueue.error",
+                    level="ERROR",
+                    update_id=update_id,
+                    chat_id=chat_id,
+                )
                 process_update_sync(update)
         elif process_async and task_queue is None:
             logger.warning("webhook.async_queue_unavailable", extra=log_ctx)
+            record_event(
+                component="webhook",
+                event="webhook.enqueue.unavailable",
+                level="WARN",
+                update_id=update_id,
+                chat_id=chat_id,
+            )
             process_update_sync(update)
         else:
             process_update_sync(update)
@@ -120,5 +186,12 @@ async def handle_webhook_impl(
         return {"ok": True}
     except Exception:
         logger.exception("webhook.handle_error", extra=log_ctx)
+        record_event(
+            component="webhook",
+            event="webhook.handle_error",
+            level="ERROR",
+            update_id=update_id,
+            chat_id=chat_id,
+        )
         requests_metric.labels(status="error").inc()
         return {"ok": True}

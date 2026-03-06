@@ -17,6 +17,8 @@ from app.telegram_ops.checks import (
     mask_token,
 )
 
+from app.ops.events import get_event_store, record_event
+
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
@@ -155,8 +157,91 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_chat.id):
         await update.message.reply_text("⛔ No autorizado")
         return
-    
-    await update.message.reply_text("📋 Logs: Pendiente implementar sistema de logs")
+
+    def _parse_logs_args(args):
+        limit = 20
+        chat_id = None
+        update_id = None
+
+        i = 0
+        while i < len(args):
+            token = args[i].strip().lower()
+            if token.isdigit():
+                limit = int(token)
+                i += 1
+                continue
+            if token == "chat" and i + 1 < len(args) and args[i + 1].strip().lstrip("-").isdigit():
+                chat_id = int(args[i + 1])
+                i += 2
+                continue
+            if token == "update" and i + 1 < len(args) and args[i + 1].strip().lstrip("-").isdigit():
+                update_id = int(args[i + 1])
+                i += 2
+                continue
+            i += 1
+
+        limit = max(1, min(limit, 200))
+        return limit, chat_id, update_id
+
+    args = getattr(context, "args", None) or []
+    limit, filter_chat_id, filter_update_id = _parse_logs_args(args)
+
+    record_event(
+        component="ops",
+        event="ops.logs_requested",
+        chat_id=update.effective_chat.id,
+        limit=limit,
+        filter_chat_id=filter_chat_id,
+        filter_update_id=filter_update_id,
+    )
+
+    store = get_event_store()
+    # Read a bit more to have room for filters.
+    raw_events = store.tail(min(1000, max(limit * 5, limit)))
+
+    events = []
+    for ev in raw_events:
+        if filter_chat_id is not None and ev.get("chat_id") != filter_chat_id:
+            continue
+        if filter_update_id is not None and ev.get("update_id") != filter_update_id:
+            continue
+        events.append(ev)
+        if len(events) >= limit:
+            break
+
+    if not events:
+        await update.message.reply_text("📋 Sin eventos recientes (o filtros sin match).")
+        return
+
+    lines = []
+    for ev in events:
+        ts = ev.get("ts_utc", "N/A")
+        component = ev.get("component", "?")
+        name = ev.get("event", "?")
+        level = ev.get("level", "INFO")
+        chat_id = ev.get("chat_id")
+        update_id = ev.get("update_id")
+        job_id = ev.get("job_id")
+
+        suffix_parts = []
+        if chat_id is not None:
+            suffix_parts.append(f"chat={chat_id}")
+        if update_id is not None:
+            suffix_parts.append(f"update={update_id}")
+        if job_id is not None:
+            suffix_parts.append(f"job={job_id}")
+
+        suffix = f" ({', '.join(suffix_parts)})" if suffix_parts else ""
+        lines.append(f"{ts} [{level}] {component} {name}{suffix}")
+
+    header = f"📋 Últimos eventos ({len(events)}/{limit})"
+    if filter_chat_id is not None:
+        header += f" | chat={filter_chat_id}"
+    if filter_update_id is not None:
+        header += f" | update={filter_update_id}"
+
+    # Plain text output to avoid Markdown escaping issues.
+    await update.message.reply_text(header + "\n\n" + "\n".join(lines))
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):

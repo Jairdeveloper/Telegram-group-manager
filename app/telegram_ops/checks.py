@@ -5,6 +5,10 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 logger = logging.getLogger(__name__)
 
 API_BASE = os.getenv("API_HOST", "127.0.0.1")
