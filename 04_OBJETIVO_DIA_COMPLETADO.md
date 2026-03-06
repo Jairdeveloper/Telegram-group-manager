@@ -235,6 +235,96 @@ record_event(component="webhook", event="webhook.chat_api.ok",
 
 ---
 
+## Fase 6: Ejecución desde Telegram (comandos) ✅ COMPLETADO
+
+**Estado:** Completado
+
+### 6.1 Parser de comandos
+
+**Comandos implementados:**
+
+| Comando | Descripción | Ejemplo |
+|---------|-------------|---------|
+| `/start` | Mensaje de bienvenida | - |
+| `/health` | Estado de API y Webhook | - |
+| `/e2e` | Checks E2E completos | - |
+| `/webhookinfo` | Info del webhook de Telegram | - |
+| `/logs` | Eventos operativos | `/logs 50`, `/logs 100 chat 12345` |
+
+### 6.2 Ack rápido para /e2e
+
+**Implementación:**
+- El bot responde inmediatamente al recibir `/e2e` con mensaje de inicio
+- Luego de completar los checks, edita el mensaje con el resultado final
+
+```python
+# Responder inmediatamente
+ack_msg = await update.message.reply_text(
+    f"🔄 E2E check iniciado... (run_id: `{run_id}`)",
+    parse_mode="Markdown"
+)
+
+# Después de completar checks, editar mensaje
+await ack_msg.edit_text(response, parse_mode="Markdown")
+```
+
+### 6.3 Rate limiting
+
+**Implementado:** 30 segundos entre ejecuciones por chat
+
+```python
+RATE_LIMIT_SECONDS = 30
+last_run_times = {}
+
+async def check_rate_limit(chat_id: int) -> bool:
+    now = datetime.utcnow().timestamp()
+    last_run = last_run_times.get(chat_id, 0)
+    if now - last_run < RATE_LIMIT_SECONDS:
+        return False
+    last_run_times[chat_id] = now
+    return True
+```
+
+### 6.4 Correlación con run_id
+
+**Implementado:** Cada ejecución de `/e2e` genera un `run_id` único (UUID truncado a 8 caracteres)
+
+**Beneficios:**
+- Identificador único para cada ejecución
+- Visible en el mensaje de ack y resultado final
+- Útil para correlacionar con logs
+
+```python
+import uuid
+
+run_id = str(uuid.uuid4())[:8]  # ej: "ccfad292"
+
+# Incluido en respuesta:
+# 🕐 E2E Check (run_id: `ccfad292`)
+```
+
+### 6.5 Verificación
+
+```
+Run ID: ccfad292
+Overall: OK
+  api_health: OK
+  api_chat: OK
+  webhook_health: OK
+  webhook_local: OK
+  telegram_webhook_info: OK
+```
+
+### 6.6 Archivos modificados
+
+- `app/telegram_ops/entrypoint.py`:
+  - Añadido import `uuid`
+  - Implementado ack rápido en `e2e_command()`
+  - Implementado `run_id` en respuesta
+  - Actualizado `format_e2e_response()` para mostrar run_id
+
+---
+
 ## Resumen de progreso
 
 | Fase | Estado | Porcentaje |
@@ -244,7 +334,8 @@ record_event(component="webhook", event="webhook.chat_api.ok",
 | Fase 3: Punto de ejecución | ✅ Completado | 100% |
 | Fase 4: Implementar "checks" | ✅ Completado | 100% |
 | Fase 5: Logs operativos | ✅ Completado | 100% |
-| Fase 6-10 | ⏳ Pendiente | 0% |
+| Fase 6: Ejecución desde Telegram | ✅ Completado | 100% |
+| Fase 7-10 | ⏳ Pendiente | 0% |
 
 ---
 

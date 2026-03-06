@@ -154,3 +154,33 @@ def test_process_update_impl_payload_without_message_does_not_fail():
 
     assert chat_api.calls == 0
     assert telegram.calls == []
+
+
+def test_process_update_impl_unsupported_update_does_not_fail():
+    chat_api = _FakeChatApiClientStatic("unused")
+    telegram = _FakeTelegramClientRecorder()
+
+    process_update_impl(
+        {"update_id": 101, "message": {"chat": {"id": 123}}},
+        chat_api_client=chat_api,
+        telegram_client=telegram,
+        logger=_DummyLogger(),
+    )
+
+    assert chat_api.calls == 0
+    assert telegram.calls == []
+
+
+def test_process_update_impl_ignores_telegram_commands():
+    chat_api = _FakeChatApiClientStatic("unused")
+    telegram = _FakeTelegramClientRecorder()
+
+    process_update_impl(
+        {"update_id": 100, "message": {"chat": {"id": 123}, "text": "/logs"}},
+        chat_api_client=chat_api,
+        telegram_client=telegram,
+        logger=_DummyLogger(),
+    )
+
+    assert chat_api.calls == 0
+    assert telegram.calls == []

@@ -1,9 +1,17 @@
-"""Minimal Telegram adapter scaffold.
+"""Legacy Telegram adapter scaffold.
+
+Operational status:
+- Legacy / non-canonical runtime.
+- Do not run in parallel with `app.webhook.entrypoint:app` for the same
+  `TELEGRAM_BOT_TOKEN`.
+- Kept only as a temporary migration path while the webhook ingress is
+  consolidated.
 
 Behavior:
--- Reads `TELEGRAM_BOT_TOKEN` from env.
--- For every message, posts the text to local API `/api/v1/chat` and replies with the returned response.
--- Uses long polling for dev; recommend webhooks in production.
+- Reads `TELEGRAM_BOT_TOKEN` from env.
+- For every message, posts the text to local API `/api/v1/chat` and replies
+  with the returned response.
+- Uses long polling for dev only; webhook is the canonical ingress.
 """
 import os
 import logging

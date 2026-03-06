@@ -1,10 +1,10 @@
-# Debug - Fase 0 y 1: Configuración y Servicios
+# Debug - Fase 2: Verificacion de Configuracion y Servicios
 
-## Estado: ✅ PARCIALMENTE COMPLETADO
+## Estado: ✅ VERIFICADO Y ACTUALIZADO (2026-03-06)
 
 ---
 
-## Problemas Reportados
+## Problemas Reportados originalmente
 
 | Problema | Descripción |
 |----------|-------------|
@@ -14,88 +14,108 @@
 
 ---
 
-## Acciones Realizadas
+## Verificacion ejecutada
 
-### 1. Servicios Levantados
+### 1. Servicios accesibles
 
 ```bash
-# API (puerto 8000)
-~/.local/bin/uvicorn app.api.entrypoint:app --host 127.0.0.1 --port 8000
+# API
+curl http://127.0.0.1:8000/health
 
-# Webhook (puerto 8001)
-~/.local/bin/uvicorn app.webhook.entrypoint:app --host 127.0.0.1 --port 8001
+# Webhook
+curl http://127.0.0.1:8001/health
 ```
 
 **Verificación:**
 ```bash
-curl http://127.0.0.1:8000/health  → {"status":"ok","version":"2.1"}
-curl http://127.0.0.1:8001/health  → {"status":"ok"}
+curl http://127.0.0.1:8000/health  -> {"status":"ok","version":"2.1"}
+curl http://127.0.0.1:8001/health  -> {"status":"ok"}
 ```
 
-### 2. Bug Encontrado y Corregido
+### 2. Estado del codigo verificado
 
 **Archivo:** `app/telegram_ops/checks.py`
 
-**Problema:** No cargaba `.env` - `TELEGRAM_BOT_TOKEN` era `None`
+**Comprobado:**
+- `load_dotenv()` esta presente al inicio del modulo
+- `check_webhook_local()` usa `TELEGRAM_BOT_TOKEN`
+- `run_e2e_check()` ejecuta los 5 checks esperados
 
-**Solución:** Añadir `load_dotenv()` al inicio del módulo
+**Archivo:** `app/ops/events.py`
 
-```python
-from dotenv import load_dotenv
-load_dotenv()
+**Comprobado:**
+- `FileEventStore` esta implementado
+- `get_event_store()` cae a `FileEventStore` por defecto
+- `logs/ops_events.jsonl` contiene eventos recientes
+
+### 3. Verificacion E2E local
+
+```
+api_health: OK
+api_chat: OK
+webhook_health: OK
+webhook_local: OK
+telegram_webhook_info: FAIL dentro del sandbox (sin salida de red)
+
+Overall: FAIL dentro del sandbox
 ```
 
-### 3. Verificación de E2E (TRAS CORRECCIÓN)
+### 4. Verificacion E2E externa a Telegram
 
-```
-api_health: ✅ OK
-api_chat: ✅ OK  
-webhook_health: ✅ OK
-webhook_local: ✅ OK
-telegram_webhook_info: ✅ OK (sin webhook configurado - URL vacía)
+Se ejecuto `getWebhookInfo` fuera del sandbox para separar fallo real de limitacion de red local.
 
-Overall: ✅ OK
+**Resultado real:**
+```json
+{"ok":true,"url":"","pending_update_count":0,"last_error_message":null}
 ```
 
-### 4. Conflicto de Polling
+Conclusion: `telegram_webhook_info` no esta fallando en Telegram; el fallo observado en el check local era por aislamiento de red del entorno de ejecucion.
 
-**Problema:** Error `409 Conflict` - otro bot usando el mismo token
+### 5. Estado de `/logs`
 
-**Solución ejecutada:**
+**Resultado actual:**
+- `logs/ops_events.jsonl` existe
+- Contiene eventos de `webhook` y de `ops.logs_requested`
+- El almacenamiento compartido entre procesos esta funcionando sin Redis
+
+### 6. Riesgo operativo vigente
+
+`bot.log` contiene errores `409 Conflict: terminated by other getUpdates request`.
+
+Interpretacion:
+- hay o hubo mas de una instancia del bot usando polling con el mismo token
+- este conflicto puede hacer que el bot deje de responder a comandos aun cuando API, webhook y checks locales esten correctos
+
+Mitigacion operativa:
 ```bash
-# Cerrar sesión anterior
 curl "https://api.telegram.org/bot<TOKEN>/close"
-
-# Eliminar webhook
 curl "https://api.telegram.org/bot<TOKEN>/deleteWebhook"
 ```
 
-### 5. Problema con /logs
+Luego dejar una sola instancia del bot:
 
-**Causa identificada:** 
-- El store de eventos (`InMemoryEventStore`) NO se comparte entre procesos
-- El webhook y el bot usan instancias separadas
-- Sin Redis, los eventos se pierden entre procesos
-
-**Solución requerida:** Levantar Redis para compartir eventos
+```powershell
+.\.venv\Scripts\python.exe -m app.telegram_ops.entrypoint
+```
 
 ---
 
-## Resultados
+## Resultados verificados
 
 | Prueba | Resultado |
 |--------|-----------|
 | API health | ✅ OK |
 | Webhook health | ✅ OK |
+| API chat | ✅ OK |
 | Webhook local test | ✅ OK |
-| E2E check | ✅ OK |
-| Bot polling | ✅ Corriendo (tras close) |
-| /logs | ⚠️ Requiere Redis |
+| Telegram getWebhookInfo | ✅ OK |
+| /logs con archivo compartido | ✅ OK |
+| Riesgo de polling duplicado | ⚠️ Vigilar |
 
 ---
 
 ## Pendiente
 
-1. **Instalar y configurar Redis** para compartir eventos operativos entre webhook y bot
-2. **Configurar ngrok** para tener webhook público (opcional para producción)
-3. **El usuario debe iniciar el bot** desde su terminal (el conflicto de polling indica que ya tiene otro proceso)
+1. Asegurar que solo haya una instancia del bot en polling
+2. Rotar el token de Telegram expuesto en documentacion y `.env`
+3. Configurar ngrok solo si se necesita webhook publico

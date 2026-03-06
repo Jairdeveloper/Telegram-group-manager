@@ -3,3 +3,4 @@ pycache/
 .env
 LLM/
 venv/
+logs/

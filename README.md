@@ -2,6 +2,26 @@
 
 Este README define un plan operativo para debuguear el proyecto actual sin romper contratos.
 
+## 0. Estado operativo canonico
+
+Ingreso canonico de Telegram:
+- `app.webhook.entrypoint:app`
+
+Runtimes no canonicos:
+- `telegram_adapter.py` -> legacy
+- `app.telegram_ops.entrypoint.py` -> transitorio de migracion
+
+Regla operativa:
+- no ejecutar en paralelo mas de un runtime Telegram para el mismo `TELEGRAM_BOT_TOKEN`
+
+Checklist rapido de arranque canonico:
+1. levantar API en `app.api.entrypoint:app`
+2. levantar webhook en `app.webhook.entrypoint:app`
+3. exponer `8001` por ngrok o ingress equivalente
+4. registrar webhook Telegram hacia `/webhook/<TELEGRAM_BOT_TOKEN>`
+5. no arrancar `telegram_adapter.py`
+6. no arrancar `app.telegram_ops.entrypoint.py` para el mismo token
+
 ## 1. Objetivo del debug
 
 Validar y aislar fallos en:

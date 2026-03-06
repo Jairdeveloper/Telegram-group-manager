@@ -5,16 +5,10 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 from fastapi import HTTPException, Request
 
+from app.telegram.dispatcher import dispatch_telegram_update
+from app.telegram.services import extract_chat_payload
 from .ports import ChatApiClient, DedupStore, TaskQueue, TelegramClient
 from app.ops.events import record_event
-
-
-def extract_chat_payload(update: Dict[str, Any]) -> Optional[Tuple[int, str]]:
-    """Extract chat_id/text from Telegram update."""
-    chat = update.get("message") or update.get("edited_message")
-    if not chat:
-        return None
-    return chat["chat"]["id"], chat.get("text", "")
 
 
 def dedup_update_impl(
@@ -42,23 +36,43 @@ def process_update_impl(
 ) -> None:
     """Process update by querying Chat API and sending Telegram response."""
     start = time.time()
-    update_id = update.get("update_id")
-    payload = extract_chat_payload(update)
-    if not payload:
-        logger.info("webhook.no_message", extra={"update_id": update_id})
-        record_event(component="webhook", event="webhook.no_message", update_id=update_id)
+    dispatch = dispatch_telegram_update(update)
+    update_id = dispatch.update_id
+    chat_id = dispatch.chat_id
+    log_ctx = {"update_id": update_id, "chat_id": chat_id}
+
+    if dispatch.kind == "unsupported":
+        logger.info("webhook.unsupported_update", extra=log_ctx)
+        record_event(
+            component="webhook",
+            event="webhook.unsupported_update",
+            update_id=update_id,
+            chat_id=chat_id,
+            reason=dispatch.reason,
+        )
         return
 
-    chat_id, text = payload
+    text = dispatch.text
     session_id = str(chat_id)
-    log_ctx = {"update_id": update_id, "chat_id": chat_id}
     record_event(
         component="webhook",
         event="webhook.process_start",
         update_id=update_id,
         chat_id=chat_id,
         text_len=len(text or ""),
+        dispatch_kind=dispatch.kind,
     )
+
+    if dispatch.kind == "ops_command":
+        logger.info("webhook.command_ignored", extra={**log_ctx, "command": dispatch.command})
+        record_event(
+            component="webhook",
+            event="webhook.command_ignored",
+            update_id=update_id,
+            chat_id=chat_id,
+            command=dispatch.command,
+        )
+        return
 
     try:
         reply = chat_api_client.ask(message=text, session_id=session_id)

@@ -80,7 +80,7 @@ curl http://127.0.0.1:8001/health
 ## TAREA 3: Probar webhook manualmente
 
 ```bash
-curl -X POST "http://127.0.0.1:8001/webhook/8588716358:AAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw" `
+curl -X POST "http://127.0.0.1:8001/webhook/<TELEGRAM_BOT_TOKEN>" `
   -H "Content-Type: application/json" `
   -d "{\"update_id\":123456789,\"message\":{\"message_id\":1,\"chat\":{\"id\":123},\"text\":\"hola\",\"date\":1234567890}}"
 ```
