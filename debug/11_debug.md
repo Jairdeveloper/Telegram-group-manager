@@ -155,7 +155,11 @@ Esperado en logs operativos:
 
 - `webhook.received`
 - `webhook.process_start`
-- `webhook.chat_api.ok`
+- `telegram.dispatch.chat` (mensaje conversacional)
+- `telegram.dispatch.ops` (comando OPS)
+- `telegram.dispatch.unsupported` (update no soportado)
+- `webhook.chat_service.ok`
+- `webhook.ops_service.ok`
 - `webhook.telegram_send.ok`
 
 Si esto falla:
@@ -172,8 +176,13 @@ Buscar eventos:
 
 - `webhook.received`
 - `webhook.process_start`
-- `webhook.chat_api.ok`
-- `webhook.chat_api.error`
+- `telegram.dispatch.chat`
+- `telegram.dispatch.ops`
+- `telegram.dispatch.unsupported`
+- `webhook.chat_service.ok`
+- `webhook.ops_service.ok`
+- `webhook.chat_api.ok` (legacy, ya no se usa)
+- `webhook.service.error`
 - `webhook.telegram_send.ok`
 - `webhook.telegram_send.error`
 - `webhook.enqueue.ok`
@@ -181,6 +190,8 @@ Buscar eventos:
 - `webhook.enqueue.unavailable`
 - `webhook.dedup.duplicate`
 - `webhook.forbidden`
+- `ops.command.completed`
+- `ops.command.failed`
 
 Archivos utiles:
 
@@ -193,9 +204,14 @@ Archivos utiles:
 Interpretacion rapida:
 
 - `webhook.forbidden`: token de la ruta incorrecto.
-- `webhook.chat_api.error`: el webhook recibio el mensaje, pero fallo la llamada a la API.
-- `webhook.telegram_send.error`: la API respondio, pero fallo el envio a Telegram.
-- `webhook.enqueue.error`: hay modo async, pero la cola fallo.
+- `webhook.chat_service.ok`: el webhook procesó mensaje conversacional correctamente.
+- `webhook.ops_service.ok`: el webhook procesó comando OPS correctamente.
+- `telegram.dispatch.ops`: el dispatcher clasificó el update como comando OPS.
+- `telegram.dispatch.chat`: el dispatcher clasificó el update como mensaje conversacional.
+- `telegram.dispatch.unsupported`: el update no tiene texto o es comando no soportado.
+- `webhook.telegram_send.error`: la API respondió, pero falló el envío a Telegram.
+- `webhook.service.error`: error en el servicio de dominio.
+- `webhook.enqueue.error`: hay modo async, pero la cola falló.
 - `webhook.enqueue.unavailable`: `PROCESS_ASYNC=true` pero no hay cola disponible.
 - `webhook.dedup.duplicate`: el `update_id` ya fue visto.
 
@@ -219,14 +235,17 @@ Suele significar:
 
 ### Caso C: `/health` o `/logs` no responden como chat
 
-Hoy eso no es un bug de transporte.
+Ya no es un bug.
 
-El webhook clasifica comandos slash aparte:
+Desde la Fase 3, el webhook canonico procesa comandos OPS directamente:
 
-- comandos OPS conocidos
-- comandos no soportados
+- comandos OPS conocidos (`/health`, `/logs`, `/e2e`, `/webhookinfo`) se clasifican como `ops_command`
+- se ejecutan via `handle_ops_command`
+- se registra `telegram.dispatch.ops` y `webhook.ops_service.ok`
 
-No los trata como mensaje conversacional normal.
+Si estos comandos no funcionan:
+- revisa `logs/ops_events.jsonl` para `ops.command.completed` o `ops.command.failed`
+- verifica que `ADMIN_CHAT_IDS` esta configurado en `.env`
 
 ### Caso D: `PROCESS_ASYNC=true` y no responde
 
@@ -284,7 +303,33 @@ Si `url` esta vacia:
 8. Solo cuando eso funcione, activa `PROCESS_ASYNC=true`.
 9. Anade Redis + worker.
 
-## 11. Resultado esperado del debug
+## 11. Arquitectura actual (post-Fase 5)
+
+El flujo actual es:
+
+```
+Telegram ──► app.webhook.entrypoint:app
+                    │
+                    ├── dispatcher (clasifica: chat_message / ops_command / unsupported)
+                    │       │
+                    │       ├── telegram.dispatch.chat
+                    │       ├── telegram.dispatch.ops
+                    │       └── telegram.dispatch.unsupported
+                    │
+                    ├── chat_message ──► handle_chat_message ──► chat API
+                    │                           │
+                    │                           └── webhook.chat_service.ok
+                    │
+                    └── ops_command ──► handle_ops_command ──► webhook.ops_service.ok
+                                        │
+                                        └── ops.command.completed / ops.command.failed
+```
+
+Componentes deprecated (no usar):
+- `telegram_adapter.py`
+- `app.telegram_ops.entrypoint.py` (ya no necesario)
+
+## 12. Resultado esperado del debug
 
 Debes poder responder con evidencia una de estas conclusiones:
 

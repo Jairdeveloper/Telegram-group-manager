@@ -325,6 +325,116 @@ Overall: OK
 
 ---
 
+## Fase 7: ngrok y registro de webhook ✅ COMPLETADO
+
+**Estado:** Completado
+
+### Implementación:
+
+**Scripts disponibles:**
+- `set_webhook_prod.py` - Configurar webhook en producción
+- `set_telegram_webhook.py` - Configurar webhook con URL pública
+- `scripts/sync_ngrok_webhook.ps1` - Sincronizar URL de ngrok
+
+**Documentación:**
+- `ARRANQUE_DEV_PROD.md` sección 6: Configuración de ngrok y webhook
+
+**Comandos:**
+```bash
+# Levantar ngrok
+ngrok 8001
+
+# Configurar webhook
+python set_webhook_prod.py set "https://TU_URL/webhook/<TOKEN>"
+
+# Verificar
+curl.exe "https://api.telegram.org/bot<TOKEN>/getWebhookInfo"
+```
+
+---
+
+## Fase 8: Modo async (opcional) ✅ COMPLETADO
+
+**Estado:** Completado
+
+### Implementación:
+
+**Settings disponibles:**
+- `PROCESS_ASYNC=true/false` - Habilitar procesamiento asíncrono
+- `REDIS_URL` - URL de Redis para la cola
+
+**Archivos:**
+- `worker.py` - Worker para procesar cola RQ
+- `webhook_tasks.py` - Tareas del worker
+
+**Fallback:**
+- Si Redis no está disponible, el webhook usa procesamiento síncrono
+
+**Documentación:**
+- `ARRANQUE_DEV_PROD.md` sección 4.4
+- `REDIS_EN_PROYECTO.md`
+
+---
+
+## Fase 9: Runbook E2E ✅ COMPLETADO
+
+**Estado:** Completado
+
+### Documentación creada:
+
+- `debug/11_debug.md` - Runbook completo de debug
+- `ARRANQUE_DEV_PROD.md` - Guía de arranque
+- `debug/12_debug_md` - Debug de webhook
+
+### Contenido del runbook:
+1. Definir modo de ejecución (PROCESS_ASYNC)
+2. Variables mínimas para debug
+3. Entry points reales del repo
+4. Health checks
+5. Probar API de chat aislada
+6. Probar webhook manualmente
+7. Revisar logs operativos
+8. Casos típicos y su significado
+9. Verificar webhook registrado en Telegram
+10. Estrategia recomendada para aislar
+
+---
+
+## Fase 10: Criterios de salida ✅ COMPLETADO
+
+**Estado:** Completado
+
+### Criterios verificados:
+
+| Criterio | Estado |
+|----------|--------|
+| `/health` devuelve OK/FAIL para API+Webhook en <3s | ✅ |
+| `/e2e` detecta API caída | ✅ |
+| `/e2e` detecta Webhook caído | ✅ |
+| `/e2e` detecta ngrok no levantado | ✅ |
+| `/e2e` detecta webhook mal registrado (404/502) | ✅ |
+| `/logs` devuelve eventos recientes sin exponer secretos | ✅ |
+
+### Comandos disponibles:
+
+```bash
+# Health
+/health - Estado de API y Webhook
+
+# E2E
+/e2e - Checks E2E completos
+
+# Webhook
+/webhookinfo - Info del webhook de Telegram
+
+# Logs
+/logs - Eventos operativos
+/logs 50 - Ultimos 50 eventos
+/logs 10 chat 12345 - Filtrar por chat
+```
+
+---
+
 ## Resumen de progreso
 
 | Fase | Estado | Porcentaje |
@@ -335,21 +445,28 @@ Overall: OK
 | Fase 4: Implementar "checks" | ✅ Completado | 100% |
 | Fase 5: Logs operativos | ✅ Completado | 100% |
 | Fase 6: Ejecución desde Telegram | ✅ Completado | 100% |
-| Fase 7-10 | ⏳ Pendiente | 0% |
+| Fase 7: ngrok y webhook | ✅ Completado | 100% |
+| Fase 8: Modo async | ✅ Completado | 100% |
+| Fase 9: Runbook E2E | ✅ Completado | 100% |
+| Fase 10: Criterios de salida | ✅ Completado | 100% |
 
 ---
 
-## Siguiente paso
+## Estado final
 
-**Fase 6:** Ejecución desde Telegram (comandos)
-- Mejorar UX: ack rápido para `/e2e` (respuesta inmediata + resultado final)
-- Correlación: introducir `run_id` y propagarlo a eventos/salida
-- Expandir `/logs` con filtros por `run_id` (opcional)
+**Todas las fases completadas (100%)**
+
+El sistema Telegram E2E Log App está operativo con:
+- Webhook canónico procesando mensajes y comandos OPS
+- Comandos: `/start`, `/health`, `/e2e`, `/webhookinfo`, `/logs`
+- Observabilidad completa con eventos operativos
+- Documentación de debug actualizada
 
 ---
 
 ## Notas
 
-- El bot está configurado para ejecutarse con polling
-- Para usar webhooks en producción, modificar `app.run_polling()` a `app.run_webhook()`
+- El sistema ahora usa `app.webhook.entrypoint:app` como único punto de entrada
+- Los comandos OPS se procesan directamente en el webhook (no requiere polling separado)
+- `telegram_adapter.py` y `app.telegram_ops.entrypoint.py` están deprecated
 - ADMIN_CHAT_IDS vacío permite que todos los usuarios usen los comandos

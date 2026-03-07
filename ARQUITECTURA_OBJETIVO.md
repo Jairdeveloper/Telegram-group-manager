@@ -1,5 +1,9 @@
 # ARQUITECTURA_OBJETIVO
 
+> **Estado: COMPLETADO** (Fases 0-5)
+> **Fecha de completado**: 2026-03-07
+> **Fase 6**: Pendiente (opcional)
+
 ## Proposito
 
 Convertir la arquitectura propuesta en [01_arquitecture.md](c:\Users\1973b\zpa\Projects\manufacturing\robot\design\01_arquitecture.md) en un plan de implementacion ejecutable, con fases, entregables, riesgos, pruebas y criterio de salida.
@@ -309,7 +313,7 @@ Cerrar la arquitectura con observabilidad y contratos estables.
 
 ---
 
-## Fase 6. Separacion opcional en dos bots
+## Fase 6. Separacion opcional en dos bots (PENDIENTE)
 
 ### Objetivo
 
@@ -441,3 +445,83 @@ El primer bloque a implementar debe ser:
 - Fase 3
 
 Porque ese bloque ya elimina el problema estructural principal sin esperar a una separacion futura de bots.
+
+---
+
+# RESUMEN Y CONCLUSION
+
+## Objetivo达成
+
+El objetivo operativo se ha alcanzado:
+
+- ✅ Un solo runtime por token (`app.webhook.entrypoint:app`)
+- ✅ Un solo punto de entrada para updates
+- ✅ Separacion clara entre chat y operaciones
+- ✅ Contratos internos estables y testeables
+
+## Fases completadas
+
+| Fase | Descripcion | Estado |
+|------|-------------|--------|
+| 0 | Congelacion de arquitectura operativa | ✅ Completado |
+| 1 | Introducir dispatcher de Telegram | ✅ Completado |
+| 2 | Extraer servicios de aplicacion | ✅ Completado |
+| 3 | Integrar el dispatcher con los servicios | ✅ Completado |
+| 4 | Deprecar runtimes legacy | ✅ Completado |
+| 5 | Endurecimiento de contratos y observabilidad | ✅ Completado |
+| 6 | Separacion opcional en dos bots | ⏳ Pendiente (opcional) |
+
+## Definition of Done - CUMPLIDA
+
+1. ✅ `app.webhook.entrypoint:app` es el unico ingress Telegram en uso
+2. ✅ El webhook ejecuta chat y OPS desde el mismo runtime
+3. ✅ `telegram_adapter.py` deja de ser necesario para operar
+4. ✅ `app.telegram_ops.entrypoint.py` deja de ser necesario como proceso paralelo
+5. ✅ Existen tests de contrato y unitarios para ambos flujos
+6. ✅ La documentacion operativa y de arquitectura refleja el estado real del sistema
+
+## Arquitectura final
+
+```
+Telegram ──► app.webhook.entrypoint:app
+                    │
+                    ├── dispatcher (clasifica: chat_message / ops_command / unsupported)
+                    │
+                    ├── chat_message ──► handle_chat_message ──► chat API ──► Telegram
+                    │
+                    └── ops_command ──► handle_ops_command ──► Telegram
+```
+
+## Componentes creados
+
+- `app/telegram/dispatcher.py` - Clasificador de updates
+- `app/telegram/models.py` - Modelos de dispatch
+- `app/telegram/services.py` - Servicios de parsing
+- `app/ops/checks.py` - Health checks reutilizables
+- `app/ops/services.py` - Servicios de chat y OPS
+- `app/ops/policies.py` - Politicas de autorizacion y rate limit
+- `app/ops/events.py` - Sistema de eventos operativos
+
+## Componentes deprecated
+
+- `telegram_adapter.py` - Marcado como DEPRECATED
+- `app/telegram_ops/entrypoint.py` - Ya no necesario
+
+## Suite de pruebas
+
+- 45+ tests cubriendo:
+  - Tests unitarios del dispatcher
+  - Tests de servicios OPS
+  - Tests de handlers de webhook
+  - Tests de contrato HTTP
+  - Tests de regresion
+
+## Siguiente paso (opcional)
+
+La Fase 6 (Separacion en dos bots) esta disponible como optimizacion futura:
+
+- Introducir `TELEGRAM_CHATBOT_TOKEN` y `TELEGRAM_OPS_TOKEN`
+- Aislar configuracion y handlers por bot
+- Decision: ¿mismo webhook o dos ingress?
+
+**No es necesaria para la estabilidad del sistema.**

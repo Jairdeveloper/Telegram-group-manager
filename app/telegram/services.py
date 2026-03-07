@@ -3,7 +3,7 @@
 from typing import Any, Dict, Optional, Tuple
 
 
-OPS_COMMANDS = frozenset(("/health", "/logs", "/e2e", "/webhookinfo"))
+OPS_COMMANDS = frozenset(("/health", "/logs", "/e2e", "/webhookinfo", "/start"))
 
 
 def extract_message(update: Dict[str, Any]) -> Optional[Dict[str, Any]]:

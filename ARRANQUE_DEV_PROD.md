@@ -53,6 +53,7 @@ Importante:
   - Mensajes conversacionales normales
   - Comandos OPS (`/health`, `/logs`, `/e2e`, `/webhookinfo`)
 
+## Definition of Done
 ## 4. Modo Dev (local)
 
 ### 4.1 Validar tests antes de arrancar
@@ -188,37 +189,58 @@ Esperado: `403 Invalid token`.
 
 ## 6. Registro del webhook en Telegram
 
-Con dominio publico y TLS valido:
+**Importante**: Sin configurar el webhook, Telegram no enviara los mensajes a tu servidor.
 
-```bash
-$env:TELEGRAM_BOT_TOKEN=(Get-Content .env | ? { $_ -like 'TELEGRAM_BOT_TOKEN=*' } | % { $_.Split('=')[1] })
-python set_webhook_prod.py set "https://TU_DOMINIO_PUBLICO/webhook/$env:TELEGRAM_BOT_TOKEN"
-```
+### 6.1 Con ngrok (desarrollo local)
 
-Verificacion:
-
-```bash
-curl.exe "https://api.telegram.org/bot$env:TELEGRAM_BOT_TOKEN/getWebhookInfo"
-```
-
-Revisar:
-
-- `url`
-- `pending_update_count`
-- `last_error_message`
-
-Importante:
-
-- Si `url` esta vacia, Telegram no esta entregando updates al webhook.
-- La URL publica debe terminar en `/webhook/<TELEGRAM_BOT_TOKEN>`.
-
-### 6.1 ngrok
+1. Inicia ngrok:
 
 ```bash
 ngrok 8001
 ```
 
-Cuando cambie la URL publica:
+2. Copia la URL HTTPS que te da ngrok (ej: `https://abc123.ngrok.io`)
+
+3. Configura el webhook:
+
+```bash
+python set_webhook_prod.py set "https://TU_URL_NGROK/webhook/<TELEGRAM_BOT_TOKEN>"
+```
+
+Opcionalmente:
+
+```bash
+python set_telegram_webhook.py "https://TU_URL_NGROK/webhook/<TELEGRAM_BOT_TOKEN>"
+```
+
+### 6.2 Con dominio publico (produccion)
+
+```bash
+python set_webhook_prod.py set "https://TU_DOMINIO_PUBLICO/webhook/<TELEGRAM_BOT_TOKEN>"
+```
+
+### 6.3 Verificacion
+
+Despues de configurar:
+
+```bash
+curl.exe "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
+```
+
+Revisar:
+
+- `url` - NO debe estar vacia
+- `pending_update_count` - Debe ser 0
+- `last_error_message` - Debe ser null/empty
+
+Importante:
+
+- Si `url` esta vacia, Telegram NO esta delivering messages al webhook.
+- La URL debe terminar en `/webhook/<TELEGRAM_BOT_TOKEN>`.
+
+### 6.4 Sincronizacion automatica con ngrok
+
+Si usas ngrok y la URL cambia frecuentemente:
 
 ```bash
 powershell -ExecutionPolicy Bypass -File scripts/sync_ngrok_webhook.ps1

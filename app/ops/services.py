@@ -257,6 +257,28 @@ async def handle_ops_command(
     if is_admin_fn is not None and not is_admin_fn(chat_id):
         return {"status": "unauthorized", "command": normalized_command, "response_text": "No autorizado"}
 
+    if normalized_command == "/start":
+        response_text = (
+            "Hola! Soy el Robot de Manufactura.\n\n"
+            "Comandos disponibles:\n"
+            "/health - Estado de API y Webhook\n"
+            "/e2e - Ejecutar checks E2E\n"
+            "/webhookinfo - Info de webhook\n"
+            "/logs - Ultimos eventos\n\n"
+            "Envia un mensaje para chatear."
+        )
+        record_event_fn(
+            component="ops",
+            event="ops.command.completed",
+            chat_id=chat_id,
+            command=normalized_command,
+        )
+        return {
+            "status": "ok",
+            "command": normalized_command,
+            "response_text": response_text,
+        }
+
     if normalized_command == "/health":
         api_health = await check_api_health_fn()
         webhook_health = await check_webhook_health_fn()
