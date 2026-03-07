@@ -11,7 +11,6 @@ Operational status:
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from telegram import Update
@@ -19,6 +18,11 @@ from telegram.error import Conflict, NetworkError
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 from app.ops.events import get_event_store, record_event
+from app.ops.policies import (
+    check_rate_limit as shared_check_rate_limit,
+    get_rate_limit_seconds,
+    is_admin as shared_is_admin,
+)
 from app.ops.services import (
     execute_e2e_command,
     format_e2e_response,
@@ -43,8 +47,7 @@ if not TELEGRAM_TOKEN:
     logger.error("TELEGRAM_BOT_TOKEN not set")
     raise SystemExit(1)
 
-RATE_LIMIT_SECONDS = 30
-last_run_times = {}
+RATE_LIMIT_SECONDS = get_rate_limit_seconds()
 LOCK_PATH = os.path.join("logs", "telegram_ops.pid")
 
 
@@ -101,19 +104,12 @@ def release_polling_lock(expected_pid: int) -> None:
 
 def is_admin(chat_id: int) -> bool:
     """Return whether the chat_id is authorized."""
-    if not ADMIN_CHAT_IDS or ADMIN_CHAT_IDS == [""]:
-        return True
-    return str(chat_id) in ADMIN_CHAT_IDS
+    return shared_is_admin(chat_id)
 
 
 async def check_rate_limit(chat_id: int) -> bool:
     """Enforce a small per-chat cooldown."""
-    now = datetime.now(timezone.utc).timestamp()
-    last_run = last_run_times.get(chat_id, 0)
-    if now - last_run < RATE_LIMIT_SECONDS:
-        return False
-    last_run_times[chat_id] = now
-    return True
+    return await shared_check_rate_limit(chat_id)
 
 
 async def health_command(update: Update, context: ContextTypes.DEFAULT_TYPE):

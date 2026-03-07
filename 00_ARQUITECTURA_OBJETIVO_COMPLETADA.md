@@ -7,6 +7,7 @@ Quedan registradas como completadas:
 - Fase 0: Congelacion de arquitectura operativa
 - Fase 1: Introducir dispatcher de Telegram
 - Fase 2: Extraer servicios de aplicacion
+- Fase 3: Integrar el dispatcher con los servicios
 
 ---
 
@@ -293,7 +294,222 @@ Todavia queda pendiente para Fase 3:
 
 ---
 
-## Estado tras Fase 0 + Fase 2
+## Fase 3 completada
+
+### Objetivo
+
+Completar el flujo final:
+
+- webhook -> dispatcher -> servicio correcto -> respuesta Telegram
+
+para que un mismo runtime webhook responda:
+
+- mensajes conversacionales
+- comandos OPS
+
+sin depender operativamente de `app.telegram_ops.entrypoint.py`.
+
+### Cambios implementados
+
+#### Nuevos archivos
+
+- `app/ops/policies.py`
+
+#### Refactor aplicado
+
+Archivos modificados:
+
+- `app/webhook/handlers.py`
+- `app/webhook/entrypoint.py`
+- `webhook_tasks.py`
+- `app/telegram_ops/entrypoint.py`
+- `app/ops/checks.py`
+- `tests/test_webhook_handlers_unit.py`
+- `tests/test_webhook_contract.py`
+
+### Integracion del webhook con los servicios
+
+Archivo refactorizado:
+
+- `app/webhook/handlers.py`
+
+Cambios:
+
+1. `process_update_impl()` pasa a ser asincrona.
+2. El webhook deja de usar el flujo directo `chat_api_client.ask(...)` para mensajes normales.
+3. El dispatcher sigue siendo el punto de decision, pero ahora:
+   - `chat_message` -> `handle_chat_message(...)`
+   - `ops_command` -> `handle_ops_command(...)`
+4. Se elimina el comportamiento `webhook.command_ignored` como camino normal para comandos OPS.
+5. Se mantienen los contratos del webhook:
+   - token valido -> `{"ok": true}`
+   - dedup -> no reprocesa el mismo `update_id`
+   - si falla la cola async -> fallback sync
+   - si falla el servicio de dominio -> sigue devolviendo `{"ok": true}` y responde `(internal error)`
+
+### Politicas OPS compartidas
+
+Nuevo archivo:
+
+- `app/ops/policies.py`
+
+Se extraen de `app.telegram_ops.entrypoint.py` las politicas de:
+
+- autorizacion por `ADMIN_CHAT_IDS`
+- rate limit para comandos OPS costosos
+
+Con esto:
+
+- el webhook puede ejecutar OPS usando la misma politica que el runtime transitorio
+- `app.telegram_ops.entrypoint.py` deja de ser el unico lugar donde existia esa logica
+
+### Runtime canonico y worker alineados
+
+#### Webhook canonico
+
+Archivo modificado:
+
+- `app/webhook/entrypoint.py`
+
+Cambios:
+
+1. `process_update_sync(...)` ahora llama al flujo compartido asincrono.
+2. El entrypoint canonico inyecta:
+   - `handle_chat_message`
+   - `handle_ops_command`
+   - `is_admin`
+   - `check_rate_limit`
+
+#### Worker
+
+Archivo modificado:
+
+- `webhook_tasks.py`
+
+Cambio:
+
+- el worker deja de mantener un flujo paralelo basado en `RequestsChatApiClient`
+- ahora ejecuta el mismo `process_update_impl(...)` compartido que usa el webhook
+
+Resultado:
+
+- no hay divergencia funcional entre procesamiento sync y async
+
+### Ajuste adicional detectado durante la fase
+
+Archivo modificado:
+
+- `app/ops/checks.py`
+
+Cambio:
+
+- `build_probe_update(...)` pasa a generar `update_id` realmente unico en cada invocacion
+
+Motivo:
+
+- un test de regresion detecto colision de `update_id` en checks locales consecutivos
+
+### Comportamiento resultante
+
+#### Mensaje conversacional
+
+- se clasifica como `chat_message`
+- se resuelve con `handle_chat_message(...)`
+- se envia la respuesta a Telegram desde el mismo runtime webhook
+
+#### Comando OPS conocido
+
+- se clasifica como `ops_command`
+- se resuelve con `handle_ops_command(...)`
+- se envia la respuesta OPS a Telegram desde el mismo runtime webhook
+
+#### Update no soportado
+
+- se clasifica como `unsupported`
+- se registra como `webhook.unsupported_update`
+- no intenta ejecutar servicios de dominio ni enviar mensaje
+
+### Eventos operativos resultantes
+
+El webhook pasa a registrar eventos mas alineados con el servicio realmente ejecutado:
+
+- `webhook.process_start`
+- `webhook.chat_service.ok`
+- `webhook.ops_service.ok`
+- `webhook.service.error`
+- `webhook.telegram_send.ok`
+- `webhook.telegram_send.error`
+
+Se mantienen:
+
+- `webhook.received`
+- `webhook.dedup.duplicate`
+- `webhook.enqueue.ok`
+- `webhook.enqueue.error`
+- `webhook.enqueue.unavailable`
+- `webhook.handle_error`
+
+### Cobertura actualizada
+
+#### Tests de handlers
+
+Archivo actualizado:
+
+- `tests/test_webhook_handlers_unit.py`
+
+Cambios cubiertos:
+
+- mensaje normal usa servicio compartido de chat
+- comando OPS ejecuta servicio compartido y responde por Telegram
+- update no soportado sigue sin enviar respuesta
+- error en servicio de dominio responde `(internal error)`
+
+#### Tests de contrato
+
+Archivo actualizado:
+
+- `tests/test_webhook_contract.py`
+
+Cambios cubiertos:
+
+- `POST /webhook/{token}` con mensaje normal -> respuesta conversacional desde servicio compartido
+- `POST /webhook/{token}` con `/logs` -> respuesta OPS desde el mismo webhook
+- fallback sync se mantiene cuando falla enqueue
+- fallo de envio a Telegram no rompe el contrato HTTP del webhook
+
+### Tests ejecutados
+
+Comando:
+
+```powershell
+pytest -q tests/test_webhook_handlers_unit.py tests/test_webhook_contract.py tests/test_ops_services_unit.py tests/test_telegram_dispatcher_unit.py tests/test_modular_entrypoints.py tests/test_telegram_ops_entrypoint_unit.py
+```
+
+Resultado:
+
+- `31 passed`
+- `1 warning`
+
+Warning observado:
+
+- `PytestCacheWarning` por permisos sobre `.pytest_cache`, sin impacto funcional
+
+### Resultado arquitectonico de la fase
+
+Queda resuelto:
+
+- el webhook ya no ignora comandos OPS como camino normal
+- el webhook ya no depende de llamar al chat API como adaptador primario para texto normal
+- un mismo runtime canonico procesa chat y OPS
+- el worker async y el flujo sync comparten el mismo procesamiento de dominio
+
+Con esto se cumple el criterio de salida de la Fase 3:
+
+- un mismo runtime webhook responde tanto chat como OPS
+
+---
+
+## Estado tras Fase 0 + Fase 3
 
 Se ha resuelto:
 
@@ -301,20 +517,24 @@ Se ha resuelto:
 - la ausencia de una pieza formal de clasificacion de updates
 - la duplicacion principal de logica OPS dentro del bot de polling
 - la falta de una capa de servicios reutilizable para chat y operaciones
+- la ejecucion de comandos OPS desde el webhook canonico
+- la unificacion de chat y OPS dentro del mismo runtime
+- la alineacion funcional entre el flujo sync y el flujo async del webhook
 
 Todavia no se ha resuelto:
 
-- ejecutar comandos OPS desde el webhook canonico
 - retirar completamente `app.telegram_ops.entrypoint.py`
-- unificar chat y OPS dentro del mismo runtime
+- endurecer la observabilidad del nuevo flujo
+- validar y endurecer el contrato de envio real a Telegram
+- completar la deprecacion operativa de componentes legacy
 
 ---
 
 ## Siguiente paso recomendado
 
-Ejecutar la Fase 3:
+Ejecutar la Fase 4:
 
-- conectar el dispatcher del webhook con `handle_chat_message(...)`
-- conectar el dispatcher del webhook con `handle_ops_command(...)`
-- reemplazar el `command_ignored` por despacho real de comandos OPS
-- validar por contrato que un solo runtime webhook responde mensajes y comandos
+- retirar `app.telegram_ops.entrypoint.py` del flujo normal
+- limpiar scripts y runbooks que todavia lo promuevan como camino operativo
+- revisar referencias residuales a polling legacy
+- dejar la documentacion y arranque alineados con el webhook canonico como unico ingress

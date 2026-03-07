@@ -97,14 +97,17 @@ def test_webhook_async_enqueue_failure_falls_back_to_sync(monkeypatch):
     assert calls["count"] == 1
 
 
-class _ChatApiRaises:
-    def ask(self, *, message: str, session_id: str) -> str:
+class _ChatServiceRaises:
+    def __call__(self, chat_id: int, text: str):
         raise TimeoutError("timeout")
 
 
-class _ChatApiReturnsError:
-    def ask(self, *, message: str, session_id: str) -> str:
-        return "(chat api error)"
+class _ChatServiceReturnsReply:
+    def __init__(self, reply: str):
+        self.reply = reply
+
+    def __call__(self, chat_id: int, text: str):
+        return {"response": self.reply}
 
 
 class _TelegramRecorder:
@@ -129,11 +132,11 @@ def test_webhook_returns_500_when_bot_token_missing(monkeypatch):
     assert response.json()["detail"] == "BOT_TOKEN not configured"
 
 
-def test_webhook_chat_api_exception_returns_ok_and_internal_error_reply(monkeypatch):
+def test_webhook_chat_service_exception_returns_ok_and_internal_error_reply(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
-    monkeypatch.setattr(twp, "CHAT_API_CLIENT", _ChatApiRaises())
+    monkeypatch.setattr(twp, "handle_chat_message", _ChatServiceRaises())
     telegram = _TelegramRecorder()
     monkeypatch.setattr(twp, "TELEGRAM_CLIENT", telegram)
     client = TestClient(twp.app)
@@ -144,11 +147,11 @@ def test_webhook_chat_api_exception_returns_ok_and_internal_error_reply(monkeypa
     assert telegram.calls[0]["text"] == "(internal error)"
 
 
-def test_webhook_chat_api_non_200_path_returns_ok_and_chat_api_error_reply(monkeypatch):
+def test_webhook_chat_message_uses_shared_service_reply(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
-    monkeypatch.setattr(twp, "CHAT_API_CLIENT", _ChatApiReturnsError())
+    monkeypatch.setattr(twp, "handle_chat_message", _ChatServiceReturnsReply("service:ok"))
     telegram = _TelegramRecorder()
     monkeypatch.setattr(twp, "TELEGRAM_CLIENT", telegram)
     client = TestClient(twp.app)
@@ -156,17 +159,45 @@ def test_webhook_chat_api_non_200_path_returns_ok_and_chat_api_error_reply(monke
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
-    assert telegram.calls[0]["text"] == "(chat api error)"
+    assert telegram.calls[0]["text"] == "service:ok"
 
 
 def test_webhook_telegram_send_failure_still_returns_ok(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
-    monkeypatch.setattr(twp, "CHAT_API_CLIENT", _ChatApiReturnsError())
+    monkeypatch.setattr(twp, "handle_chat_message", _ChatServiceReturnsReply("service:ok"))
     monkeypatch.setattr(twp, "TELEGRAM_CLIENT", _TelegramRecorder(should_raise=True))
     client = TestClient(twp.app)
     response = client.post("/webhook/valid-token", json=_sample_update(update_id=83))
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
+
+
+async def _fake_ops_handler(chat_id: int, command: str, args=(), **_kwargs):
+    return {
+        "status": "ok",
+        "command": command,
+        "response_text": f"ops:{command}",
+    }
+
+
+def test_webhook_processes_ops_commands_via_shared_service(monkeypatch):
+    monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
+    monkeypatch.setattr(twp, "TASK_QUEUE", None)
+    monkeypatch.setattr(twp, "handle_ops_command", _fake_ops_handler)
+    telegram = _TelegramRecorder()
+    monkeypatch.setattr(twp, "TELEGRAM_CLIENT", telegram)
+    client = TestClient(twp.app)
+    payload = {
+        "update_id": 84,
+        "message": {"chat": {"id": 12345, "type": "private"}, "text": "/logs"},
+    }
+
+    response = client.post("/webhook/valid-token", json=payload)
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    assert telegram.calls[0]["text"] == "ops:/logs"

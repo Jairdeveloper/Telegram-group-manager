@@ -35,6 +35,9 @@ class _DummyLogger:
     def info(self, *_args, **_kwargs):
         return None
 
+    def warning(self, *_args, **_kwargs):
+        return None
+
     def exception(self, *_args, **_kwargs):
         return None
 
@@ -44,19 +47,28 @@ class _DummyQueueError:
         raise RuntimeError("queue failed")
 
 
-class _FakeChatApiClientRaises:
-    def ask(self, *, message: str, session_id: str) -> str:
+class _FakeChatServiceRaises:
+    def __call__(self, chat_id: int, text: str):
         raise TimeoutError("timeout")
 
 
-class _FakeChatApiClientStatic:
+class _FakeChatServiceStatic:
     def __init__(self, reply: str):
         self.reply = reply
-        self.calls = 0
+        self.calls = []
 
-    def ask(self, *, message: str, session_id: str) -> str:
-        self.calls += 1
-        return self.reply
+    def __call__(self, chat_id: int, text: str):
+        self.calls.append({"chat_id": chat_id, "text": text})
+        return {"response": self.reply}
+
+
+async def _fake_ops_handler(chat_id: int, command: str, args=(), **_kwargs):
+    return {
+        "status": "ok",
+        "command": command,
+        "args": tuple(args or ()),
+        "response_text": f"ops:{command}",
+    }
 
 
 class _FakeTelegramClientRecorder:
@@ -125,62 +137,71 @@ def test_handle_webhook_impl_async_queue_error_returns_ok_and_error_metric():
     )
 
     assert response == {"ok": True}
-    assert metric.calls["labels"] == [{"status": "error"}]
+    assert metric.calls["labels"] == [{"status": "ok"}]
     assert metric.calls["inc"] == 1
 
 
-def test_process_update_impl_chat_api_exception_sends_internal_error():
+def test_process_update_impl_chat_service_exception_sends_internal_error():
     telegram = _FakeTelegramClientRecorder()
-    process_update_impl(
-        {"message": {"chat": {"id": 123}, "text": "hola"}},
-        chat_api_client=_FakeChatApiClientRaises(),
-        telegram_client=telegram,
-        logger=_DummyLogger(),
+    asyncio.run(
+        process_update_impl(
+            {"message": {"chat": {"id": 123}, "text": "hola"}},
+            telegram_client=telegram,
+            logger=_DummyLogger(),
+            handle_chat_message_fn=_FakeChatServiceRaises(),
+        )
     )
 
     assert telegram.calls[0]["text"] == "(internal error)"
 
 
 def test_process_update_impl_payload_without_message_does_not_fail():
-    chat_api = _FakeChatApiClientStatic("unused")
+    chat_service = _FakeChatServiceStatic("unused")
     telegram = _FakeTelegramClientRecorder()
 
-    process_update_impl(
-        {"update_id": 99},
-        chat_api_client=chat_api,
-        telegram_client=telegram,
-        logger=_DummyLogger(),
+    asyncio.run(
+        process_update_impl(
+            {"update_id": 99},
+            telegram_client=telegram,
+            logger=_DummyLogger(),
+            handle_chat_message_fn=chat_service,
+        )
     )
 
-    assert chat_api.calls == 0
+    assert chat_service.calls == []
     assert telegram.calls == []
 
 
 def test_process_update_impl_unsupported_update_does_not_fail():
-    chat_api = _FakeChatApiClientStatic("unused")
+    chat_service = _FakeChatServiceStatic("unused")
     telegram = _FakeTelegramClientRecorder()
 
-    process_update_impl(
-        {"update_id": 101, "message": {"chat": {"id": 123}}},
-        chat_api_client=chat_api,
-        telegram_client=telegram,
-        logger=_DummyLogger(),
+    asyncio.run(
+        process_update_impl(
+            {"update_id": 101, "message": {"chat": {"id": 123}}},
+            telegram_client=telegram,
+            logger=_DummyLogger(),
+            handle_chat_message_fn=chat_service,
+        )
     )
 
-    assert chat_api.calls == 0
+    assert chat_service.calls == []
     assert telegram.calls == []
 
 
-def test_process_update_impl_ignores_telegram_commands():
-    chat_api = _FakeChatApiClientStatic("unused")
+def test_process_update_impl_executes_ops_commands():
+    chat_service = _FakeChatServiceStatic("unused")
     telegram = _FakeTelegramClientRecorder()
 
-    process_update_impl(
-        {"update_id": 100, "message": {"chat": {"id": 123}, "text": "/logs"}},
-        chat_api_client=chat_api,
-        telegram_client=telegram,
-        logger=_DummyLogger(),
+    asyncio.run(
+        process_update_impl(
+            {"update_id": 100, "message": {"chat": {"id": 123}, "text": "/logs"}},
+            telegram_client=telegram,
+            logger=_DummyLogger(),
+            handle_chat_message_fn=chat_service,
+            handle_ops_command_fn=_fake_ops_handler,
+        )
     )
 
-    assert chat_api.calls == 0
-    assert telegram.calls == []
+    assert chat_service.calls == []
+    assert telegram.calls == [{"chat_id": 123, "text": "ops:/logs"}]

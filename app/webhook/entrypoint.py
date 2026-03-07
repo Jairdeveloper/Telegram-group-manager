@@ -2,6 +2,9 @@
 
 from typing import Any, Dict
 
+from app.ops.policies import check_rate_limit, is_admin
+from app.ops.services import handle_chat_message, handle_ops_command
+
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -42,14 +45,17 @@ def dedup_update(update_id: int) -> bool:
     )
 
 
-def process_update_sync(update: Dict[str, Any]):
+async def process_update_sync(update: Dict[str, Any]):
     """Process an update synchronously using shared domain service."""
-    process_update_impl(
+    await process_update_impl(
         update,
-        chat_api_client=CHAT_API_CLIENT,
         telegram_client=TELEGRAM_CLIENT,
         process_time_metric=PROCESS_TIME,
         logger=LOGGER,
+        handle_chat_message_fn=handle_chat_message,
+        handle_ops_command_fn=handle_ops_command,
+        is_admin_fn=is_admin,
+        rate_limit_check=check_rate_limit,
     )
 
 

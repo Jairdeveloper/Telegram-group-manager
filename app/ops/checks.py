@@ -2,6 +2,8 @@
 
 import logging
 import os
+import time
+from itertools import count
 from datetime import datetime, timezone
 from typing import Any, Dict
 
@@ -16,6 +18,7 @@ API_BASE = os.getenv("API_HOST", "127.0.0.1")
 API_PORT = os.getenv("API_PORT", "8000")
 WEBHOOK_PORT = os.getenv("WEBHOOK_PORT", "8001")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+_PROBE_UPDATE_IDS = count(start=time.time_ns())
 
 
 def mask_token(token: str) -> str:
@@ -29,7 +32,7 @@ def build_probe_update(*, text: str = "/start") -> Dict[str, Any]:
     """Build a synthetic Telegram update with a unique update_id."""
     now = datetime.now(timezone.utc)
     return {
-        "update_id": int(now.timestamp() * 1_000_000),
+        "update_id": next(_PROBE_UPDATE_IDS),
         "message": {
             "message_id": 1,
             "chat": {"id": 123456789, "type": "private"},
