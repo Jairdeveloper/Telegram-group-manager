@@ -78,6 +78,9 @@ def format_e2e_response(results: Dict[str, Any]) -> str:
         lines.append(f"[{marker}] {check_name}: {status}")
         if status == "FAIL":
             lines.append(f"  Error: {check_result.get('error', 'Unknown error')}")
+            hint = check_result.get("hint")
+            if hint:
+                lines.append(f"  Hint: {hint}")
 
     lines.extend(["", f"Overall: {results.get('overall', 'UNKNOWN')}"])
     return "\n".join(lines)

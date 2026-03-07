@@ -72,7 +72,7 @@ ADMIN_USERNAMES=usuario1,usuario2
 
 ## Fase 3: E2E operable: run_id, check público (ngrok) y pistas accionables
 
-**Estado:** EN PROGRESO
+**Estado:** ✅ COMPLETADO
 
 ### Objetivo
 
@@ -83,10 +83,12 @@ Hacer que `/e2e` sea realmente útil para diagnosticar problemas sin abrir conso
 | Item | Estado |
 |------|--------|
 | `run_id` en `/e2e` | ✅ Implementado |
-| Check público (ngrok) | ✅ En checks.py |
-| Pistas en errores | ⚠️ Necesita mejora |
+| Check público (ngrok) | ✅ Implementado |
+| Pistas en errores | ✅ Implementado |
 
 ### Tareas pendientes
+
+- [ ] Ninguna - Fase 3 completada
 
 #### 3.1 - Mejorar pistas en errores
 
@@ -98,13 +100,19 @@ Hacer que `/e2e` sea realmente útil para diagnosticar problemas sin abrir conso
 - "getWebhookInfo url vacía → ejecuta setWebhook"
 - "Webhook 404 → verifica ngrok o dominio público"
 
+**Estado**: ✅ COMPLETADO
+
 #### 3.2 - Verificar check_webhook_public
 
 **Estado**: Ya existe en `app/ops/checks.py`
 
-**Verificar**:
-- [ ] Que `check_webhook_public()` funciona con ngrok
-- [ ] Documentar variable `NGROK_URL` si es necesaria
+**Implementado**:
+- [x] Que `check_webhook_public()` funciona con ngrok
+- [x] Documentar variable `NGROK_URL` si es necesaria
+
+**Cambios**:
+- Agregada variable `NGROK_URL` / `NGROK_HTTPS_URL` en settings
+- `run_e2e_check()` ahora incluye check de webhook público si NGROK_URL está configurado
 
 ---
 
