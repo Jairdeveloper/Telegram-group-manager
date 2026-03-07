@@ -50,6 +50,13 @@ async def process_update_impl(
     if dispatch.kind == "unsupported":
         logger.info("webhook.unsupported_update", extra=log_ctx)
         record_event(
+            component="telegram",
+            event="telegram.dispatch.unsupported",
+            update_id=update_id,
+            chat_id=chat_id,
+            reason=dispatch.reason,
+        )
+        record_event(
             component="webhook",
             event="webhook.unsupported_update",
             update_id=update_id,
@@ -57,6 +64,13 @@ async def process_update_impl(
             reason=dispatch.reason,
         )
         return
+
+    record_event(
+        component="telegram",
+        event=f"telegram.dispatch.{dispatch.kind}",
+        update_id=update_id,
+        chat_id=chat_id,
+    )
 
     record_event(
         component="webhook",

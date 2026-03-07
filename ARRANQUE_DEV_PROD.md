@@ -43,13 +43,15 @@ Notas operativas:
 - API canonica: `app.api.entrypoint:app`
 - Webhook canonico: `app.webhook.entrypoint:app`
 - Worker: `worker.py`
-- Telegram OPS transitorio: `app.telegram_ops.entrypoint`
+- Telegram OPS transitorio (deprecated): `app.telegram_ops.entrypoint`
 
 Importante:
 
-- No ejecutar en paralelo mas de un runtime Telegram para el mismo `TELEGRAM_BOT_TOKEN`.
-- El flujo normal de mensajes del bot debe entrar por `app.webhook.entrypoint:app`.
-- `app.telegram_ops.entrypoint` es un runtime transitorio para checks operativos; no es necesario para que el bot conversacional responda texto normal.
+- No ejecutar en paralelo más de un runtime Telegram para el mismo `TELEGRAM_BOT_TOKEN`.
+- El flujo normal de mensajes y comandos OPS entra por `app.webhook.entrypoint:app`.
+- `app.telegram_ops.entrypoint` está deprecated; ya no es necesario ya que el webhook ahora procesa:
+  - Mensajes conversacionales normales
+  - Comandos OPS (`/health`, `/logs`, `/e2e`, `/webhookinfo`)
 
 ## 4. Modo Dev (local)
 
@@ -95,13 +97,15 @@ Nota:
 python worker.py
 ```
 
-### 4.5 Levantar Telegram OPS transitorio (opcional)
+### 4.5 Levantar Telegram OPS transitorio (DEPRECATED - opcional)
 
 ```bash
 python -m app.telegram_ops.entrypoint
 ```
 
-Comandos disponibles en ese runtime:
+**Nota**: Este runtime está deprecated. El webhook canónico ahora procesa todos los comandos OPS (`/health`, `/e2e`, `/webhookinfo`, `/logs`). Ya no es necesario arrancarlo por separado.
+
+Comandos disponibles en ese runtime (solo si decide ejecutarlo):
 
 - `/health`
 - `/e2e`

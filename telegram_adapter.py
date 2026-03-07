@@ -1,11 +1,14 @@
-"""Legacy Telegram adapter scaffold.
+"""Legacy Telegram adapter scaffold - DEPRECATED.
+
+.. deprecated::
+   Este adapter está deprecated desde la Fase 4 de ARQUITECTURA_OBJETIVO.
+   Use `app.webhook.entrypoint:app` como único punto de entrada.
 
 Operational status:
 - Legacy / non-canonical runtime.
 - Do not run in parallel with `app.webhook.entrypoint:app` for the same
   `TELEGRAM_BOT_TOKEN`.
-- Kept only as a temporary migration path while the webhook ingress is
-  consolidated.
+- Kept only as a reference for deprecation period.
 
 Behavior:
 - Reads `TELEGRAM_BOT_TOKEN` from env.

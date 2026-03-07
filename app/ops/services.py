@@ -193,6 +193,12 @@ async def execute_e2e_command(
             run_id=run_id,
             overall=results.get("overall"),
         )
+        record_event_fn(
+            component="ops",
+            event="ops.command.completed",
+            chat_id=chat_id,
+            command="/e2e",
+        )
         return {
             "status": "ok",
             "command": "/e2e",
@@ -207,6 +213,14 @@ async def execute_e2e_command(
             level="ERROR",
             chat_id=chat_id,
             run_id=run_id,
+            error=str(exc),
+        )
+        record_event_fn(
+            component="ops",
+            event="ops.command.failed",
+            level="ERROR",
+            chat_id=chat_id,
+            command="/e2e",
             error=str(exc),
         )
         return {
@@ -246,18 +260,32 @@ async def handle_ops_command(
     if normalized_command == "/health":
         api_health = await check_api_health_fn()
         webhook_health = await check_webhook_health_fn()
+        response_text = format_health_response(api_health, webhook_health)
+        record_event_fn(
+            component="ops",
+            event="ops.command.completed",
+            chat_id=chat_id,
+            command=normalized_command,
+        )
         return {
             "status": "ok",
             "command": normalized_command,
-            "response_text": format_health_response(api_health, webhook_health),
+            "response_text": response_text,
         }
 
     if normalized_command == "/webhookinfo":
         info = await get_webhook_info_fn()
+        response_text = format_webhookinfo_response(info)
+        record_event_fn(
+            component="ops",
+            event="ops.command.completed",
+            chat_id=chat_id,
+            command=normalized_command,
+        )
         return {
             "status": "ok" if info.get("status") == "OK" else "failed",
             "command": normalized_command,
-            "response_text": format_webhookinfo_response(info),
+            "response_text": response_text,
             "info": info,
         }
 
@@ -284,15 +312,22 @@ async def handle_ops_command(
             if len(events) >= limit:
                 break
 
+        response_text = _format_logs_response(
+            events,
+            limit=limit,
+            filter_chat_id=filter_chat_id,
+            filter_update_id=filter_update_id,
+        )
+        record_event_fn(
+            component="ops",
+            event="ops.command.completed",
+            chat_id=chat_id,
+            command=normalized_command,
+        )
         return {
             "status": "ok",
             "command": normalized_command,
-            "response_text": _format_logs_response(
-                events,
-                limit=limit,
-                filter_chat_id=filter_chat_id,
-                filter_update_id=filter_update_id,
-            ),
+            "response_text": response_text,
         }
 
     if normalized_command == "/e2e":
@@ -307,4 +342,5 @@ async def handle_ops_command(
         "status": "unsupported",
         "command": normalized_command,
         "response_text": f"Unsupported command: {normalized_command}",
+        "error": "unsupported_command",
     }

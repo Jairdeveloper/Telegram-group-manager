@@ -127,7 +127,13 @@ def test_handle_ops_command_logs_filters_and_records_event():
             "limit": 5,
             "filter_chat_id": 123,
             "filter_update_id": None,
-        }
+        },
+        {
+            "component": "ops",
+            "event": "ops.command.completed",
+            "chat_id": 123,
+            "command": "/logs",
+        },
     ]
     assert store.tail_calls == [25]
 
@@ -157,6 +163,7 @@ def test_execute_e2e_command_records_success_in_plain_text():
     assert [event["event"] for event in recorded] == [
         "ops.e2e.requested",
         "ops.e2e.completed",
+        "ops.command.completed",
     ]
 
 

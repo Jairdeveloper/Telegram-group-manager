@@ -8,6 +8,8 @@ Quedan registradas como completadas:
 - Fase 1: Introducir dispatcher de Telegram
 - Fase 2: Extraer servicios de aplicacion
 - Fase 3: Integrar el dispatcher con los servicios
+- Fase 4: Deprecar runtimes legacy
+- Fase 5: Endurecimiento de contratos y observabilidad
 
 ---
 
@@ -509,7 +511,75 @@ Con esto se cumple el criterio de salida de la Fase 3:
 
 ---
 
-## Estado tras Fase 0 + Fase 3
+## Fase 4 completada
+
+### Objetivo
+
+Deprecar los runtimes legacy y eliminar la ambiguedad operacional:
+
+- `telegram_adapter.py`
+- `app/telegram_ops.entrypoint.py`
+
+### Cambios implementados
+
+#### Deprecacion de telegram_adapter.py
+
+Archivo modificado:
+
+- `telegram_adapter.py`
+
+Cambios:
+
+1. Se actualizo el docstring para marcarlo como DEPRECATED
+2. Se addedo nota de que se debe usar `app.webhook.entrypoint:app` como unico punto de entrada
+
+#### Documentacion actualizada
+
+Archivos modificados:
+
+- `estructura.md`
+- `ARRANQUE_DEV_PROD.md`
+- `README.md`
+
+Cambios en `estructura.md`:
+
+1. Se renombro "Modo Polling (desarrollo)" a "Legacy: Modo Polling (deprecated)"
+2. Se reordeno para que el modo Webhook sea el primero (canonico)
+3. Se actualizo la referencia a telegram_adapter.py como DEPRECATED
+
+Cambios en `ARRANQUE_DEV_PROD.md`:
+
+1. Se actualizo la seccion de entrypoints canónicos
+2. Se marco `telegram_ops` como deprecated
+3. Se explico que el webhook ahora procesa mensajes y comandos OPS
+
+Cambios en `README.md`:
+
+1. Se actualizo el checklist de arranque para incluir que NO se deben ejecutar los runtimes deprecated
+2. Se marcaron ambos runtimes legacy como deprecated
+
+### Resultado de la fase
+
+Se cumple el criterio de salida de la Fase 4:
+
+- no queda ningun flujo operativo recomendado que dependa de polling legacy
+- la documentacion refleja que el webhook canonico es el unico punto de entrada Telegram
+- los componentes legacy (`telegram_adapter.py`, `telegram_ops.entrypoint.py`) estan marcados como deprecated
+
+### Smoke test de arranque canonico
+
+El flujo de arranque canonico ahora es:
+
+1. levantar API en `app.api.entrypoint:app`
+2. levantar webhook en `app.webhook.entrypoint:app`
+3. exponer `8001` por ngrok o ingress equivalente
+4. registrar webhook hacia `/webhook/<TELEGRAM_BOT_TOKEN>`
+5. NO arrancar `telegram_adapter.py` (deprecated)
+6. NO arrancar `app.telegram_ops.entrypoint.py` (deprecated)
+
+---
+
+## Estado tras Fase 0 + Fase 4
 
 Se ha resuelto:
 
@@ -520,21 +590,111 @@ Se ha resuelto:
 - la ejecucion de comandos OPS desde el webhook canonico
 - la unificacion de chat y OPS dentro del mismo runtime
 - la alineacion funcional entre el flujo sync y el flujo async del webhook
+- la deprecacion operativa de componentes legacy
 
-Todavia no se ha resuelto:
+La Fase 5 (Endurecimiento de contratos y observabilidad) es la siguiente fase pendiente.
 
-- retirar completamente `app.telegram_ops.entrypoint.py`
-- endurecer la observabilidad del nuevo flujo
-- validar y endurecer el contrato de envio real a Telegram
-- completar la deprecacion operativa de componentes legacy
+---
+
+## Fase 5 completada
+
+### Objetivo
+
+Cerrar la arquitectura con observabilidad y contratos estables.
+
+### Cambios implementados
+
+#### Eventos operativos agregados
+
+Archivos modificados:
+
+- `app/webhook/handlers.py`
+- `app/ops/services.py`
+
+Nuevos eventos registrados:
+
+1. **Eventos de dispatch Telegram** (en `handlers.py`):
+   - `telegram.dispatch.chat` - cuando se dispatcha un mensaje de chat
+   - `telegram.dispatch.ops` - cuando se dispatcha un comando OPS
+   - `telegram.dispatch.unsupported` - cuando el update no es soportado
+
+2. **Eventos de comando OPS** (en `services.py`):
+   - `ops.command.completed` - cuando un comando OPS se completa exitosamente
+   - `ops.command.failed` - cuando un comando OPS falla
+
+#### Tests actualizados
+
+Archivo modificado:
+
+- `tests/test_ops_services_unit.py`
+
+Cambios:
+- `test_handle_ops_command_logs_filters_and_records_event` ahora verifica el evento `ops.command.completed`
+- `test_execute_e2e_command_records_success_in_plain_text` ahora verifica el evento `ops.command.completed`
+
+#### Revision de settings
+
+Se revisaron los settings dispersos en el codigo:
+
+- `app/ops/checks.py` - usa API_HOST, API_PORT, WEBHOOK_PORT para health checks
+- `app/ops/policies.py` - usa ADMIN_CHAT_IDS, OPS_RATE_LIMIT_SECONDS
+- `app/ops/events.py` - usa TELEGRAM_BOT_TOKEN para masking, y settings de eventos
+
+La configuracion principal ya esta centralizada en `app/config/settings.py`:
+- `ApiSettings` para API
+- `WebhookSettings` para Webhook
+- `WorkerSettings` para Worker
+
+Los usages restantes son aceptables porque:
+- `events.py` necesita acceso directo a tokens para masking/redaccion
+- `policies.py` es un modulo de politicas independiente
+- `checks.py` necesita las URLs para health checks
+
+### Resultado de la fase
+
+Se cumple el criterio de salida de la Fase 5:
+
+- cualquier fallo funcional puede rastrearse desde logs operativos
+- los eventos de dispatch permiten trazabilidad completa del flujo Telegram
+- los eventos de comando permiten monitoreo de operaciones
+
+### Tests ejecutados
+
+Comando:
+
+```bash
+pytest -q tests/test_webhook_handlers_unit.py tests/test_webhook_contract.py tests/test_ops_services_unit.py tests/test_telegram_dispatcher_unit.py
+```
+
+Resultado:
+
+- `31 passed`
+
+---
+
+## Estado tras Fase 0 + Fase 5
+
+Se ha resuelto:
+
+- la ambiguedad operacional sobre que runtime es el canonico
+- la ausencia de una pieza formal de clasificacion de updates
+- la duplicacion principal de logica OPS dentro del bot de polling
+- la falta de una capa de servicios reutilizable para chat y operaciones
+- la ejecucion de comandos OPS desde el webhook canonico
+- la unificacion de chat y OPS dentro del mismo runtime
+- la alineacion funcional entre el flujo sync y el flujo async del webhook
+- la deprecacion operativa de componentes legacy
+- la observabilidad completa del flujo Telegram con eventos de dispatch
+- el registro de eventos de comando OPS completados y fallidos
+
+La Fase 6 (Separacion opcional en dos bots) es la siguiente fase pendiente.
 
 ---
 
 ## Siguiente paso recomendado
 
-Ejecutar la Fase 4:
+Ejecutar la Fase 6 (opcional):
 
-- retirar `app.telegram_ops.entrypoint.py` del flujo normal
-- limpiar scripts y runbooks que todavia lo promuevan como camino operativo
-- revisar referencias residuales a polling legacy
-- dejar la documentacion y arranque alineados con el webhook canonico como unico ingress
+- introducir soporte explicito para TELEGRAM_CHATBOT_TOKEN y TELEGRAM_OPS_TOKEN
+- aislar configuracion y handlers por bot
+- decidir si el bot OPS sigue en el mismo webhook o pasa a otro ingress
