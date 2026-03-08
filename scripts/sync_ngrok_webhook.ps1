@@ -1,32 +1,44 @@
 param(
     [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
     [string]$NgrokApiUrl = "http://127.0.0.1:4040/api/tunnels",
-    [string]$Token = ""
+    [string]$BotToken = "",
+    [string]$WebhookToken = ""
 )
 
 $ErrorActionPreference = "Stop"
 
 function Get-TokenFromEnvFile {
-    param([string]$EnvPath)
+    param([string]$EnvPath, [string]$TokenName)
     if (!(Test-Path $EnvPath)) {
         return ""
     }
 
-    $line = Get-Content $EnvPath | Where-Object { $_ -match '^TELEGRAM_BOT_TOKEN=' } | Select-Object -First 1
+    $line = Get-Content $EnvPath | Where-Object { $_ -match "^$TokenName=" } | Select-Object -First 1
     if (!$line) {
         return ""
     }
     return ($line -split '=', 2)[1].Trim()
 }
 
-if ([string]::IsNullOrWhiteSpace($Token)) {
-    $Token = $env:TELEGRAM_BOT_TOKEN
+if ([string]::IsNullOrWhiteSpace($BotToken)) {
+    $BotToken = $env:TELEGRAM_BOT_TOKEN
 }
-if ([string]::IsNullOrWhiteSpace($Token)) {
-    $Token = Get-TokenFromEnvFile -EnvPath (Join-Path $ProjectRoot ".env")
+if ([string]::IsNullOrWhiteSpace($BotToken)) {
+    $BotToken = Get-TokenFromEnvFile -EnvPath (Join-Path $ProjectRoot ".env") -TokenName "TELEGRAM_BOT_TOKEN"
 }
-if ([string]::IsNullOrWhiteSpace($Token)) {
+if ([string]::IsNullOrWhiteSpace($BotToken)) {
     throw "TELEGRAM_BOT_TOKEN not found in env var or .env file."
+}
+
+if ([string]::IsNullOrWhiteSpace($WebhookToken)) {
+    $WebhookToken = $env:WEBHOOK_TOKEN
+}
+if ([string]::IsNullOrWhiteSpace($WebhookToken)) {
+    $WebhookToken = Get-TokenFromEnvFile -EnvPath (Join-Path $ProjectRoot ".env") -TokenName "WEBHOOK_TOKEN"
+}
+if ([string]::IsNullOrWhiteSpace($WebhookToken)) {
+    Write-Host "WARNING: WEBHOOK_TOKEN not found. Using TELEGRAM_BOT_TOKEN as fallback (not recommended for production)."
+    $WebhookToken = $BotToken
 }
 
 $tunnels = Invoke-RestMethod -Uri $NgrokApiUrl -Method GET
@@ -36,12 +48,13 @@ if (!$httpsTunnel) {
 }
 
 $publicUrl = $httpsTunnel.public_url.TrimEnd("/")
-$webhookUrl = "$publicUrl/webhook/$Token"
-$setWebhookApi = "https://api.telegram.org/bot$Token/setWebhook"
-$getWebhookApi = "https://api.telegram.org/bot$Token/getWebhookInfo"
+$webhookUrl = "$publicUrl/webhook/$WebhookToken"
+$setWebhookApi = "https://api.telegram.org/bot$BotToken/setWebhook"
+$getWebhookApi = "https://api.telegram.org/bot$BotToken/getWebhookInfo"
 
 Write-Host "Using tunnel: $publicUrl"
 Write-Host "Setting webhook: $webhookUrl"
+Write-Host "Bot token: $($BotToken.Substring(0, [Math]::Min(10, $BotToken.Length)))..."
 
 $setResult = Invoke-RestMethod -Uri $setWebhookApi -Method POST -ContentType "application/json" -Body (@{ url = $webhookUrl } | ConvertTo-Json)
 Write-Host "setWebhook response: $($setResult | ConvertTo-Json -Compress)"

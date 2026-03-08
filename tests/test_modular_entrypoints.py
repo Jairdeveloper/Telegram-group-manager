@@ -60,6 +60,7 @@ def test_modular_api_factory_exposes_chat_route():
 
 def test_webhook_wrapper_returns_operational_app(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     monkeypatch.setattr(twp, "PROCESS_ASYNC", True)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
     monkeypatch.setattr(twp, "process_update_sync", lambda update: None)

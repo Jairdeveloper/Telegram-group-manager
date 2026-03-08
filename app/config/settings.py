@@ -12,7 +12,7 @@ class ApiSettings(BaseSettings):
     app_name: str = "ChatBot Evolution"
     app_version: str = "2.1"
     debug: bool = False
-    database_url: str = "sqlite:///./chatbot.db"
+    database_url: Optional[str] = None
     openai_api_key: Optional[str] = None
     log_level: str = "INFO"
     api_host: str = "127.0.0.1"
@@ -34,11 +34,20 @@ class ApiSettings(BaseSettings):
             return value.strip().lower() == "true"
         return bool(value)
 
+    def is_postgres_enabled(self) -> bool:
+        """Check if PostgreSQL is configured."""
+        return self.database_url is not None and self.database_url.startswith("postgresql")
+
+    def is_storage_disabled(self) -> bool:
+        """Check if storage is disabled (JSON mode)."""
+        return self.database_url is None or self.database_url == "no-db"
+
 
 class WebhookSettings(BaseSettings):
     """Settings used by Telegram webhook runtime."""
 
     telegram_bot_token: Optional[str] = None
+    webhook_token: Optional[str] = None
     chatbot_api_url: str = "http://127.0.0.1:8000/api/v1/chat"
     redis_url: Optional[str] = None
     process_async: bool = True
@@ -64,6 +73,10 @@ class WebhookSettings(BaseSettings):
         if not self.telegram_bot_token:
             raise ValueError("TELEGRAM_BOT_TOKEN is required")
         return self.telegram_bot_token
+
+    def get_webhook_token(self) -> Optional[str]:
+        """Return webhook token if configured, otherwise None."""
+        return self.webhook_token
 
 
 class WorkerSettings(BaseSettings):

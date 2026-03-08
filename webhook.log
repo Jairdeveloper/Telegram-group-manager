@@ -1,0 +1,153 @@
+INFO:     Started server process [7246]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55492 - "GET /health HTTP/1.1" 200 OK
+2026-03-06 09:18:43,036 ERROR Dedup check failed
+Traceback (most recent call last):
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 998, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1512, in _connect
+    raise err
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1496, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/c/Users/1973b/zpa/Projects/manufacturing/robot/app/webhook/handlers.py", line 29, in dedup_update_impl
+    return dedup_store.mark_if_new(update_id=update_id, ttl_seconds=dedup_ttl)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/1973b/zpa/Projects/manufacturing/robot/app/webhook/infrastructure.py", line 47, in mark_if_new
+    added = self._redis.setnx(key, "1")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/commands/core.py", line 2697, in setnx
+    return self.execute_command("SETNX", name, value)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 2958, in get_connection
+    connection.connect()
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/home/john/.local/lib/python3.11/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/home/john/.local/lib/python3.11/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1022, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connection refused.
+INFO:     127.0.0.1:57542 - "POST /webhook/8588716358%3AAAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw HTTP/1.1" 200 OK
+2026-03-06 09:18:43,268 ERROR Dedup check failed
+Traceback (most recent call last):
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 998, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1512, in _connect
+    raise err
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1496, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/c/Users/1973b/zpa/Projects/manufacturing/robot/app/webhook/handlers.py", line 29, in dedup_update_impl
+    return dedup_store.mark_if_new(update_id=update_id, ttl_seconds=dedup_ttl)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/1973b/zpa/Projects/manufacturing/robot/app/webhook/infrastructure.py", line 47, in mark_if_new
+    added = self._redis.setnx(key, "1")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/commands/core.py", line 2697, in setnx
+    return self.execute_command("SETNX", name, value)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 2958, in get_connection
+    connection.connect()
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/home/john/.local/lib/python3.11/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/home/john/.local/lib/python3.11/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1022, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connection refused.
+INFO:     127.0.0.1:57550 - "POST /webhook/8588716358%3AAAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw HTTP/1.1" 200 OK
+2026-03-06 09:18:43,447 ERROR Dedup check failed
+Traceback (most recent call last):
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 998, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1512, in _connect
+    raise err
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1496, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/c/Users/1973b/zpa/Projects/manufacturing/robot/app/webhook/handlers.py", line 29, in dedup_update_impl
+    return dedup_store.mark_if_new(update_id=update_id, ttl_seconds=dedup_ttl)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/1973b/zpa/Projects/manufacturing/robot/app/webhook/infrastructure.py", line 47, in mark_if_new
+    added = self._redis.setnx(key, "1")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/commands/core.py", line 2697, in setnx
+    return self.execute_command("SETNX", name, value)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 2958, in get_connection
+    connection.connect()
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/home/john/.local/lib/python3.11/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/home/john/.local/lib/python3.11/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/john/.local/lib/python3.11/site-packages/redis/connection.py", line 1022, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connection refused.
+INFO:     127.0.0.1:57554 - "POST /webhook/8588716358%3AAAGw3RX94SyEeM1UxM-3sGPPs83n3IM2qJw HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7246]

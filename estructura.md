@@ -16,7 +16,7 @@ manufacturing/robot/
 ├── design/                     # Documentación de diseño
 ├── docs/                       # Documentación adicional
 │
-├── telegram_adapter.py         # Adapter de Telegram (polling)
+├── telegram_adapter.py         # Adapter de Telegram (DEPRECATED)
 ├── telegram_ops/               # Módulo legacy de telegram_ops
 ├── worker.py                   # Worker para procesamiento async
 ├── webhook_tasks.py            # Tareas del worker
@@ -165,10 +165,23 @@ deploy/
 
 ## Flujo de datos
 
-### Modo Polling (desarrollo)
+### Modo Webhook (canónico)
 
 ```
-Telegram ──► @cmb_robot ──► telegram_adapter.py
+Telegram ──► Internet ──► ngrok ──► Webhook (puerto 8001)
+                                        │
+                                        ▼
+                                app/webhook/
+                                (handlers + validation)
+                                        │
+                                        ▼
+                                API (puerto 8000)
+```
+
+### Legacy: Modo Polling (deprecated)
+
+```
+Telegram ──► @cmb_robot ──► telegram_adapter.py (DEPRECATED)
                                       │
                                       ▼
                               API (puerto 8000)
@@ -179,7 +192,7 @@ Telegram ──► @cmb_robot ──► telegram_adapter.py
                               (agent + brain + storage)
 ```
 
-### Modo Webhook (producción)
+**Nota**: Este modo está deprecated. Usar el modo Webhook como camino canónico.
 
 ```
 Telegram ──► Internet ──► ngrok ──► Webhook (puerto 8001)

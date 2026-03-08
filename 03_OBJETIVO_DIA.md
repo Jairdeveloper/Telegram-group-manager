@@ -70,30 +70,102 @@ ADMIN_USERNAMES=usuario1,usuario2
 
 ---
 
-## Estado del código existente
+## Fase 3: E2E operable: run_id, check público (ngrok) y pistas accionables
 
-### API (`app/api/entrypoint.py`)
-- ✅ `GET /health`
-- ✅ `POST /api/v1/chat`
-- ✅ `GET /api/v1/history/{session_id}`
-- ✅ `GET /api/v1/stats`
+**Estado:** ✅ COMPLETADO
 
-### Webhook (`app/webhook/entrypoint.py`)
-- ✅ `GET /health`
-- ✅ `POST /webhook/{token}`
-- ✅ `GET /metrics`
+### Objetivo
+
+Hacer que `/e2e` sea realmente útil para diagnosticar problemas sin abrir consola.
+
+### Estado actual
+
+| Item | Estado |
+|------|--------|
+| `run_id` en `/e2e` | ✅ Implementado |
+| Check público (ngrok) | ✅ Implementado |
+| Pistas en errores | ✅ Implementado |
+
+### Tareas pendientes
+
+- [ ] Ninguna - Fase 3 completada
+
+#### 3.1 - Mejorar pistas en errores
+
+**Problema**: Los errores en `/e2e` no dan pistas accionables.
+
+**Solución**: Extender mensajes de error en `app/ops/services.py` con sugerencias como:
+- "Connection refused → ¿está uvicorn en 8001?"
+- "403 Invalid token → revisa el token en la URL"
+- "getWebhookInfo url vacía → ejecuta setWebhook"
+- "Webhook 404 → verifica ngrok o dominio público"
+
+**Estado**: ✅ COMPLETADO
+
+#### 3.2 - Verificar check_webhook_public
+
+**Estado**: Ya existe en `app/ops/checks.py`
+
+**Implementado**:
+- [x] Que `check_webhook_public()` funciona con ngrok
+- [x] Documentar variable `NGROK_URL` si es necesaria
+
+**Cambios**:
+- Agregada variable `NGROK_URL` / `NGROK_HTTPS_URL` en settings
+- `run_e2e_check()` ahora incluye check de webhook público si NGROK_URL está configurado
 
 ---
 
-## Pendiente de implementar
+## Fase 4: Seguridad: separar WEBHOOK_TOKEN del TELEGRAM_BOT_TOKEN
 
-- [ ] Fase 2: Configurar ADMIN_CHAT_IDS en .env
-- [ ] Fase 2: Implementar verificación de acceso en handlers
-- [ ] Fase 3: Crear servicio telegram_ops
-- [ ] Fase 4: Implementar funciones de check
-- [ ] Fase 5: Sistema de logs operativos
-- [ ] Fase 6: Comandos Telegram
-- [ ] Fase 7: Configurar ngrok
+**Estado:** ✅ COMPLETADO
+
+### Objetivo
+
+No exponer `TELEGRAM_BOT_TOKEN` en la URL pública del webhook.
+
+### Tareas
+
+#### 4.1 - Introducir WEBHOOK_TOKEN
+
+**Settings** (`app/config/settings.py`):
+- [x] Añadir `webhook_token: Optional[str]` a `WebhookSettings`
+- [x] Regla: si existe, validar contra ese; si no, validar contra `telegram_bot_token` (legacy)
+
+**Implementación** (`app/webhook/entrypoint.py`):
+- [x] Ajustar para pasar el token esperado a `handle_webhook_impl`
+- [x] Emitir evento `webhook.legacy_token_used` si llega el token legacy
+
+**Scripts/Docs**:
+- [x] `set_webhook_prod.py`
+- [x] `scripts/sync_ngrok_webhook.ps1`
+- [x] `ARRANQUE_DEV_PROD.md`
+- [x] `estructura.md`
+
+**Tests**:
+- [x] Actualizar `tests/test_webhook_contract.py` para validar el nuevo token
+
+#### 4.2 - Métricas async
+
+**Tareas**:
+- [x] Verificar métricas Prometheus actuales
+- [x] Añadir contadores para `chat_api_error` y `telegram_send_error`
+
+#### 4.3 - Runbooks finales
+
+**Tareas**:
+- [x] Consolidar documentación en `ARRANQUE_DEV_PROD.md`
+- [ ] Checklist de release
+
+---
+
+## Definición de DONE (Semana 4)
+
+- [x] `/logs` devuelve eventos reales sin secretos
+- [x] `/e2e` identifica fallos típicos (API caída, webhook caído, ngrok roto, Telegram mal registrado)
+- [x] Webhook NO requiere exponer `TELEGRAM_BOT_TOKEN` en URL pública
+- [x] `pytest -q` en verde
+- [x] Docs actualizadas
 
 ---
 
@@ -102,3 +174,6 @@ ADMIN_USERNAMES=usuario1,usuario2
 - Documento original: `TELEGRAM_E2E_LOG_APP.md`
 - API canónica: `app/api.entrypoint:app` (puerto 8000)
 - Webhook canónico: `app/webhook.entrypoint:app` (puerto 8001)
+- Redis: `REDIS_EN_PROYECTO.md`
+- Runbook debug: `debug/11_debug.md`
+- Arranque: `ARRANQUE_DEV_PROD.md`

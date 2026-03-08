@@ -1,20 +1,38 @@
-"""Telegram OPS - Bot de Telegram para checks E2E."""
-import os
-import logging
-import asyncio
-from datetime import datetime
+"""Transitional Telegram OPS bot for health, webhook and E2E checks.
 
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters, CommandHandler
+Operational status:
+- Transitional runtime during architecture migration.
+- Do not run in parallel with `app.webhook.entrypoint:app` for the same
+  `TELEGRAM_BOT_TOKEN`.
+- The target architecture moves OPS command dispatch behind the canonical
+  webhook ingress instead of a separate polling process.
+"""
+
+import logging
+import os
+import uuid
 
 from dotenv import load_dotenv
+from telegram import Update
+from telegram.error import Conflict, NetworkError
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
+from app.ops.events import get_event_store, record_event
+from app.ops.policies import (
+    check_rate_limit as shared_check_rate_limit,
+    get_rate_limit_seconds,
+    is_admin as shared_is_admin,
+)
+from app.ops.services import (
+    execute_e2e_command,
+    format_e2e_response,
+    handle_ops_command,
+)
 from app.telegram_ops.checks import (
     check_api_health,
     check_webhook_health,
     get_webhook_info,
     run_e2e_check,
-    mask_token,
 )
 
 load_dotenv()
@@ -24,168 +42,173 @@ logger = logging.getLogger(__name__)
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 ADMIN_CHAT_IDS = os.getenv("ADMIN_CHAT_IDS", "").split(",")
-WEBHOOK_TOKEN = os.getenv("WEBHOOK_TOKEN", "mysecretwebhooktoken")
 
 if not TELEGRAM_TOKEN:
     logger.error("TELEGRAM_BOT_TOKEN not set")
     raise SystemExit(1)
 
-RATE_LIMIT_SECONDS = 30
-last_run_times = {}
+RATE_LIMIT_SECONDS = get_rate_limit_seconds()
+LOCK_PATH = os.path.join("logs", "telegram_ops.pid")
 
 
-def is_admin(chat_id: int) -> bool:
-    """Verifica si el chat_id es un admin autorizado."""
-    if not ADMIN_CHAT_IDS or ADMIN_CHAT_IDS == [""]:
-        return True
-    return str(chat_id) in ADMIN_CHAT_IDS
-
-
-async def check_rate_limit(chat_id: int) -> bool:
-    """Verifica rate limiting para evitar spam."""
-    now = datetime.utcnow().timestamp()
-    last_run = last_run_times.get(chat_id, 0)
-    if now - last_run < RATE_LIMIT_SECONDS:
+def _pid_is_running(pid: int) -> bool:
+    """Best-effort process existence check for a stored PID."""
+    if pid <= 0:
         return False
-    last_run_times[chat_id] = now
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
     return True
 
 
-def format_health_response(api_health: dict, webhook_health: dict) -> str:
-    """Formatea respuesta para comando /health."""
-    api_status = "✅ OK" if api_health.get("status") == "OK" else "❌ FAIL"
-    webhook_status = "✅ OK" if webhook_health.get("status") == "OK" else "❌ FAIL"
-    
-    msg = "🕐 *Estado de Salud*\n\n"
-    msg += f"📡 API: {api_status}\n"
-    if api_health.get("status") == "FAIL":
-        msg += f"   └─ Error: {api_health.get('error', 'Unknown')}\n"
-    msg += f"🪝 Webhook: {webhook_status}\n"
-    if webhook_health.get("status") == "FAIL":
-        msg += f"   └─ Error: {webhook_health.get('error', 'Unknown')}\n"
-    return msg
+def acquire_polling_lock() -> int:
+    """Prevent multiple local polling instances from starting silently."""
+    os.makedirs(os.path.dirname(LOCK_PATH) or ".", exist_ok=True)
+    current_pid = os.getpid()
+
+    if os.path.exists(LOCK_PATH):
+        try:
+            with open(LOCK_PATH, "r", encoding="utf-8") as f:
+                existing_pid = int((f.read() or "0").strip())
+        except (OSError, ValueError):
+            existing_pid = 0
+
+        if existing_pid and existing_pid != current_pid and _pid_is_running(existing_pid):
+            raise SystemExit(
+                f"Telegram OPS Bot already running with PID {existing_pid}. "
+                "Stop the previous instance before starting a new polling process."
+            )
+
+    with open(LOCK_PATH, "w", encoding="utf-8") as f:
+        f.write(str(current_pid))
+    return current_pid
 
 
-def format_e2e_response(results: dict) -> str:
-    """Formatea respuesta para comando /e2e."""
-    msg = "🕐 *E2E Check*\n"
-    msg += f"Timestamp: {results.get('timestamp', 'N/A')}\n\n"
-    
-    checks = results.get("checks", {})
-    
-    for check_name, check_result in checks.items():
-        status = check_result.get("status", "UNKNOWN")
-        emoji = "✅" if status == "OK" else "❌"
-        msg += f"{emoji} {check_name}: {status}\n"
-        if status == "FAIL":
-            msg += f"   └─ {check_result.get('error', 'Unknown error')}\n"
-    
-    overall = results.get("overall", "UNKNOWN")
-    overall_emoji = "✅" if overall == "OK" else "❌"
-    msg += f"\n{overall_emoji} *Overall: {overall}*"
-    
-    return msg
+def release_polling_lock(expected_pid: int) -> None:
+    """Remove the lock only if it still belongs to this process."""
+    try:
+        with open(LOCK_PATH, "r", encoding="utf-8") as f:
+            stored_pid = int((f.read() or "0").strip())
+    except (OSError, ValueError):
+        return
+
+    if stored_pid != expected_pid:
+        return
+
+    try:
+        os.remove(LOCK_PATH)
+    except OSError:
+        return
 
 
-def format_webhookinfo_response(info: dict) -> str:
-    """Formatea respuesta para comando /webhookinfo."""
-    if info.get("status") == "FAIL":
-        return f"❌ Error: {info.get('error', 'Unknown')}"
-    
-    msg = "🪝 *Webhook Info*\n\n"
-    msg += f"URL: {info.get('url', 'N/A')}\n"
-    msg += f"Pending Updates: {info.get('pending_updates', 0)}\n"
-    last_error = info.get("last_error")
-    if last_error:
-        msg += f"Last Error: {last_error}\n"
-    else:
-        msg += "Last Error: None ✅\n"
-    return msg
+def is_admin(chat_id: int) -> bool:
+    """Return whether the chat_id is authorized."""
+    return shared_is_admin(chat_id)
+
+
+async def check_rate_limit(chat_id: int) -> bool:
+    """Enforce a small per-chat cooldown."""
+    return await shared_check_rate_limit(chat_id)
 
 
 async def health_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /health command."""
     if not is_admin(update.effective_chat.id):
-        await update.message.reply_text("⛔ No autorizado")
+        await update.message.reply_text("No autorizado")
         return
-    
-    await update.message.reply_text("🔄 Checking...")
-    
-    api_health = await check_api_health()
-    webhook_health = await check_webhook_health()
-    
-    response = format_health_response(api_health, webhook_health)
-    await update.message.reply_text(response, parse_mode="Markdown")
+
+    await update.message.reply_text("Checking...")
+    result = await handle_ops_command(
+        update.effective_chat.id,
+        "/health",
+        is_admin_fn=is_admin,
+        record_event_fn=record_event,
+        check_api_health_fn=check_api_health,
+        check_webhook_health_fn=check_webhook_health,
+    )
+    await update.message.reply_text(result["response_text"])
 
 
 async def e2e_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /e2e command."""
-    if not is_admin(update.effective_chat.id):
-        await update.message.reply_text("⛔ No autorizado")
+    chat_id = update.effective_chat.id
+    if not is_admin(chat_id):
+        await update.message.reply_text("No autorizado")
         return
-    
-    if not await check_rate_limit(update.effective_chat.id):
-        await update.message.reply_text(f"⏳ Rate limit: espera {RATE_LIMIT_SECONDS}s entre ejecuciones")
+
+    if not await check_rate_limit(chat_id):
+        await update.message.reply_text(f"Rate limit: espera {RATE_LIMIT_SECONDS}s entre ejecuciones")
         return
-    
-    await update.message.reply_text("🔄 E2E check iniciado...")
-    
-    results = await run_e2e_check()
-    response = format_e2e_response(results)
-    
-    await update.message.reply_text(response, parse_mode="Markdown")
+
+    run_id = str(uuid.uuid4())[:8]
+    ack_msg = await update.message.reply_text(f"E2E check iniciado... (run_id: {run_id})")
+    result = await execute_e2e_command(
+        chat_id,
+        run_id=run_id,
+        run_e2e_check_fn=run_e2e_check,
+        record_event_fn=record_event,
+    )
+    await ack_msg.edit_text(result["response_text"])
 
 
 async def webhookinfo_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /webhookinfo command."""
     if not is_admin(update.effective_chat.id):
-        await update.message.reply_text("⛔ No autorizado")
+        await update.message.reply_text("No autorizado")
         return
-    
-    await update.message.reply_text("🔄 Obteniendo info...")
-    
-    info = await get_webhook_info()
-    response = format_webhookinfo_response(info)
-    
-    await update.message.reply_text(response, parse_mode="Markdown")
+
+    await update.message.reply_text("Obteniendo info...")
+    result = await handle_ops_command(
+        update.effective_chat.id,
+        "/webhookinfo",
+        is_admin_fn=is_admin,
+        record_event_fn=record_event,
+        get_webhook_info_fn=get_webhook_info,
+    )
+    await update.message.reply_text(result["response_text"])
 
 
 async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /logs command."""
-    if not is_admin(update.effective_chat.id):
-        await update.message.reply_text("⛔ No autorizado")
-        return
-    
-    await update.message.reply_text("📋 Logs: Pendiente implementar sistema de logs")
+    args = getattr(context, "args", None) or []
+    result = await handle_ops_command(
+        update.effective_chat.id,
+        "/logs",
+        args,
+        is_admin_fn=is_admin,
+        get_event_store_fn=get_event_store,
+        record_event_fn=record_event,
+    )
+    await update.message.reply_text(result["response_text"])
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command."""
     await update.message.reply_text(
-        "🤖 *Telegram E2E Bot*\n\n"
+        "Telegram E2E Bot\n\n"
         "Comandos disponibles:\n"
         "/health - Estado de API y Webhook\n"
         "/e2e - Ejecutar checks E2E\n"
         "/webhookinfo - Info de webhook\n"
-        "/logs - Últimos eventos\n\n"
-        "Usa /e2e para verificar el sistema.",
-        parse_mode="Markdown"
+        "/logs - Ultimos eventos\n\n"
+        "Usa /e2e para verificar el sistema."
     )
 
 
 def create_app():
-    """Crea la aplicación del bot."""
+    """Create the bot application."""
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    
+
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("health", health_command))
     app.add_handler(CommandHandler("e2e", e2e_command))
     app.add_handler(CommandHandler("webhookinfo", webhookinfo_command))
     app.add_handler(CommandHandler("logs", logs_command))
-    
+
     logger.info("Telegram OPS Bot inicializado")
-    logger.info(f"Admin Chat IDs: {ADMIN_CHAT_IDS}")
-    
+    logger.info("Admin Chat IDs: %s", ADMIN_CHAT_IDS)
+
     return app
 
 
@@ -193,9 +216,24 @@ app = create_app()
 
 
 def main():
-    """Punto de entrada."""
+    """Process entrypoint."""
+    lock_pid = acquire_polling_lock()
     logger.info("Starting Telegram OPS Bot...")
-    app.run_polling()
+    try:
+        app.run_polling(drop_pending_updates=True)
+    except Conflict:
+        logger.error(
+            "Telegram polling conflict detected. Another bot instance is using getUpdates."
+        )
+        raise SystemExit(2)
+    except NetworkError as exc:
+        logger.error(
+            "Telegram network bootstrap failed. Verify outbound connectivity to api.telegram.org: %s",
+            exc,
+        )
+        raise SystemExit(3)
+    finally:
+        release_polling_lock(lock_pid)
 
 
 if __name__ == "__main__":

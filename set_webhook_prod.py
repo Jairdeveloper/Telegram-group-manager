@@ -1,7 +1,7 @@
 """Register or remove webhook for production domain.
 
 Usage:
-  python set_webhook_prod.py set https://chat.example.com/webhook/<BOT_TOKEN>
+  python set_webhook_prod.py set https://chat.example.com/webhook/<WEBHOOK_TOKEN>
   python set_webhook_prod.py remove
 """
 import os
@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+WEBHOOK_TOKEN = os.getenv("WEBHOOK_TOKEN")
 
 def set_webhook(url: str):
     api = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook"

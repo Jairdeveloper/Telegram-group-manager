@@ -1,9 +1,20 @@
-"""Minimal Telegram adapter scaffold.
+"""Legacy Telegram adapter scaffold - DEPRECATED.
+
+.. deprecated::
+   Este adapter está deprecated desde la Fase 4 de ARQUITECTURA_OBJETIVO.
+   Use `app.webhook.entrypoint:app` como único punto de entrada.
+
+Operational status:
+- Legacy / non-canonical runtime.
+- Do not run in parallel with `app.webhook.entrypoint:app` for the same
+  `TELEGRAM_BOT_TOKEN`.
+- Kept only as a reference for deprecation period.
 
 Behavior:
--- Reads `TELEGRAM_BOT_TOKEN` from env.
--- For every message, posts the text to local API `/api/v1/chat` and replies with the returned response.
--- Uses long polling for dev; recommend webhooks in production.
+- Reads `TELEGRAM_BOT_TOKEN` from env.
+- For every message, posts the text to local API `/api/v1/chat` and replies
+  with the returned response.
+- Uses long polling for dev only; webhook is the canonical ingress.
 """
 import os
 import logging

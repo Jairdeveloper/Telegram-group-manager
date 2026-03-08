@@ -1,5 +1,3 @@
-"""Telegram OPS - Bot de Telegram para checks E2E."""
+"""Telegram OPS package."""
 
-from app.telegram_ops.entrypoint import app
-
-__all__ = ["app"]
+__all__ = []
