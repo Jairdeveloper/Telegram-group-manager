@@ -449,21 +449,6 @@
       "timestamp": "2026-03-07T12:55:47.762419+00:00",
       "message": "Hello",
       "response": "Hello! It's nice to meet you"
-    },
-    {
-      "timestamp": "2026-03-07T20:42:09.670689+00:00",
-      "message": "Hello",
-      "response": "Hello! It's nice to meet you"
-    },
-    {
-      "timestamp": "2026-03-07T20:42:15.790424+00:00",
-      "message": "Hello",
-      "response": "Hello! It's nice to meet you"
-    },
-    {
-      "timestamp": "2026-03-08T09:40:17.317547+00:00",
-      "message": "Hello",
-      "response": "Hello! It's nice to meet you"
     }
   ],
   "7821094774": [
@@ -696,6 +681,26 @@
       "timestamp": "2026-03-07T20:42:04.819490+00:00",
       "message": "test",
       "response": "That's interesting, tell me more"
+    },
+    {
+      "timestamp": "2026-03-08T09:40:03.756152+00:00",
+      "message": "test",
+      "response": "I see. Could you elaborate?"
+    },
+    {
+      "timestamp": "2026-03-08T11:48:24.239102+00:00",
+      "message": "test",
+      "response": "That's a great point"
+    },
+    {
+      "timestamp": "2026-03-08T12:23:56.432632+00:00",
+      "message": "test",
+      "response": "I understand. What else?"
+    },
+    {
+      "timestamp": "2026-03-08T12:44:16.649191+00:00",
+      "message": "test",
+      "response": "In other words, you're saying...?"
     }
   ],
   "4bbd856d": [
@@ -759,24 +764,6 @@
     }
   ],
   "default:s1": [
-    {
-      "user": "hello",
-      "bot": "Hello! It's nice to meet you",
-      "ts": null,
-      "metadata": {}
-    },
-    {
-      "user": "hello",
-      "bot": "Hello! It's nice to meet you",
-      "ts": null,
-      "metadata": {}
-    },
-    {
-      "user": "hello",
-      "bot": "Hello! It's nice to meet you",
-      "ts": null,
-      "metadata": {}
-    },
     {
       "user": "hello",
       "bot": "Hello! It's nice to meet you",

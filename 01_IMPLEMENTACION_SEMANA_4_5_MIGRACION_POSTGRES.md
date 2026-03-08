@@ -280,16 +280,16 @@ def test_get_sessions(repo):
 
 ## Checklist de Release
 
-- [ ] Dependencias añadidas a `requirements.txt`
-- [ ] Settings con `database_url` configurado
-- [ ] Modelos SQLAlchemy creados
-- [ ] Repositorios implementados (PostgreSQL + JSON fallback)
-- [ ] Factory actualiza correctamente según configuración
-- [ ] API usa repositorio injectable
-- [ ] Alembic migrations funcionando
-- [ ] Tests de repository pasando
-- [ ] `pytest -q` en verde
-- [ ] Documentación actualizada
+- [x] Dependencias añadidas a `requirements.txt`
+- [x] Settings con `database_url` configurado
+- [x] Modelos SQLAlchemy creados
+- [x] Repositorios implementados (PostgreSQL + JSON fallback)
+- [x] Factory actualiza correctamente según configuración
+- [x] API usa repositorio injectable
+- [x] Alembic migrations funcionando
+- [x] Tests de repository pasando
+- [x] `pytest -q` en verde
+- [x] Documentación actualizada
 
 ---
 
