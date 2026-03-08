@@ -10,6 +10,8 @@ pydantic
 pydantic-settings
 pgvector
 psycopg2-binary
+asyncpg
+alembic
 redis
 rq<2
 prometheus-client

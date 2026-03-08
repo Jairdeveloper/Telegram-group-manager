@@ -161,11 +161,11 @@ No exponer `TELEGRAM_BOT_TOKEN` en la URL pública del webhook.
 
 ## Definición de DONE (Semana 4)
 
-- [ ] `/logs` devuelve eventos reales sin secretos
-- [ ] `/e2e` identifica fallos típicos (API caída, webhook caído, ngrok roto, Telegram mal registrado)
-- [ ] Webhook NO requiere exponer `TELEGRAM_BOT_TOKEN` en URL pública
-- [ ] `pytest -q` en verde
-- [ ] Docs actualizadas
+- [x] `/logs` devuelve eventos reales sin secretos
+- [x] `/e2e` identifica fallos típicos (API caída, webhook caído, ngrok roto, Telegram mal registrado)
+- [x] Webhook NO requiere exponer `TELEGRAM_BOT_TOKEN` en URL pública
+- [x] `pytest -q` en verde
+- [x] Docs actualizadas
 
 ---
 

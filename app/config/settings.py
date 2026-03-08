@@ -12,7 +12,7 @@ class ApiSettings(BaseSettings):
     app_name: str = "ChatBot Evolution"
     app_version: str = "2.1"
     debug: bool = False
-    database_url: str = "sqlite:///./chatbot.db"
+    database_url: Optional[str] = None
     openai_api_key: Optional[str] = None
     log_level: str = "INFO"
     api_host: str = "127.0.0.1"
@@ -33,6 +33,14 @@ class ApiSettings(BaseSettings):
         if isinstance(value, str):
             return value.strip().lower() == "true"
         return bool(value)
+
+    def is_postgres_enabled(self) -> bool:
+        """Check if PostgreSQL is configured."""
+        return self.database_url is not None and self.database_url.startswith("postgresql")
+
+    def is_storage_disabled(self) -> bool:
+        """Check if storage is disabled (JSON mode)."""
+        return self.database_url is None or self.database_url == "no-db"
 
 
 class WebhookSettings(BaseSettings):

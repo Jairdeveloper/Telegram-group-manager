@@ -28,6 +28,7 @@ class _DummyTaskQueue:
 def _settings(*, process_async: bool, redis_url: str | None):
     return SimpleNamespace(
         telegram_bot_token="token",
+        webhook_token=None,
         chatbot_api_url="http://chatapi:8000/api/v1/chat",
         redis_url=redis_url,
         process_async=process_async,
@@ -82,17 +83,18 @@ def test_build_api_runtime_uses_bootstrap_dependencies(monkeypatch):
             self.pattern_responses = pattern_responses
             self.default_responses = default_responses
 
-    class _DummyStorage:
-        pass
+    class _DummyStorageAdapter:
+        def __init__(self, repo):
+            pass
 
     monkeypatch.setattr(
         ab,
         "load_api_settings",
-        lambda: SimpleNamespace(app_name="A", app_version="1.0"),
+        lambda: SimpleNamespace(app_name="A", app_version="1.0", is_postgres_enabled=lambda: False, is_storage_disabled=lambda: False),
     )
     monkeypatch.setattr(ab, "get_default_brain", lambda: ([["p"]], [["d"]]))
     monkeypatch.setattr(ab, "Agent", _DummyAgent)
-    monkeypatch.setattr(ab, "SimpleConversationStorage", _DummyStorage)
+    monkeypatch.setattr(ab, "StorageAdapter", _DummyStorageAdapter)
 
     runtime = ab.build_api_runtime()
 
@@ -100,4 +102,4 @@ def test_build_api_runtime_uses_bootstrap_dependencies(monkeypatch):
     assert runtime.app_version == "1.0"
     assert runtime.agent.pattern_responses == [["p"]]
     assert runtime.agent.default_responses == [["d"]]
-    assert isinstance(runtime.storage, _DummyStorage)
+    assert isinstance(runtime.storage, _DummyStorageAdapter)
