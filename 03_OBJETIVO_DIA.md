@@ -118,7 +118,7 @@ Hacer que `/e2e` sea realmente útil para diagnosticar problemas sin abrir conso
 
 ## Fase 4: Seguridad: separar WEBHOOK_TOKEN del TELEGRAM_BOT_TOKEN
 
-**Estado:** PENDIENTE
+**Estado:** ✅ COMPLETADO
 
 ### Objetivo
 
@@ -129,32 +129,32 @@ No exponer `TELEGRAM_BOT_TOKEN` en la URL pública del webhook.
 #### 4.1 - Introducir WEBHOOK_TOKEN
 
 **Settings** (`app/config/settings.py`):
-- [ ] Añadir `webhook_token: Optional[str]` a `WebhookSettings`
-- [ ] Regla: si existe, validar contra ese; si no, validar contra `telegram_bot_token` (legacy)
+- [x] Añadir `webhook_token: Optional[str]` a `WebhookSettings`
+- [x] Regla: si existe, validar contra ese; si no, validar contra `telegram_bot_token` (legacy)
 
 **Implementación** (`app/webhook/entrypoint.py`):
-- [ ] Ajustar para pasar el token esperado a `handle_webhook_impl`
-- [ ] Emitir evento `webhook.legacy_token_used` si llega el token legacy
+- [x] Ajustar para pasar el token esperado a `handle_webhook_impl`
+- [x] Emitir evento `webhook.legacy_token_used` si llega el token legacy
 
 **Scripts/Docs**:
-- [ ] `set_webhook_prod.py`
-- [ ] `scripts/sync_ngrok_webhook.ps1`
-- [ ] `ARRANQUE_DEV_PROD.md`
-- [ ] `estructura.md`
+- [x] `set_webhook_prod.py`
+- [x] `scripts/sync_ngrok_webhook.ps1`
+- [x] `ARRANQUE_DEV_PROD.md`
+- [x] `estructura.md`
 
 **Tests**:
-- [ ] Actualizar `tests/test_webhook_contract.py` para validar el nuevo token
+- [x] Actualizar `tests/test_webhook_contract.py` para validar el nuevo token
 
 #### 4.2 - Métricas async
 
 **Tareas**:
-- [ ] Verificar métricas Prometheus actuales
-- [ ] Añadir contadores para `chat_api_error` y `telegram_send_error`
+- [x] Verificar métricas Prometheus actuales
+- [x] Añadir contadores para `chat_api_error` y `telegram_send_error`
 
 #### 4.3 - Runbooks finales
 
 **Tareas**:
-- [ ] Consolidar documentación en `ARRANQUE_DEV_PROD.md`
+- [x] Consolidar documentación en `ARRANQUE_DEV_PROD.md`
 - [ ] Checklist de release
 
 ---

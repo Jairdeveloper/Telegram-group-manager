@@ -19,6 +19,7 @@ runtime = build_webhook_runtime(process_update_callable=process_update_task)
 # Re-exported runtime state (kept mutable for tests/legacy wrappers).
 LOGGER = runtime.logger
 BOT_TOKEN = runtime.bot_token
+WEBHOOK_TOKEN = runtime.webhook_token
 CHATBOT_API_URL = runtime.chatbot_api_url
 PROCESS_ASYNC = runtime.process_async
 DEDUP_TTL = runtime.dedup_ttl
@@ -28,6 +29,8 @@ CHAT_API_CLIENT = runtime.chat_api_client
 TELEGRAM_CLIENT = runtime.telegram_client
 REQUESTS = runtime.requests_metric
 PROCESS_TIME = runtime.process_time_metric
+CHAT_API_ERROR = runtime.chat_api_error_metric
+TELEGRAM_SEND_ERROR = runtime.telegram_send_error_metric
 CHAT_API = CHATBOT_API_URL
 
 app = FastAPI()
@@ -51,6 +54,8 @@ async def process_update_sync(update: Dict[str, Any]):
         update,
         telegram_client=TELEGRAM_CLIENT,
         process_time_metric=PROCESS_TIME,
+        chat_api_error_metric=CHAT_API_ERROR,
+        telegram_send_error_metric=TELEGRAM_SEND_ERROR,
         logger=LOGGER,
         handle_chat_message_fn=handle_chat_message,
         handle_ops_command_fn=handle_ops_command,
@@ -65,6 +70,7 @@ async def webhook(token: str, request: Request):
         token=token,
         request=request,
         bot_token=BOT_TOKEN,
+        webhook_token=WEBHOOK_TOKEN,
         dedup_update=dedup_update,
         process_async=PROCESS_ASYNC,
         task_queue=TASK_QUEUE,

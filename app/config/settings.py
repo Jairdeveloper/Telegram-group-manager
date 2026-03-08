@@ -39,6 +39,7 @@ class WebhookSettings(BaseSettings):
     """Settings used by Telegram webhook runtime."""
 
     telegram_bot_token: Optional[str] = None
+    webhook_token: Optional[str] = None
     chatbot_api_url: str = "http://127.0.0.1:8000/api/v1/chat"
     redis_url: Optional[str] = None
     process_async: bool = True
@@ -64,6 +65,10 @@ class WebhookSettings(BaseSettings):
         if not self.telegram_bot_token:
             raise ValueError("TELEGRAM_BOT_TOKEN is required")
         return self.telegram_bot_token
+
+    def get_webhook_token(self) -> Optional[str]:
+        """Return webhook token if configured, otherwise None."""
+        return self.webhook_token
 
 
 class WorkerSettings(BaseSettings):

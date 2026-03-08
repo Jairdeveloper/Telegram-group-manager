@@ -27,6 +27,7 @@ except Exception:
 class WebhookRuntime:
     logger: logging.Logger
     bot_token: str | None
+    webhook_token: str | None
     chatbot_api_url: str
     process_async: bool
     dedup_ttl: int
@@ -36,6 +37,8 @@ class WebhookRuntime:
     telegram_client: RequestsTelegramClient
     requests_metric: Counter
     process_time_metric: Histogram
+    chat_api_error_metric: Counter
+    telegram_send_error_metric: Counter
 
 
 def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegram_tasks") -> WebhookRuntime:
@@ -47,6 +50,7 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
 
     settings = load_webhook_settings()
     bot_token = settings.telegram_bot_token
+    webhook_token = settings.webhook_token
     chatbot_api_url = settings.chatbot_api_url
     redis_url = settings.redis_url
     process_async = settings.process_async
@@ -80,10 +84,13 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
 
     requests_metric = Counter("telegram_webhook_requests_total", "Total webhook requests", ["status"])
     process_time_metric = Histogram("telegram_webhook_process_seconds", "Time spent processing webhook")
+    chat_api_error_metric = Counter("telegram_webhook_chat_api_errors_total", "Total Chat API errors")
+    telegram_send_error_metric = Counter("telegram_webhook_telegram_send_errors_total", "Total Telegram send errors")
 
     return WebhookRuntime(
         logger=logger,
         bot_token=bot_token,
+        webhook_token=webhook_token,
         chatbot_api_url=chatbot_api_url,
         process_async=process_async,
         dedup_ttl=dedup_ttl,
@@ -93,4 +100,6 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
         telegram_client=telegram_client,
         requests_metric=requests_metric,
         process_time_metric=process_time_metric,
+        chat_api_error_metric=chat_api_error_metric,
+        telegram_send_error_metric=telegram_send_error_metric,
     )

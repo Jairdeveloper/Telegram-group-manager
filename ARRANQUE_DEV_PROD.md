@@ -35,8 +35,8 @@ Notas operativas:
 - `PROCESS_ASYNC=true`: requiere `REDIS_URL` valido y `python worker.py`.
 - En Docker Compose suele usarse `REDIS_URL=redis://redis:6379/0`.
 - En local sin Docker Compose suele usarse `REDIS_URL=redis://127.0.0.1:6379/0`.
-- El webhook canonico actual valida la ruta con `TELEGRAM_BOT_TOKEN`, no con `WEBHOOK_TOKEN`.
-- `WEBHOOK_TOKEN` sigue existiendo en `.env`, pero no es el token que autentica `POST /webhook/{token}` en `app.webhook.entrypoint:app`.
+- El webhook canonico ahora valida contra `WEBHOOK_TOKEN` si esta configurado; si no, usa `TELEGRAM_BOT_TOKEN` (legacy).
+- Se recomienda usar `WEBHOOK_TOKEN` en produccion para no exponer el `TELEGRAM_BOT_TOKEN` en la URL publica.
 
 ## 3. Canonical entrypoints
 
@@ -90,7 +90,7 @@ Nota:
 
 - En local usa `8001`.
 - El puerto `80` aplica al contenedor o al proxy frontal, no al arranque local recomendado.
-- La ruta valida local y publica es `/webhook/<TELEGRAM_BOT_TOKEN>`.
+- La ruta valida local y publica es `/webhook/<WEBHOOK_TOKEN>` si esta configurado; de lo contrario, usa `/webhook/<TELEGRAM_BOT_TOKEN>` (legacy).
 
 ### 4.4 Levantar worker (solo si `PROCESS_ASYNC=true`)
 
@@ -161,6 +161,14 @@ Si esto falla, Telegram no es el problema principal: la falla esta en la API.
 ### 5.4 Webhook local manual
 
 ```bash
+curl.exe -X POST "http://127.0.0.1:8001/webhook/<WEBHOOK_TOKEN>" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"update_id\":12345,\"message\":{\"chat\":{\"id\":999},\"text\":\"hola\"}}"
+```
+
+O si usas el token legacy:
+
+```bash
 curl.exe -X POST "http://127.0.0.1:8001/webhook/<TELEGRAM_BOT_TOKEN>" ^
   -H "Content-Type: application/json" ^
   -d "{\"update_id\":12345,\"message\":{\"chat\":{\"id\":999},\"text\":\"hola\"}}"
@@ -204,24 +212,30 @@ ngrok 8001
 3. Configura el webhook:
 
 ```bash
+python set_webhook_prod.py set "https://TU_URL_NGROK/webhook/<WEBHOOK_TOKEN>"
+```
+
+O si usas el token legacy:
+
+```bash
 python set_webhook_prod.py set "https://TU_URL_NGROK/webhook/<TELEGRAM_BOT_TOKEN>"
 ```
 
 Opcionalmente:
 
 ```bash
-python set_telegram_webhook.py "https://TU_URL_NGROK/webhook/<TELEGRAM_BOT_TOKEN>"
+python set_telegram_webhook.py "https://TU_URL_NGROK/webhook/<WEBHOOK_TOKEN>"
 ```
 
-### 6.2 Con dominio publico (produccion)
+### 6.2 Con dominio público (producción)
 
 ```bash
-python set_webhook_prod.py set "https://TU_DOMINIO_PUBLICO/webhook/<TELEGRAM_BOT_TOKEN>"
+python set_webhook_prod.py set "https://TU_DOMINIO_PUBLICO/webhook/<WEBHOOK_TOKEN>"
 ```
 
-### 6.3 Verificacion
+### 6.3 Verificación
 
-Despues de configurar:
+Después de configurar:
 
 ```bash
 curl.exe "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
@@ -229,16 +243,16 @@ curl.exe "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 
 Revisar:
 
-- `url` - NO debe estar vacia
+- `url` - NO debe estar vacía
 - `pending_update_count` - Debe ser 0
 - `last_error_message` - Debe ser null/empty
 
 Importante:
 
-- Si `url` esta vacia, Telegram NO esta delivering messages al webhook.
-- La URL debe terminar en `/webhook/<TELEGRAM_BOT_TOKEN>`.
+- Si `url` está vacía, Telegram NO está deliverando mensajes al webhook.
+- La URL debe terminar en `/webhook/<WEBHOOK_TOKEN>` o `/webhook/<TELEGRAM_BOT_TOKEN>` (legacy).
 
-### 6.4 Sincronizacion automatica con ngrok
+### 6.4 Sincronización automática con ngrok
 
 Si usas ngrok y la URL cambia frecuentemente:
 
@@ -248,10 +262,10 @@ powershell -ExecutionPolicy Bypass -File scripts/sync_ngrok_webhook.ps1
 
 Ese script:
 
-- lee la URL HTTPS activa desde `http://127.0.0.1:4040/api/tunnels`
-- construye `/webhook/<TELEGRAM_BOT_TOKEN>`
-- ejecuta `setWebhook`
-- valida `getWebhookInfo`
+- Lee la URL HTTPS activa desde `http://127.0.0.1:4040/api/tunnels`
+- Construye `/webhook/<WEBHOOK_TOKEN>` (o `/webhook/<TELEGRAM_BOT_TOKEN>` si no hay WEBHOOK_TOKEN)
+- Ejecuta `setWebhook`
+- Valida `getWebhookInfo`
 
 ## 7. Modo Produccion (Docker Compose)
 
@@ -272,14 +286,15 @@ Nota:
 - Dentro del contenedor el webhook puede escuchar en `80`.
 - Desde fuera, el puerto publicado en la documentacion actual sigue siendo `8001`.
 
-## 8. Troubleshooting basico
+## 8. Troubleshooting básico
 
 - Si falla import/config: revisa `.env` y `app/config/settings.py`.
 - Si webhook no procesa en async: valida `REDIS_URL` y que `worker.py` este corriendo.
 - Si `PROCESS_ASYNC=true` y no hay Redis, el webhook puede intentar fallback sync, pero seguiras teniendo ruido operacional.
-- Si Telegram no entrega updates: revisa `set_webhook_prod.py`, dominio publico, TLS y que `getWebhookInfo` tenga `url` no vacia.
-- Si una prueba local funciona con `/webhook/<TELEGRAM_BOT_TOKEN>` pero falla con `/webhook/<WEBHOOK_TOKEN>`, eso es esperado con el codigo actual.
-- Si envias comandos como `/health` al webhook canonico, hoy no se procesan como chat normal; quedan clasificados como comandos OPS o comandos no soportados segun el texto.
+- Si Telegram no entrega updates: revisa `set_webhook_prod.py`, dominio público, TLS y que `getWebhookInfo` tenga `url` no vacía.
+- Si tienes `WEBHOOK_TOKEN` configurado, la URL del webhook debe usar ese token: `/webhook/<WEBHOOK_TOKEN>`.
+- Si no tienes `WEBHOOK_TOKEN` configurado, el sistema usa `TELEGRAM_BOT_TOKEN` (legacy) para validar el webhook.
+- Si envías comandos como `/health` al webhook canónico, hoy no se procesan como chat normal; quedan clasificados como comandos OPS o comandos no soportados según el texto.
 
 ## 9. Runbook de debug
 

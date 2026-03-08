@@ -26,13 +26,40 @@ def _force_inmemory_dedup(monkeypatch):
 
 def test_webhook_rejects_invalid_token(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     client = TestClient(twp.app)
     response = client.post("/webhook/invalid-token", json=_sample_update())
     assert response.status_code == 403
 
 
+def test_webhook_accepts_valid_webhook_token(monkeypatch):
+    """Test that WEBHOOK_TOKEN takes precedence over BOT_TOKEN when configured."""
+    monkeypatch.setattr(twp, "BOT_TOKEN", "bot-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", "webhook-token")
+    monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
+    monkeypatch.setattr(twp, "TASK_QUEUE", None)
+
+    calls = {"count": 0}
+
+    def fake_process(update):
+        calls["count"] += 1
+        assert update["message"]["chat"]["id"] == 12345
+
+    monkeypatch.setattr(twp, "process_update_sync", fake_process)
+    client = TestClient(twp.app)
+
+    response = client.post("/webhook/webhook-token", json=_sample_update(update_id=11))
+    assert response.status_code == 200
+    assert response.json()["ok"] is True
+    assert calls["count"] == 1
+
+    response_legacy = client.post("/webhook/bot-token", json=_sample_update(update_id=12))
+    assert response_legacy.status_code == 403
+
+
 def test_webhook_accepts_valid_token_and_processes(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
 
@@ -53,6 +80,7 @@ def test_webhook_accepts_valid_token_and_processes(monkeypatch):
 
 def test_webhook_deduplicates_update_id(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
 
@@ -75,6 +103,7 @@ def test_webhook_deduplicates_update_id(monkeypatch):
 
 def test_webhook_async_enqueue_failure_falls_back_to_sync(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     monkeypatch.setattr(twp, "PROCESS_ASYNC", True)
 
     class _QueueRaises:
@@ -124,6 +153,7 @@ class _TelegramRecorder:
 
 def test_webhook_returns_500_when_bot_token_missing(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", None)
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     client = TestClient(twp.app)
 
     response = client.post("/webhook/any-token", json=_sample_update(update_id=80))
@@ -134,6 +164,7 @@ def test_webhook_returns_500_when_bot_token_missing(monkeypatch):
 
 def test_webhook_chat_service_exception_returns_ok_and_internal_error_reply(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
     monkeypatch.setattr(twp, "handle_chat_message", _ChatServiceRaises())
@@ -149,6 +180,7 @@ def test_webhook_chat_service_exception_returns_ok_and_internal_error_reply(monk
 
 def test_webhook_chat_message_uses_shared_service_reply(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
     monkeypatch.setattr(twp, "handle_chat_message", _ChatServiceReturnsReply("service:ok"))
@@ -164,6 +196,7 @@ def test_webhook_chat_message_uses_shared_service_reply(monkeypatch):
 
 def test_webhook_telegram_send_failure_still_returns_ok(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
     monkeypatch.setattr(twp, "handle_chat_message", _ChatServiceReturnsReply("service:ok"))
@@ -185,6 +218,7 @@ async def _fake_ops_handler(chat_id: int, command: str, args=(), **_kwargs):
 
 def test_webhook_processes_ops_commands_via_shared_service(monkeypatch):
     monkeypatch.setattr(twp, "BOT_TOKEN", "valid-token")
+    monkeypatch.setattr(twp, "WEBHOOK_TOKEN", None)
     monkeypatch.setattr(twp, "PROCESS_ASYNC", False)
     monkeypatch.setattr(twp, "TASK_QUEUE", None)
     monkeypatch.setattr(twp, "handle_ops_command", _fake_ops_handler)

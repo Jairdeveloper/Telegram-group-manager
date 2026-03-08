@@ -35,6 +35,8 @@ async def process_update_impl(
     telegram_client: TelegramClient,
     logger,
     process_time_metric=None,
+    chat_api_error_metric=None,
+    telegram_send_error_metric=None,
     handle_chat_message_fn: Callable[..., Dict[str, Any]] = handle_chat_message,
     handle_ops_command_fn: Callable[..., Any] = handle_ops_command,
     is_admin_fn: Callable[[int], bool] = is_admin,
@@ -119,6 +121,8 @@ async def process_update_impl(
             update_id=update_id,
             chat_id=chat_id,
         )
+        if chat_api_error_metric is not None:
+            chat_api_error_metric.inc()
         reply = "(internal error)"
 
     try:
@@ -138,6 +142,8 @@ async def process_update_impl(
             update_id=update_id,
             chat_id=chat_id,
         )
+        if telegram_send_error_metric is not None:
+            telegram_send_error_metric.inc()
 
     if process_time_metric is not None:
         process_time_metric.observe(time.time() - start)
@@ -148,6 +154,7 @@ async def handle_webhook_impl(
     token: str,
     request: Request,
     bot_token: Optional[str],
+    webhook_token: Optional[str],
     dedup_update: Callable[[int], bool],
     process_async: bool,
     task_queue: Optional[TaskQueue],
@@ -159,10 +166,16 @@ async def handle_webhook_impl(
     if not bot_token:
         raise HTTPException(status_code=500, detail="BOT_TOKEN not configured")
 
-    if token != bot_token:
-        requests_metric.labels(status="forbidden").inc()
-        record_event(component="webhook", event="webhook.forbidden", level="WARN")
-        raise HTTPException(status_code=403, detail="Invalid token")
+    if webhook_token is not None:
+        if token != webhook_token:
+            requests_metric.labels(status="forbidden").inc()
+            record_event(component="webhook", event="webhook.forbidden", level="WARN", detail="invalid_webhook_token")
+            raise HTTPException(status_code=403, detail="Invalid token")
+    else:
+        if token != bot_token:
+            requests_metric.labels(status="forbidden").inc()
+            record_event(component="webhook", event="webhook.forbidden", level="WARN", detail="invalid_legacy_token")
+            raise HTTPException(status_code=403, detail="Invalid token")
 
     update = await request.json()
     update_id = update.get("update_id")
