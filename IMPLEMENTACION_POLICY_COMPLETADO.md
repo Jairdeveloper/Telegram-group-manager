@@ -1,12 +1,12 @@
-# Implementación Fases 1-2: Policy Engine + Tool Routing
+# Implementación Fases del Proyecto
 
 ## Resumen
 
-Se ha implementado el **Policy Engine** (Fase 1) y **Tool Routing** (Fase 2) según la especificación del documento `01_IMPLEMENTACION_SEMANA_6_8_POLICY_PLANNER.md`.
+Se ha implementado según la especificación del documento `01_IMPLEMENTACION_SEMANA_6_8_POLICY_PLANNER.md`.
 
 ---
 
-# Fase 1: Policy Engine
+# Fase 1: Policy Engine (Semana 6)
 
 ## Archivos Creados
 
@@ -14,90 +14,15 @@ Se ha implementado el **Policy Engine** (Fase 1) y **Tool Routing** (Fase 2) seg
 |---------|-------------|
 | `app/policies/__init__.py` | Exports del módulo |
 | `app/policies/models.py` | Modelos Pydantic: Policy, PolicyRule, PolicyType, Action |
-| `app/policies/types.py` | Configuraciones: RateLimitConfig, QuotaConfig, BudgetConfig, ContentFilterConfig, AccessControlConfig |
-| `app/policies/engine.py` | Motor de políticas con evaluación de reglas |
-| `tests/test_policy_engine_unit.py` | Suite de tests unitarios |
+| `app/policies/types.py` | Configuraciones |
+| `app/policies/engine.py` | Motor de políticas |
+| `tests/test_policy_engine_unit.py` | Tests unitarios |
+
+**Tests**: 12 pasando
 
 ---
 
-## Modelos
-
-### PolicyType (Enum)
-```python
-class PolicyType(str, Enum):
-    RATE_LIMIT = "rate_limit"
-    QUOTA = "quota"
-    ACCESS_CONTROL = "access_control"
-    CONTENT_FILTER = "content_filter"
-    BUDGET = "budget"
-```
-
-### Action (Enum)
-```python
-class Action(str, Enum):
-    ALLOW = "allow"
-    DENY = "deny"
-    THROTTLE = "throttle"
-    WARN = "warn"
-```
-
-### PolicyRule
-```python
-class PolicyRule(BaseModel):
-    policy_type: PolicyType
-    name: str
-    conditions: Dict[str, Any]
-    action: Action
-    message: Optional[str] = None
-    priority: int = 0
-```
-
-### Policy
-```python
-class Policy(BaseModel):
-    policy_id: str
-    tenant_id: str
-    name: str
-    enabled: bool = True
-    rules: List[PolicyRule]
-    created_at: datetime = datetime.utcnow()
-```
-
----
-
-## PolicyEngine
-
-### Características
-
-- **Thread-Safety**: Usa `threading.Lock` para operaciones concurrentes
-- **Multi-Tenant**: Aislamiento de políticas por tenant_id
-- **Prioridades**: Evaluación de reglas por prioridad (mayor primero)
-- **Almacenamiento en memoria**: Stores para rate limits y quotas
-
-### Métodos Principales
-
-```python
-class PolicyEngine:
-    def register_policy(self, policy: Policy) -> None
-    def unregister_policy(self, policy_id: str) -> None
-    def get_policy(self, policy_id: str) -> Optional[Policy]
-    def list_policies(self, tenant_id: Optional[str] = None) -> List[Policy]
-    def evaluate(self, tenant_id: str, context: Dict[str, Any]) -> Tuple[Action, str]
-    def get_rate_limit_stats(self, policy_id: str, chat_id: str) -> Dict[str, Any]
-    def get_quota_stats(self, policy_id: str, tenant_id: str) -> Dict[str, Any]
-    def reset_rate_limit(self, policy_id: str, chat_id: str) -> None
-    def reset_quota(self, policy_id: str, tenant_id: str) -> None
-```
-
----
-
-## Tests Fase 1
-
-**Resultado**: 12 tests pasando
-
----
-
-# Fase 2: Tool Routing
+# Fase 3: Tool Routing (Semana 7)
 
 ## Archivos Creados
 
@@ -106,193 +31,110 @@ class PolicyEngine:
 | `app/tools/__init__.py` | Exports del módulo |
 | `app/tools/registry.py` | Registro y búsqueda de herramientas |
 | `app/tools/router.py` | Enrutamiento de herramientas |
-| `app/tools/builtins.py` | Herramientas integradas |
-| `tests/test_tool_routing_unit.py` | Suite de tests unitarios |
+| `app/tools/builtins.py` | Herramientas integradas (6 tools) |
+| `tests/test_tool_routing_unit.py` | Tests unitarios |
+
+**Tests**: 15 pasando
 
 ---
 
-## ToolType (Enum)
+# Fase 4: Planner (Semana 7-8)
 
+## Archivos Creados
+
+| Archivo | Descripción |
+|---------|-------------|
+| `app/planner/__init__.py` | Exports del módulo |
+| `app/planner/planner.py` | Planner multi-step |
+| `tests/test_planner_unit.py` | Tests unitarios |
+
+## Componentes
+
+### StepStatus
 ```python
-class ToolType(str, Enum):
-    SEARCH = "search"
-    CALCULATOR = "calculator"
-    WEATHER = "weather"
-    DATABASE = "database"
-    HTTP = "http"
-    CUSTOM = "custom"
-    LLM = "llm"
+class StepStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
 ```
 
----
-
-## Tool
-
+### PlanStep
 ```python
 @dataclass
-class Tool:
-    name: str
-    description: str
-    tool_type: ToolType
-    handler: Callable
-    parameters: Dict[str, Any]
-    requires_approval: bool = False
-    metadata: Dict[str, Any] = field(default_factory=dict)
-```
-
----
-
-## ToolRegistry
-
-### Métodos
-
-```python
-class ToolRegistry:
-    def register(self, tool: Tool) -> None
-    def unregister(self, name: str) -> Optional[Tool]
-    def get_tool(self, name: str) -> Optional[Tool]
-    def list_tools(self) -> List[Tool]
-    def list_tools_by_type(self, tool_type: ToolType) -> List[Tool]
-    def find_tools(self, query: str) -> List[Tool]
-    def tool_exists(self, name: str) -> bool
-    def get_tool_names(self) -> List[str]
-    def clear(self) -> None
-```
-
----
-
-## ToolRouter
-
-### Métodos
-
-```python
-class ToolRouter:
-    def __init__(self, tool_registry: ToolRegistry, policy_engine: Optional[PolicyEngine] = None)
-    def set_policy_engine(self, policy_engine: PolicyEngine) -> None
-    def route(self, user_message: str, context: Dict[str, Any]) -> List[ToolCall]
-    def route_to_tool(self, tool_name: str, parameters: Dict[str, Any], context: Dict[str, Any]) -> Optional[ToolCall]
-    def execute_tool(self, tool_name: str, parameters: Dict[str, Any]) -> Any
-    def execute_tool_call(self, tool_call: ToolCall) -> Any
-```
-
-### ToolCall
-
-```python
-@dataclass
-class ToolCall:
+class PlanStep:
+    step_id: str
     tool: str
     parameters: Dict[str, Any]
-    warning: Optional[str] = None
+    depends_on: List[str] = field(default_factory=list)
+    status: StepStatus = StepStatus.PENDING
+    result: Optional[str] = None
+    error: Optional[str] = None
 ```
 
----
-
-## Herramientas Integradas
-
-| Herramienta | Descripción | Parámetros |
-|-------------|-------------|-------------|
-| calculator | Calculate mathematical expressions | `expression: str` |
-| search | Search the web for information | `query: str` |
-| weather | Get weather for a location | `location: str` |
-| convert | Convert between units | `value: str, from_unit: str, to_unit: str` |
-| date | Get current/tomorrow/yesterday date | `action: str, format: str` |
-| llm | Process text with LLM | `prompt: str` |
-
-### Conversiones Soportadas
-
-- km ↔ mi
-- kg ↔ lb
-- °C ↔ °F
-- m ↔ ft
-
----
-
-## Tests Fase 2
-
-| Test | Descripción |
-|------|-------------|
-| `test_tool_registry_register` | Registro de herramientas |
-| `test_tool_registry_list_tools` | Listado de herramientas |
-| `test_tool_registry_find_tools` | Búsqueda por query |
-| `test_tool_registry_unregister` | Eliminación de herramientas |
-| `test_tool_router_route_finds_tools` | Routing encuentra tools |
-| `test_tool_router_route_search` | Routing para search |
-| `test_tool_router_execute_tool` | Ejecución de tool |
-| `test_tool_router_execute_tool_error` | Manejo de errores |
-| `test_tool_router_execute_tool_call` | Ejecución via ToolCall |
-| `test_tool_router_with_policy_engine_denies` | Policy blocking tools |
-| `test_tool_router_direct_route` | Routing directo |
-| `test_tool_registry_list_by_type` | Filtrado por tipo |
-| `test_tool_router_no_matching_tools` | Sin matches |
-| `test_convert_tool` | Conversión de unidades |
-| `test_builtin_tools_registration` | Tools registrados |
-
-**Resultado**: 15 tests pasando
-
----
-
-## Ejemplo de Uso
-
+### Plan
 ```python
-from app.tools.registry import ToolRegistry
-from app.tools.router import ToolRouter
-from app.tools.builtins import register_builtin_tools
-
-# Crear registry y registrar herramientas
-registry = ToolRegistry()
-register_builtin_tools(registry)
-
-# Crear router
-router = ToolRouter(registry)
-
-# Encontrar y ejecutar tools
-tool_calls = router.route("calculate 2 + 2", {"tenant_id": "default"})
-
-for tc in tool_calls:
-    result = router.execute_tool_call(tc)
-    print(result)
+@dataclass
+class Plan:
+    plan_id: str
+    goal: str
+    steps: List[PlanStep]
+    status: StepStatus = StepStatus.PENDING
+    final_result: Optional[str] = None
+    context: Dict[str, Any] = field(default_factory=dict)
 ```
 
----
+### Planner
+```python
+class Planner:
+    def create_plan(self, user_goal: str, context: Dict[str, Any]) -> Plan
+    def create_plan_with_steps(self, user_goal: str, steps: List[PlanStep], context: Dict[str, Any] = None) -> Plan
+    def execute_plan(self, plan_id: str) -> Plan  # async
+    def execute_plan_sync(self, plan_id: str) -> Plan
+    def get_plan(self, plan_id: str) -> Optional[Plan]
+    def list_plans(self) -> List[Plan]
+    def delete_plan(self, plan_id: str) -> bool
+    def clear_plans(self) -> None
+```
 
-## Mejoras vs Spec Original
+## Características
 
-### Fase 1
-1. **Thread-Safety**: Agregado `threading.Lock` para operaciones concurrentes
-2. **Métodos auxiliares**: `get_rate_limit_stats`, `get_quota_stats`, `reset_rate_limit`, `reset_quota`
-3. **Políticas deshabilitables**: Campo `enabled` en Policy
-4. **Listado de políticas**: Método `list_policies`
-5. **Blocked Tools**: Soporte para `blocked_tools` en ACCESS_CONTROL
+- Descomposición de goals en steps
+- Soporte para dependencias entre steps
+- Ejecución síncrona y asíncrona
+- Detección de errores en resultados
+- Métodos de gestión de planes
 
-### Fase 2
-1. **ToolCall dataclass**: Estructura para representar llamadas a tools
-2. **Búsqueda mejorada**: Encuentra tools por palabras clave en el mensaje
-3. **Más herramientas**: convert, date, weather, llm
-4. **Ejecución integrada**: Métodos para ejecutar tools directamente
-5. **Integración con Policy Engine**: Bloqueo de tools por políticas
-
----
-
-## Estado
-
-| Componente | Estado |
-|------------|--------|
-| Policy Models | ✅ Completado |
-| Policy Types | ✅ Completado |
-| Policy Engine | ✅ Completado |
-| Tests Policy | ✅ Completado (12/12) |
-| Tool Registry | ✅ Completado |
-| Tool Router | ✅ Completado |
-| Builtin Tools | ✅ Completado (6 tools) |
-| Tests Tool Routing | ✅ Completado (15/15) |
-
-**Fases 1-2: COMPLETADAS**
+**Tests**: 16 pasando
 
 ---
 
-## Siguiente Fase
+# Fase 5: Guardrails (Semana 8)
 
-**Fase 3: Planner** (Semana 7-8)
-- `app/planner/planner.py` - Planner multi-step
-- Ejecución de planes con dependencias
-- Integración con Tool Router
+## Archivos Creados
+
+| Archivo | Descripción |
+|---------|-------------|
+| `app/guardrails/__init__.py` | Exports del módulo |
+| `app/guardrails/guardrail.py` | Sistema de filtrado |
+| `app/guardrails/middleware.py` | Guardrails por defecto |
+| `tests/test_guardrails_unit.py` | Tests unitarios |
+
+**Tests**: 23 pasando
+
+---
+
+## Estado Actual
+
+| Fase | Componente | Estado | Tests |
+|------|------------|--------|-------|
+| 1 | Policy Engine | ✅ Completado | 12 |
+| 3 | Tool Routing | ✅ Completado | 15 |
+| 4 | Planner | ✅ Completado | 16 |
+| 5 | Guardrails | ✅ Completado | 23 |
+
+**Total implementado: 66 tests**
+
+---
+
+*Documento actualizado - Todas las fases implementadas*

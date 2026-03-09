@@ -91,7 +91,31 @@ class ToolRouter:
         return self.execute_tool(tool_call.tool, tool_call.parameters)
     
     def _extract_parameters(self, tool: Tool, message: str) -> Dict[str, Any]:
-        return {"raw_input": message}
+        params = {}
+        tool_params = tool.parameters
+        
+        clean_message = message.lower()
+        for name in ['calculator', 'calculate', 'search', 'search for', 'convert', 'weather']:
+            if clean_message.startswith(name + ' '):
+                clean_message = clean_message[len(name):].strip()
+                break
+        
+        for param_name, param_type in tool_params.items():
+            if param_name == "expression" or param_name == "query" or param_name == "prompt":
+                params[param_name] = clean_message if clean_message else message
+            elif param_name in ["location", "value", "action"]:
+                words = message.split()
+                for word in words:
+                    if word.lower() not in [tool.name, 'calculate', 'search', 'for', 'convert', 'weather', 'the', 'web']:
+                        params[param_name] = word
+                        break
+                if param_name not in params:
+                    params[param_name] = clean_message if clean_message else message
+        
+        if not params:
+            params = {"raw_input": message}
+        
+        return params
     
     def _extract_with_extractor(self, tool: Tool, message: str, extractor: Callable) -> Dict[str, Any]:
         return extractor(message, tool.parameters)
