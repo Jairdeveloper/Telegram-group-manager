@@ -708,3 +708,4 @@ def test_content_filter_blocks_keyword():
 - [ ] Integración con chat service
 - [ ] Tests pasando
 - [ ] Documentación actualizada
+
