@@ -124,6 +124,85 @@ class Planner:
 
 ---
 
+# Fase 6: Integration (Semana 8)
+
+## Flujo Completo
+
+```
+User Message
+    ↓
+Guardrails (PII filter)
+    ↓
+Policy Engine (rate limit, quota, access)
+    ↓
+Planner (create plan)
+    ↓
+Tool Router (find tools)
+    ↓
+Execute Tools
+    ↓
+LLM (generate response)
+    ↓
+Guardrails (output filter)
+    ↓
+Response
+```
+
+## Archivos Creados
+
+| Archivo | Descripción |
+|---------|-------------|
+| `app/ops/chat_integration.py` | Integración de todos los componentes |
+| `tests/test_chat_integration_unit.py` | Tests de integración |
+
+## Componentes
+
+### ChatContext
+```python
+@dataclass
+class ChatContext:
+    chat_id: int
+    tenant_id: str = "default"
+    user_id: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+```
+
+### ChatResponse
+```python
+@dataclass
+class ChatResponse:
+    success: bool
+    response: str
+    blocked: bool = False
+    blocked_reason: Optional[str] = None
+    plan_id: Optional[str] = None
+    tools_executed: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+```
+
+### ChatService
+```python
+class ChatService:
+    def __init__(self, policy_engine, tool_registry, planner)
+    def register_policy(self, policy: Policy) -> None
+    def handle_message(self, text: str, context: ChatContext) -> ChatResponse
+    def handle_message_async(self, text: str, context: ChatContext) -> ChatResponse
+    def get_policy_stats(self, tenant_id: str) -> Dict[str, Any]
+    def reset_rate_limits(self, tenant_id: str, chat_id: int) -> None
+```
+
+### Funciones de Utilidad
+```python
+def get_default_chat_service() -> ChatService
+def handle_chat_message(chat_id: int, text: str, tenant_id: str = "default", user_id: Optional[str] = None) -> Dict[str, Any]
+```
+
+## Tests
+
+**Tests**: 12 pasando
+
+---
+
 ## Estado Actual
 
 | Fase | Componente | Estado | Tests |
@@ -132,9 +211,10 @@ class Planner:
 | 3 | Tool Routing | ✅ Completado | 15 |
 | 4 | Planner | ✅ Completado | 16 |
 | 5 | Guardrails | ✅ Completado | 23 |
+| 6 | Integration | ✅ Completado | 12 |
 
-**Total implementado: 66 tests**
+**Total implementado: 78 tests**
 
 ---
 
-*Documento actualizado - Todas las fases implementadas*
+*Documento actualizado - Proyecto completo implementado*
