@@ -708,3 +708,5 @@ def test_content_filter_blocks_keyword():
 - [ ] Integración con chat service
 - [ ] Tests pasando
 - [ ] Documentación actualizada
+
+'/mnt/c/Users/1973b/zpa/Projects/manufacturing/robot/01_IMPLEMENTACION_SEMANA_6_8_POLICY_PLANNER.md' Examina el archivo adjuntado y crea una vision general del proyecto respecto a esta implementacion crea un archivo .md que describa lo observado en el analisis del proyecto respecto a la implementacion de esta features
