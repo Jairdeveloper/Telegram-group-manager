@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, Optional
 
 from fastapi import HTTPException, Request
 
+from app.enterprise import handle_enterprise_command, handle_enterprise_moderation
 from app.ops.policies import check_rate_limit, is_admin
 from app.ops.services import handle_chat_message, handle_ops_command
 from app.ops.events import record_event
@@ -39,6 +40,8 @@ async def process_update_impl(
     telegram_send_error_metric=None,
     handle_chat_message_fn: Callable[..., Dict[str, Any]] = handle_chat_message,
     handle_ops_command_fn: Callable[..., Any] = handle_ops_command,
+    handle_enterprise_command_fn: Callable[..., Any] = handle_enterprise_command,
+    handle_enterprise_moderation_fn: Callable[..., Any] = handle_enterprise_moderation,
     is_admin_fn: Callable[[int], bool] = is_admin,
     rate_limit_check: Callable[[int], Any] = check_rate_limit,
 ) -> None:
@@ -102,16 +105,53 @@ async def process_update_impl(
                 ops_status=result.get("status"),
                 reply_len=len(reply or ""),
             )
-        else:
-            result = handle_chat_message_fn(chat_id, dispatch.text)
-            reply = result.get("response", "(no response)")
+        elif dispatch.kind == "enterprise_command":
+            result = handle_enterprise_command_fn(
+                actor_id=dispatch.user_id,
+                chat_id=dispatch.chat_id,
+                command=dispatch.command or "",
+                args=dispatch.args,
+                raw_text=dispatch.text or "",
+                raw_update=dispatch.raw_update,
+            )
+            reply = result.get("response_text", "(no response)")
             record_event(
                 component="webhook",
-                event="webhook.chat_service.ok",
+                event="webhook.enterprise_service.ok",
                 update_id=update_id,
                 chat_id=chat_id,
+                command=dispatch.command,
+                enterprise_status=result.get("status"),
                 reply_len=len(reply or ""),
             )
+        else:
+            moderation = handle_enterprise_moderation_fn(
+                actor_id=dispatch.user_id,
+                chat_id=dispatch.chat_id,
+                raw_text=dispatch.text or "",
+                raw_update=dispatch.raw_update,
+            )
+            if moderation.get("status") == "blocked":
+                reply = moderation.get("response_text", "Mensaje bloqueado.")
+                record_event(
+                    component="webhook",
+                    event="webhook.enterprise_moderation.blocked",
+                    update_id=update_id,
+                    chat_id=chat_id,
+                    reason=moderation.get("reason"),
+                    source=moderation.get("source"),
+                    reply_len=len(reply or ""),
+                )
+            else:
+                result = handle_chat_message_fn(chat_id, dispatch.text)
+                reply = result.get("response", "(no response)")
+                record_event(
+                    component="webhook",
+                    event="webhook.chat_service.ok",
+                    update_id=update_id,
+                    chat_id=chat_id,
+                    reply_len=len(reply or ""),
+                )
     except Exception:
         logger.exception("webhook.service_error", extra=log_ctx)
         record_event(
