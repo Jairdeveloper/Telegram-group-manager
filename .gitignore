@@ -4,3 +4,6 @@ pycache/
 LLM/
 venv/
 logs/
+BASE_DE_CONOCIMIENTO/
+BASE_DE_CONOCIMIENTO_ROBOT/
+debug/

@@ -782,5 +782,13 @@
       "message": "hola",
       "response": "In other words, you're saying...?"
     }
+  ],
+  "default:s1": [
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    }
   ]
 }
