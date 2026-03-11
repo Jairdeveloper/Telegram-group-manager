@@ -1,5 +1,7 @@
 """Enterprise command dispatcher helpers."""
 
+from __future__ import annotations
+
 from typing import FrozenSet
 
 

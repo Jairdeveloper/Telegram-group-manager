@@ -1,5 +1,7 @@
 """Dependency bootstrap for webhook runtime."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 

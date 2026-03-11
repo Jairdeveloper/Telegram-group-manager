@@ -14,6 +14,8 @@ from app.webhook.infrastructure import InMemoryDedupStore
 from app.webhook.bootstrap import build_webhook_runtime
 from webhook_tasks import process_update as process_update_task
 
+from app.manager_bot.core import ManagerBot
+
 runtime = build_webhook_runtime(process_update_callable=process_update_task)
 
 # Re-exported runtime state (kept mutable for tests/legacy wrappers).
@@ -34,6 +36,27 @@ TELEGRAM_SEND_ERROR = runtime.telegram_send_error_metric
 CHAT_API = CHATBOT_API_URL
 
 app = FastAPI()
+
+# ManagerBot integration (FASE 0)
+_manager_bot = None
+
+
+def _get_manager_bot():
+    """Get or create ManagerBot instance."""
+    global _manager_bot
+    if _manager_bot is None:
+        from app.manager_bot.core import ManagerBot
+        _manager_bot = ManagerBot()
+    return _manager_bot
+
+
+# Include ManagerBot routes in the main app
+@app.on_event("startup")
+async def mount_manager_bot():
+    """Mount ManagerBot routes on startup."""
+    manager = _get_manager_bot()
+    manager_app = manager.get_app()
+    app.mount("/manager", manager_app)
 
 
 def dedup_update(update_id: int) -> bool:
