@@ -2,20 +2,24 @@
 
 from typing import Any, Dict
 
+from app.enterprise.transport.dispatcher import is_enterprise_command
+
 from .models import DispatchResult
-from .services import OPS_COMMANDS, extract_chat_payload, split_command
+from .services import OPS_COMMANDS, extract_chat_payload, extract_sender_id, split_command
 
 
 def dispatch_telegram_update(update: Dict[str, Any]) -> DispatchResult:
     """Classify Telegram updates into chat, ops command or unsupported."""
     update_id = update.get("update_id")
     payload = extract_chat_payload(update)
+    sender_id = extract_sender_id(update)
 
     if not payload:
         return DispatchResult(
             kind="unsupported",
             update_id=update_id,
             chat_id=None,
+            user_id=sender_id,
             reason="missing_message",
             raw_update=update,
         )
@@ -27,6 +31,7 @@ def dispatch_telegram_update(update: Dict[str, Any]) -> DispatchResult:
             kind="unsupported",
             update_id=update_id,
             chat_id=chat_id,
+            user_id=sender_id,
             reason="missing_text",
             raw_update=update,
         )
@@ -37,6 +42,19 @@ def dispatch_telegram_update(update: Dict[str, Any]) -> DispatchResult:
             kind="ops_command",
             update_id=update_id,
             chat_id=chat_id,
+            user_id=sender_id,
+            text=text,
+            command=command,
+            args=args,
+            raw_update=update,
+        )
+
+    if command is not None and is_enterprise_command(command):
+        return DispatchResult(
+            kind="enterprise_command",
+            update_id=update_id,
+            chat_id=chat_id,
+            user_id=sender_id,
             text=text,
             command=command,
             args=args,
@@ -48,6 +66,7 @@ def dispatch_telegram_update(update: Dict[str, Any]) -> DispatchResult:
             kind="unsupported",
             update_id=update_id,
             chat_id=chat_id,
+            user_id=sender_id,
             text=text,
             command=command,
             args=args,
@@ -59,6 +78,7 @@ def dispatch_telegram_update(update: Dict[str, Any]) -> DispatchResult:
         kind="chat_message",
         update_id=update_id,
         chat_id=chat_id,
+        user_id=sender_id,
         text=text,
         raw_update=update,
     )

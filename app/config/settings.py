@@ -106,3 +106,56 @@ def load_webhook_settings() -> WebhookSettings:
 
 def load_worker_settings() -> WorkerSettings:
     return WorkerSettings()
+
+
+class EnterpriseSettings(BaseSettings):
+    """Settings used by EnterpriseRobot modules."""
+
+    enterprise_enabled: bool = True
+    enterprise_moderation_enabled: bool = True
+    default_tenant_id: str = "default"
+    enterprise_default_timezone: str = "UTC"
+    enterprise_owner_ids: str = ""
+    enterprise_sardegna_ids: str = ""
+    enterprise_feature_fun: bool = True
+    enterprise_feature_reactions: bool = True
+    enterprise_feature_anilist: bool = True
+    enterprise_feature_wallpaper: bool = True
+    enterprise_feature_gettime: bool = True
+    enterprise_anilist_url: str = ""
+    enterprise_anilist_timeout: int = 5
+    enterprise_spamwatch_url: str = ""
+    enterprise_spamwatch_token: str = ""
+    enterprise_spamwatch_timeout: int = 3
+    enterprise_sibyl_url: str = ""
+    enterprise_sibyl_token: str = ""
+    enterprise_sibyl_timeout: int = 3
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    @property
+    def owner_ids(self) -> list[int]:
+        return _parse_id_list(self.enterprise_owner_ids)
+
+    @property
+    def sardegna_ids(self) -> list[int]:
+        return _parse_id_list(self.enterprise_sardegna_ids)
+
+
+def _parse_id_list(raw: str) -> list[int]:
+    ids: list[int] = []
+    for token in (raw or "").split(","):
+        token = token.strip()
+        if not token:
+            continue
+        if token.lstrip("-").isdigit():
+            ids.append(int(token))
+    return ids
+
+
+def load_enterprise_settings() -> EnterpriseSettings:
+    return EnterpriseSettings()

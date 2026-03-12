@@ -96,7 +96,7 @@ class PronounTranslator:
         "fred": "he", "jack": "he", "jane": "she",
     }
 
-    def __init__(self, custom_map: Dict[str, str] | None = None):
+    def __init__(self, custom_map: Optional[Dict[str, str]] = None):
         self.pronoun_map = {**self.DEFAULT_PRONOUN_MAP}
         if custom_map:
             self.pronoun_map.update(custom_map)

@@ -16,7 +16,24 @@ def extract_chat_payload(update: Dict[str, Any]) -> Optional[Tuple[int, str]]:
     message = extract_message(update)
     if not message:
         return None
-    return message["chat"]["id"], message.get("text", "")
+    text = message.get("text")
+    if not text:
+        text = message.get("caption", "")
+    return message["chat"]["id"], text
+
+
+def extract_sender_id(update: Dict[str, Any]) -> Optional[int]:
+    """Return sender user id when present."""
+    message = extract_message(update)
+    if not message:
+        return None
+    sender = message.get("from")
+    if sender and "id" in sender:
+        return sender["id"]
+    sender_chat = message.get("sender_chat")
+    if sender_chat and "id" in sender_chat:
+        return sender_chat["id"]
+    return None
 
 
 def split_command(text: str) -> Tuple[Optional[str], Tuple[str, ...]]:

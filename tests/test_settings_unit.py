@@ -1,3 +1,6 @@
+import uuid
+from pathlib import Path
+
 import pytest
 
 from app.config.settings import (
@@ -8,8 +11,16 @@ from app.config.settings import (
 )
 
 
-def test_webhook_settings_defaults(monkeypatch, tmp_path):
-    monkeypatch.chdir(tmp_path)
+def _make_local_tmpdir():
+    base = Path(__file__).resolve().parent / "_tmp_settings"
+    base.mkdir(exist_ok=True)
+    temp_dir = base / str(uuid.uuid4())
+    temp_dir.mkdir()
+    return temp_dir
+
+
+def test_webhook_settings_defaults(monkeypatch):
+    monkeypatch.chdir(_make_local_tmpdir())
     monkeypatch.delenv("CHATBOT_API_URL", raising=False)
     monkeypatch.delenv("PROCESS_ASYNC", raising=False)
     monkeypatch.delenv("DEDUP_TTL", raising=False)
@@ -38,8 +49,8 @@ def test_settings_parse_bool_and_int(monkeypatch):
     assert api_settings.api_port == 9001
 
 
-def test_webhook_required_token_validation(monkeypatch, tmp_path):
-    monkeypatch.chdir(tmp_path)
+def test_webhook_required_token_validation(monkeypatch):
+    monkeypatch.chdir(_make_local_tmpdir())
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "")
     settings = WebhookSettings(telegram_bot_token="")
 
@@ -47,8 +58,8 @@ def test_webhook_required_token_validation(monkeypatch, tmp_path):
         settings.require_bot_token()
 
 
-def test_worker_settings_defaults(monkeypatch, tmp_path):
-    monkeypatch.chdir(tmp_path)
+def test_worker_settings_defaults(monkeypatch):
+    monkeypatch.chdir(_make_local_tmpdir())
     monkeypatch.delenv("REDIS_URL", raising=False)
     monkeypatch.delenv("QUEUE_NAME", raising=False)
 
