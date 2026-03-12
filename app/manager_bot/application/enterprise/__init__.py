@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, List, Sequence
 from app.manager_bot.core import Module, ModuleContract
 
 ENTERPRISE_COMMANDS_LIST = [
+    "/config",
     "/adminhelp",
     "/antichannel",
     "/antispam",
@@ -46,6 +47,21 @@ class EnterpriseModule(Module):
 
     def __init__(self):
         self._commands = self._get_commands()
+        self._menu_engine = None
+        self._config_storage = None
+
+    def _config_handler(
+        self,
+        chat_id: int,
+        args: Sequence[str],
+        user_id: int,
+        raw_text: str,
+        raw_update: Dict,
+    ) -> Dict[str, Any]:
+        return {
+            "status": "menu",
+            "menu_id": "main",
+        }
 
     def _get_commands(self) -> List[EnterpriseCommand]:
         """Get all Enterprise commands with their handlers."""
@@ -77,6 +93,9 @@ class EnterpriseModule(Module):
             )
 
         return [
+            EnterpriseCommand(
+                "/config", self._config_handler, "Menú de configuración", ["admin"]
+            ),
             EnterpriseCommand(
                 "/adminhelp", enterprise_handler, "Ayuda de comandos admin", ["admin"]
             ),
