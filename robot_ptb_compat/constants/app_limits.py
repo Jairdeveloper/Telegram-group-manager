@@ -1,0 +1,29 @@
+"""Límites propios de la aplicación robot."""
+
+from typing import Final
+
+MAX_TENANT_NAME_LENGTH: Final[int] = 64
+MAX_USER_NAME_LENGTH: Final[int] = 128
+
+MAX_CONVERSATION_HISTORY: Final[int] = 1000
+MAX_CONTEXT_MESSAGES: Final[int] = 50
+
+RATE_LIMIT_SECONDS: Final[int] = 60
+RATE_LIMIT_REQUESTS: Final[int] = 100
+
+MAX_TOOL_CALLS_PER_MESSAGE: Final[int] = 10
+MAX_PLAN_STEPS: Final[int] = 20
+
+DEDUP_TTL_SECONDS: Final[int] = 300
+
+__all__ = [
+    "MAX_TENANT_NAME_LENGTH",
+    "MAX_USER_NAME_LENGTH",
+    "MAX_CONVERSATION_HISTORY",
+    "MAX_CONTEXT_MESSAGES",
+    "RATE_LIMIT_SECONDS",
+    "RATE_LIMIT_REQUESTS",
+    "MAX_TOOL_CALLS_PER_MESSAGE",
+    "MAX_PLAN_STEPS",
+    "DEDUP_TTL_SECONDS",
+]
