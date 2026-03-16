@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Literal, Optional, Tuple
 
 
-DispatchKind = Literal["ops_command", "enterprise_command", "chat_message", "unsupported"]
+DispatchKind = Literal["callback_query", "ops_command", "enterprise_command", "chat_message", "unsupported"]
 
 
 @dataclass(frozen=True)

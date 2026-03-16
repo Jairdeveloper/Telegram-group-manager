@@ -16,8 +16,23 @@ QUEUE_NAMES = WORKER_SETTINGS.queue_names
 REDIS_URL = WORKER_SETTINGS.redis_url
 REDIS_CONN = Redis.from_url(REDIS_URL)
 
-if __name__ == "__main__":
-    # Build queue bindings explicitly for readability and observability.
+
+def main():
+    """Entry point para CLI."""
+    import logging
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"Starting RQ worker for queues: {QUEUE_NAMES}")
+    
     queues = [Queue(name, connection=REDIS_CONN) for name in QUEUE_NAMES]
     worker = Worker(queues, connection=REDIS_CONN)
     worker.work()
+
+
+if __name__ == "__main__":
+    main()

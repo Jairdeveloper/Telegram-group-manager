@@ -6,12 +6,12 @@ from app.config.settings import load_webhook_settings
 from app.ops.policies import check_rate_limit, is_admin
 from app.ops.services import handle_chat_message, handle_ops_command
 from app.webhook.handlers import process_update_impl
-from app.webhook.infrastructure import RequestsTelegramClient
+from app.webhook.infrastructure import get_telegram_client
 
 LOGGER = logging.getLogger("webhook_tasks")
 WEBHOOK_SETTINGS = load_webhook_settings()
 BOT_TOKEN = WEBHOOK_SETTINGS.telegram_bot_token
-TELEGRAM_CLIENT = RequestsTelegramClient(bot_token=BOT_TOKEN or "")
+TELEGRAM_CLIENT = get_telegram_client(BOT_TOKEN or "")
 
 
 def process_update(update: dict):

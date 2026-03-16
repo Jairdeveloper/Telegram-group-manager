@@ -3,12 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from app.config.settings import (
-    WebhookSettings,
-    load_api_settings,
-    load_webhook_settings,
-    load_worker_settings,
-)
+from app.config import settings as cfg_settings
 
 
 def _make_local_tmpdir():
@@ -19,29 +14,35 @@ def _make_local_tmpdir():
     return temp_dir
 
 
+def _clear_settings_cache():
+    cfg_settings._webhook_settings = None
+
+
 def test_webhook_settings_defaults(monkeypatch):
+    _clear_settings_cache()
     monkeypatch.chdir(_make_local_tmpdir())
     monkeypatch.delenv("CHATBOT_API_URL", raising=False)
     monkeypatch.delenv("PROCESS_ASYNC", raising=False)
     monkeypatch.delenv("DEDUP_TTL", raising=False)
     monkeypatch.delenv("REDIS_URL", raising=False)
 
-    settings = load_webhook_settings()
+    test_settings = cfg_settings.load_webhook_settings()
 
-    assert settings.chatbot_api_url == "http://127.0.0.1:8000/api/v1/chat"
-    assert settings.process_async is True
-    assert settings.dedup_ttl == 86400
-    assert settings.redis_url is None
+    assert test_settings.chatbot_api_url == "http://127.0.0.1:8000/api/v1/chat"
+    assert test_settings.process_async is True
+    assert test_settings.dedup_ttl == 86400
+    assert test_settings.redis_url is None
 
 
 def test_settings_parse_bool_and_int(monkeypatch):
+    _clear_settings_cache()
     monkeypatch.setenv("PROCESS_ASYNC", "0")
     monkeypatch.setenv("DEDUP_TTL", "120")
     monkeypatch.setenv("DEBUG", "true")
     monkeypatch.setenv("API_PORT", "9001")
 
-    webhook_settings = load_webhook_settings()
-    api_settings = load_api_settings()
+    webhook_settings = cfg_settings.load_webhook_settings()
+    api_settings = cfg_settings.load_api_settings()
 
     assert webhook_settings.process_async is False
     assert webhook_settings.dedup_ttl == 120
@@ -50,21 +51,21 @@ def test_settings_parse_bool_and_int(monkeypatch):
 
 
 def test_webhook_required_token_validation(monkeypatch):
+    _clear_settings_cache()
     monkeypatch.chdir(_make_local_tmpdir())
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "")
-    settings = WebhookSettings(telegram_bot_token="")
+    test_settings = cfg_settings.WebhookSettings(telegram_bot_token="")
 
     with pytest.raises(ValueError, match="TELEGRAM_BOT_TOKEN is required"):
-        settings.require_bot_token()
+        test_settings.require_bot_token()
 
 
 def test_worker_settings_defaults(monkeypatch):
-    monkeypatch.chdir(_make_local_tmpdir())
     monkeypatch.delenv("REDIS_URL", raising=False)
     monkeypatch.delenv("QUEUE_NAME", raising=False)
 
-    settings = load_worker_settings()
+    test_settings = cfg_settings.load_worker_settings()
 
-    assert settings.redis_url == "redis://redis:6379/0"
-    assert settings.queue_name == "telegram_tasks"
-    assert settings.queue_names == ["telegram_tasks"]
+    assert test_settings.redis_url == "redis://redis:6379/0"
+    assert test_settings.queue_name == "telegram_tasks"
+    assert test_settings.queue_names == ["telegram_tasks"]

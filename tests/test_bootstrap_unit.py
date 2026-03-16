@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Optional
 
 from app.webhook.infrastructure import InMemoryDedupStore, RedisDedupStore
 
@@ -25,7 +26,7 @@ class _DummyTaskQueue:
         self.process_update_callable = process_update_callable
 
 
-def _settings(*, process_async: bool, redis_url: str | None):
+def _settings(*, process_async: bool, redis_url: Optional[str]):
     return SimpleNamespace(
         telegram_bot_token="token",
         webhook_token=None,

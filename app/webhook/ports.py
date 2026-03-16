@@ -13,8 +13,14 @@ class ChatApiClient(Protocol):
 class TelegramClient(Protocol):
     """Client for Telegram Bot API."""
 
-    def send_message(self, *, chat_id: int, text: str) -> Dict[str, Any]:
+    def send_message(self, *, chat_id: int, text: str, reply_markup: Optional[Dict] = None) -> Dict[str, Any]:
         """Send message to Telegram and return transport details."""
+
+    def edit_message_text(self, *, chat_id: int, message_id: int, text: str, reply_markup: Optional[Dict] = None) -> Dict[str, Any]:
+        """Edit an existing message's text."""
+
+    def answer_callback_query(self, *, callback_query_id: str, text: Optional[str] = None, show_alert: bool = False) -> Dict[str, Any]:
+        """Answer a callback query."""
 
 
 class DedupStore(Protocol):

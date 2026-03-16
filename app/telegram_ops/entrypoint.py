@@ -1,5 +1,11 @@
 """Transitional Telegram OPS bot for health, webhook and E2E checks.
 
+.. deprecated::
+    Este entrypoint está deprecated desde 2026-03-13.
+    Use `app.webhook.entrypoint:app` como único punto de entrada.
+    Los comandos OPS (/health, /e2e, /webhookinfo, /logs) ahora se manejan
+    vía ManagerBot en el webhook entrypoint.
+
 Operational status:
 - Transitional runtime during architecture migration.
 - Do not run in parallel with `app.webhook.entrypoint:app` for the same

@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Optional
 from fastapi import HTTPException, Request
 
 from app.enterprise import handle_enterprise_command, handle_enterprise_moderation
+from app.manager_bot._menu_service import get_menu_engine, get_rate_limiter
 from app.ops.policies import check_rate_limit, is_admin
 from app.ops.services import handle_chat_message, handle_ops_command
 from app.ops.events import record_event
@@ -87,7 +88,90 @@ async def process_update_impl(
     )
 
     try:
-        if dispatch.kind == "ops_command":
+        if dispatch.kind == "callback_query":
+            menu_engine = get_menu_engine()
+            rate_limiter = get_rate_limiter()
+            callback_data = dispatch.text
+            user_id = dispatch.user_id
+            
+            # Rate limit check
+            if rate_limiter and not rate_limiter.is_allowed(user_id, "callback"):
+                callback_query_id = dispatch.raw_update.get("callback_query", {}).get("id")
+                if callback_query_id:
+                    telegram_client.answer_callback_query(
+                        callback_query_id=callback_query_id,
+                        text="⚠️ Demasiadas solicitudes. Intenta más tarde.",
+                        show_alert=True
+                    )
+                record_event(
+                    component="webhook",
+                    event="webhook.callback_query.rate_limited",
+                    update_id=update_id,
+                    user_id=user_id,
+                )
+                return
+            
+            if menu_engine and callback_data:
+                await menu_engine.handle_callback_query_raw(
+                    callback_data=callback_data,
+                    callback_query_id=dispatch.raw_update.get("callback_query", {}).get("id"),
+                    chat_id=chat_id,
+                    message_id=dispatch.raw_update.get("callback_query", {}).get("message", {}).get("message_id"),
+                    user_id=user_id,
+                )
+            else:
+                callback_query_id = dispatch.raw_update.get("callback_query", {}).get("id")
+                if callback_query_id:
+                    telegram_client.answer_callback_query(
+                        callback_query_id=callback_query_id,
+                        text="Acción no reconocida",
+                        show_alert=True
+                    )
+            record_event(
+                component="webhook",
+                event="webhook.callback_query.ok",
+                update_id=update_id,
+                chat_id=chat_id,
+                callback_data=callback_data,
+            )
+            return
+        
+        if dispatch.kind == "chat_message":
+            from app.manager_bot._menu_service import get_conversation_state
+            conversation = get_conversation_state()
+            user_id = dispatch.user_id
+            chat_id = dispatch.chat_id
+            text = dispatch.text
+            
+            state = conversation.get_state(user_id, chat_id)
+            if state and state.get("state") == "waiting_welcome_text":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                config = await config_storage.get(chat_id)
+                if not config:
+                    config = GroupConfig.create_default(chat_id, "default")
+                config.welcome_text = text
+                config.update_timestamp(user_id)
+                await config_storage.set(config)
+                conversation.clear_state(user_id, chat_id)
+                reply = f"✅ Mensaje de bienvenida guardado:\n\n{text}"
+            elif state and state.get("state") == "waiting_goodbye_text":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                config = await config_storage.get(chat_id)
+                if not config:
+                    config = GroupConfig.create_default(chat_id, "default")
+                config.goodbye_text = text
+                config.update_timestamp(user_id)
+                await config_storage.set(config)
+                conversation.clear_state(user_id, chat_id)
+                reply = f"✅ Mensaje de despedida guardado:\n\n{text}"
+            else:
+                result = handle_chat_message_fn(chat_id, text)
+                reply = result.get("response", "(no response)")
+        elif dispatch.kind == "ops_command":
             result = await handle_ops_command_fn(
                 chat_id,
                 dispatch.command or "",
@@ -114,6 +198,26 @@ async def process_update_impl(
                 raw_text=dispatch.text or "",
                 raw_update=dispatch.raw_update,
             )
+            
+            # Handle menu status - display interactive menu instead of text
+            if result.get("status") == "menu":
+                menu_engine = get_menu_engine()
+                menu_id = result.get("menu_id", "main")
+                if menu_engine:
+                    await menu_engine.send_menu_message(
+                        chat_id=chat_id,
+                        bot=telegram_client,
+                        menu_id=menu_id,
+                    )
+                    record_event(
+                        component="webhook",
+                        event="webhook.menu.display",
+                        update_id=update_id,
+                        chat_id=chat_id,
+                        menu_id=menu_id,
+                    )
+                    return
+            
             reply = result.get("response_text", "(no response)")
             record_event(
                 component="webhook",

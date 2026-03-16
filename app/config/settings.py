@@ -5,6 +5,8 @@ from typing import Optional
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_webhook_settings: Optional["WebhookSettings"] = None
+
 
 class ApiSettings(BaseSettings):
     """Settings used by the chatbot API/monolith runtime."""
@@ -101,7 +103,10 @@ def load_api_settings() -> ApiSettings:
 
 
 def load_webhook_settings() -> WebhookSettings:
-    return WebhookSettings()
+    global _webhook_settings
+    if _webhook_settings is None:
+        _webhook_settings = WebhookSettings()
+    return _webhook_settings
 
 
 def load_worker_settings() -> WorkerSettings:

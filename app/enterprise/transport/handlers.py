@@ -178,6 +178,7 @@ def handle_enterprise_command(
             "status": "ok",
             "response_text": (
                 "Comandos Enterprise:\n"
+                "/config - Menú de configuración\n"
                 "/user add <user_id> <role>\n"
                 "/user role <user_id> <role>\n"
                 "/user del <user_id>\n"
@@ -213,6 +214,9 @@ def handle_enterprise_command(
                 "/gettime [zona_horaria]"
             ),
         }
+
+    if normalized == "/config":
+        return {"status": "menu", "menu_id": "main"}
 
     if normalized == "/whoami":
         actor = user_service.ensure_actor(actor_id)
