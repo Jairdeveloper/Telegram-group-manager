@@ -1,6 +1,7 @@
 """Webhook Runner para la aplicación."""
 
 import asyncio
+import json
 from typing import Any, Callable, Dict, List, Optional
 
 try:
@@ -151,6 +152,28 @@ class WebhookHandler:
         self._application = application
         self._bot = bot
         self._secret_token = secret_token
+
+    def parse_update(self, body: bytes) -> Optional[Any]:
+        """Convierte el body a Update PTB si es posible."""
+        if not HAS_TELEGRAM:
+            return None
+        try:
+            data = json.loads(body)
+            from telegram import Update
+            return Update.de_json(data, self._bot)
+        except Exception:
+            return None
+
+    def to_internal(self, body: bytes) -> Dict[str, Any]:
+        """Convierte el body a dict interno usando UpdateBridge."""
+        update = self.parse_update(body)
+        if not update:
+            return {}
+        try:
+            from robot_ptb_compat.bridge import UpdateBridge
+            return UpdateBridge.to_internal(update)
+        except Exception:
+            return {}
 
     async def handle(
         self,

@@ -1,6 +1,7 @@
 """Menu engine for rendering and managing interactive menus."""
 
 import logging
+import inspect
 from typing import Any, Optional, TYPE_CHECKING
 
 from telegram import InlineKeyboardMarkup, Update
@@ -11,6 +12,7 @@ from app.manager_bot._menus.base import MenuDefinition
 from app.manager_bot._menus.navigation import NavigationManager
 from app.manager_bot._menus.registry import MenuRegistry
 from app.manager_bot._transport.telegram.callback_router import CallbackRouter
+from app.manager_bot._transport.telegram.bot_client import BotClient
 
 if TYPE_CHECKING:
     from telegram import Bot
@@ -88,7 +90,7 @@ class MenuEngine:
         self.callback_router.register_exact("nav:back:main", handle_back, "Back to main")
         self.callback_router.register_exact("nav:home", handle_home, "Go to home")
         self.callback_router.register_exact("nav:noop", handle_noop, "No-op")
-        self.callback_router.register_prefix("nav:back:", handle_back, "Back navigation")
+        self.callback_router.register_prefix("nav:back", handle_back, "Back navigation")
 
         self.callback_router.register_exact("info:show", handle_menu_show, "Info menu")
         self.callback_router.register_exact("mod:show", handle_menu_show, "Moderation menu")
@@ -212,6 +214,11 @@ class MenuEngine:
         
         settings = load_webhook_settings()
         telegram_client = get_telegram_client(settings.telegram_bot_token)
+
+        async def _maybe_await(result):
+            if inspect.isawaitable(result):
+                return await result
+            return result
         
         class FakeCallbackQuery:
             def __init__(self, data, callback_query_id, chat_id, message_id, user_id, client):
@@ -227,30 +234,30 @@ class MenuEngine:
             async def answer(self, text: str = None, show_alert: bool = False):
                 logger.debug(f"FakeCallbackQuery.answer called: text={text}, callback_query_id={self.callback_query_id}")
                 if self.callback_query_id:
-                    self._client.answer_callback_query(
+                    await _maybe_await(self._client.answer_callback_query(
                         callback_query_id=self.callback_query_id,
                         text=text,
                         show_alert=show_alert
-                    )
+                    ))
                 
             async def edit_message_text(self, text: str, reply_markup: Any = None):
                 if self.message:
                     keyboard = reply_markup.to_dict() if hasattr(reply_markup, 'to_dict') else reply_markup
-                    self._client.edit_message_text(
+                    await _maybe_await(self._client.edit_message_text(
                         chat_id=self.message.chat.id,
                         message_id=self.message.message_id,
                         text=text,
                         reply_markup=keyboard
-                    )
+                    ))
                     
             async def reply_text(self, text: str, reply_markup: Any = None):
                 if self.message:
                     keyboard = reply_markup.to_dict() if hasattr(reply_markup, 'to_dict') else reply_markup
-                    self._client.send_message(
+                    await _maybe_await(self._client.send_message(
                         chat_id=self.message.chat.id,
                         text=text,
                         reply_markup=keyboard
-                    )
+                    ))
         
         class FakeBot:
             def __init__(self, telegram_client):
@@ -258,16 +265,16 @@ class MenuEngine:
                 
             async def send_message(self, chat_id: int, text: str, reply_markup: Any = None):
                 keyboard = reply_markup.to_dict() if hasattr(reply_markup, 'to_dict') else reply_markup
-                self._client.send_message(chat_id=chat_id, text=text, reply_markup=keyboard)
+                await _maybe_await(self._client.send_message(chat_id=chat_id, text=text, reply_markup=keyboard))
                 
             async def edit_message_text(self, chat_id: int, message_id: int, text: str, reply_markup: Any = None):
                 keyboard = reply_markup.to_dict() if hasattr(reply_markup, 'to_dict') else reply_markup
-                self._client.edit_message_text(
+                await _maybe_await(self._client.edit_message_text(
                     chat_id=chat_id,
                     message_id=message_id,
                     text=text,
                     reply_markup=keyboard
-                )
+                ))
         
         fake_callback = FakeCallbackQuery(callback_data, callback_query_id, chat_id, message_id, user_id, telegram_client)
         fake_bot = FakeBot(telegram_client)
@@ -294,7 +301,7 @@ class MenuEngine:
     async def send_menu_message(
         self,
         chat_id: int,
-        bot: Any,
+        bot: BotClient,
         menu_id: str,
         text: Optional[str] = None,
     ) -> Optional[Any]:

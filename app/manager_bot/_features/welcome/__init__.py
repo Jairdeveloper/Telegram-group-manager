@@ -214,11 +214,41 @@ class WelcomeFeature(FeatureModule):
             
             await callback.answer(text, show_alert=True)
 
+        async def handle_customize_open(callback: "CallbackQuery", bot: "Bot", data: str):
+            from app.manager_bot._menus.welcome_menu import create_welcome_customize_menu
+            from app.manager_bot._menu_service import get_menu_engine
+
+            chat_id = callback.message.chat.id if callback.message else None
+            if not chat_id:
+                await callback.answer("Chat no identificado", show_alert=True)
+                return
+
+            config = await self.get_config(chat_id)
+            if not config:
+                config = GroupConfig.create_default(chat_id, "default")
+
+            menu_engine = get_menu_engine()
+            if menu_engine:
+                await menu_engine.show_menu_by_callback(callback, bot, "welcome_customize")
+                return
+
+            menu = create_welcome_customize_menu(config)
+            try:
+                await callback.edit_message_text(
+                    text=menu.title,
+                    reply_markup=menu.to_keyboard(),
+                )
+            except Exception:
+                pass
+
         router.register_callback("welcome:toggle", handle_welcome_toggle)
         router.register_callback("goodbye:toggle", handle_goodbye_toggle)
         router.register_exact("welcome:edit:text", handle_edit_text)
+        router.register_exact("welcome:text:edit", handle_edit_text)
         router.register_exact("welcome:edit:media", handle_edit_media)
+        router.register_exact("welcome:media:edit", handle_edit_media)
         router.register_exact("goodbye:edit:text", handle_edit_text)
+        router.register_exact("welcome:customize:open", handle_customize_open)
         router.register_exact("welcome:show", handle_show_welcome)
         router.register_exact("goodbye:show", handle_show_goodbye)
         router.register_callback("welcome:preview", handle_preview)

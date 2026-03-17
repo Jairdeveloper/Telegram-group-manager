@@ -7,8 +7,8 @@ from .navigation import NavigationManager, NavigationContext
 
 def register_all_menus(registry: MenuRegistry) -> None:
     """Register all menu definitions with the registry."""
-    from app.manager_bot.menus.main_menu import create_main_menu, create_info_menu
-    from app.manager_bot.menus.moderation_menu import (
+    from app.manager_bot._menus.main_menu import create_main_menu, create_info_menu
+    from app.manager_bot._menus.moderation_menu import (
         create_moderation_menu,
         create_antichannel_menu,
         create_antilink_menu,
@@ -16,18 +16,19 @@ def register_all_menus(registry: MenuRegistry) -> None:
         create_blocked_words_menu,
         create_nightmode_menu,
     )
-    from app.manager_bot.menus.antispam_menu import (
+    from app.manager_bot._menus.antispam_menu import (
         create_antispam_menu,
         create_sensitivity_menu,
     )
-    from app.manager_bot.menus.filters_menu import (
+    from app.manager_bot._menus.filters_menu import (
         create_filters_menu,
         create_filters_list_menu,
         create_blocked_words_menu as create_filters_words_menu,
         create_sticker_blacklist_menu,
     )
-    from app.manager_bot.menus.welcome_menu import (
+    from app.manager_bot._menus.welcome_menu import (
         create_welcome_menu,
+        create_welcome_customize_menu,
         create_goodbye_menu,
     )
 
@@ -50,6 +51,7 @@ def register_all_menus(registry: MenuRegistry) -> None:
     registry.register(create_sticker_blacklist_menu())
 
     registry.register(create_welcome_menu())
+    registry.register(create_welcome_customize_menu())
     registry.register(create_goodbye_menu())
 
 

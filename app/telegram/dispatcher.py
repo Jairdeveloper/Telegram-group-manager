@@ -21,12 +21,12 @@ def extract_callback_data(update: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     message = callback_query.get("message", {})
     chat = message.get("chat", {})
     user = callback_query.get("from", {})
-    
+
     return {
         "callback_id": callback_query.get("id"),
         "data": data,
         "chat_id": chat.get("id"),
-        "message_id": message.get("id"),
+        "message_id": message.get("message_id") or message.get("id"),
         "user_id": user.get("id"),
     }
 

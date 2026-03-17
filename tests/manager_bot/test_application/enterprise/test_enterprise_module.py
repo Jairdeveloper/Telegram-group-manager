@@ -10,20 +10,20 @@ class TestEnterpriseModule:
 
     @patch.dict(os.environ, {"MANAGER_ENABLE_ENTERPRISE": "true"})
     def test_enterprise_module_enabled(self):
-        from app.manager_bot.application.enterprise import EnterpriseModule
+        from app.manager_bot._application.enterprise import EnterpriseModule
 
         module = EnterpriseModule()
         assert module.is_enabled() is True
 
     @patch.dict(os.environ, {"MANAGER_ENABLE_ENTERPRISE": "false"})
     def test_enterprise_module_disabled(self):
-        from app.manager_bot.application.enterprise import EnterpriseModule
+        from app.manager_bot._application.enterprise import EnterpriseModule
 
         module = EnterpriseModule()
         assert module.is_enabled() is False
 
     def test_enterprise_module_contract(self):
-        from app.manager_bot.application.enterprise import EnterpriseModule
+        from app.manager_bot._application.enterprise import EnterpriseModule
 
         module = EnterpriseModule()
         contract = module.contract
@@ -34,7 +34,7 @@ class TestEnterpriseModule:
         assert "/whoami" in contract.routes
 
     def test_enterprise_module_has_handlers(self):
-        from app.manager_bot.application.enterprise import EnterpriseModule
+        from app.manager_bot._application.enterprise import EnterpriseModule
 
         module = EnterpriseModule()
         handlers = module.get_handlers()
@@ -43,7 +43,7 @@ class TestEnterpriseModule:
         assert "/whoami" in handlers
 
     def test_enterprise_module_health_check(self):
-        from app.manager_bot.application.enterprise import EnterpriseModule
+        from app.manager_bot._application.enterprise import EnterpriseModule
 
         module = EnterpriseModule()
         health = module.health_check()
@@ -52,7 +52,7 @@ class TestEnterpriseModule:
         assert health["module"] == "enterprise"
 
     def test_get_required_permissions(self):
-        from app.manager_bot.application.enterprise import EnterpriseModule
+        from app.manager_bot._application.enterprise import EnterpriseModule
 
         module = EnterpriseModule()
 

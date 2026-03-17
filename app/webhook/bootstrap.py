@@ -15,18 +15,18 @@ from app.webhook.infrastructure import (
     InMemoryDedupStore,
     RedisDedupStore,
     RequestsChatApiClient,
-    RequestsTelegramClient,
     RqTaskQueue,
     get_telegram_client,
 )
 
 try:
-    from robot_ptb_compat.runtime import CompatApplicationBuilder, WebhookRunner
+    from robot_ptb_compat.runtime import CompatApplicationBuilder, WebhookRunner, WebhookHandler
     HAS_ROBOT_PTB_COMPAT = True
 except ImportError:
     HAS_ROBOT_PTB_COMPAT = False
     CompatApplicationBuilder = None
     WebhookRunner = None
+    WebhookHandler = None
 
 
 try:
@@ -48,7 +48,9 @@ class WebhookRuntime:
     dedup_store: object
     task_queue: object | None
     chat_api_client: RequestsChatApiClient
-    telegram_client: RequestsTelegramClient
+    telegram_client: object
+    ptb_application: object | None
+    ptb_webhook_handler: object | None
     requests_metric: Counter
     process_time_metric: Histogram
     chat_api_error_metric: Counter
@@ -116,6 +118,19 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
         menu_engine = None
         rate_limiter = None
 
+    ptb_application = None
+    ptb_webhook_handler = None
+    if HAS_ROBOT_PTB_COMPAT and CompatApplicationBuilder is not None and bot_token:
+        try:
+            ptb_application = CompatApplicationBuilder(token=bot_token).build()
+            if WebhookHandler is not None:
+                ptb_webhook_handler = WebhookHandler(
+                    application=ptb_application,
+                    bot=telegram_client.bot if hasattr(telegram_client, "bot") else None,
+                )
+        except Exception as e:
+            logger.warning(f"Failed to initialize PTB compat runtime: {e}")
+
     requests_metric = Counter("telegram_webhook_requests_total", "Total webhook requests", ["status"])
     process_time_metric = Histogram("telegram_webhook_process_seconds", "Time spent processing webhook")
     chat_api_error_metric = Counter("telegram_webhook_chat_api_errors_total", "Total Chat API errors")
@@ -132,6 +147,8 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
         task_queue=task_queue,
         chat_api_client=chat_api_client,
         telegram_client=telegram_client,
+        ptb_application=ptb_application,
+        ptb_webhook_handler=ptb_webhook_handler,
         requests_metric=requests_metric,
         process_time_metric=process_time_metric,
         chat_api_error_metric=chat_api_error_metric,

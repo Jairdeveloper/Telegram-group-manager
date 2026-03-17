@@ -5,15 +5,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple
 
 from app.enterprise.transport.dispatcher import is_enterprise_command
+from app.telegram.services import OPS_COMMANDS
 
 if TYPE_CHECKING:
     from app.manager_bot.core import ModuleRegistry
     from app.telegram.models import DispatchResult
 
 logger = logging.getLogger(__name__)
-
-OPS_COMMANDS = {"/health", "/e2e", "/webhookinfo", "/logs"}
-
 
 def extract_chat_payload(update: Dict[str, Any]) -> Optional[Tuple[int, str]]:
     """Extract (chat_id, text) from a Telegram update."""

@@ -1,6 +1,7 @@
 """Adapter para callbacks PTB."""
 
 from typing import Any, Callable, Optional
+import re
 
 from robot_ptb_compat.compat.handlers.base_adapter import BaseHandlerAdapter
 
@@ -39,7 +40,6 @@ class CallbackAdapter(BaseHandlerAdapter):
         )
         self.pattern = pattern
         if pattern:
-            import re
             self._pattern = re.compile(pattern)
         else:
             self._pattern = None
@@ -79,10 +79,22 @@ class CallbackAdapter(BaseHandlerAdapter):
         """
         self.pattern = pattern
         if pattern:
-            import re
             self._pattern = re.compile(pattern)
         else:
             self._pattern = None
+
+
+def prefix_pattern(prefix: str) -> str:
+    """Build a regex pattern that matches a prefix with optional suffix."""
+    escaped = re.escape(prefix)
+    return f"^{escaped}(:.*)?$"
+
+
+class CallbackPrefixAdapter(CallbackAdapter):
+    """Convenience adapter for prefix-based callback routing."""
+
+    def __init__(self, prefix: str, callback: Callable, **kwargs):
+        super().__init__(callback=callback, pattern=prefix_pattern(prefix), **kwargs)
 
 
 class InlineQueryAdapter(BaseHandlerAdapter):
@@ -207,4 +219,10 @@ class ChosenInlineResultAdapter(BaseHandlerAdapter):
         return await self._execute_callback(update, context)
 
 
-__all__ = ["CallbackAdapter", "InlineQueryAdapter", "ChosenInlineResultAdapter"]
+__all__ = [
+    "CallbackAdapter",
+    "CallbackPrefixAdapter",
+    "InlineQueryAdapter",
+    "ChosenInlineResultAdapter",
+    "prefix_pattern",
+]

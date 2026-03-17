@@ -1,8 +1,8 @@
 """Unit tests for menu registry."""
 
 import pytest
-from app.manager_bot.menus.base import MenuDefinition
-from app.manager_bot.menus.registry import MenuRegistry
+from app.manager_bot._menus.base import MenuDefinition
+from app.manager_bot._menus.registry import MenuRegistry
 
 
 class TestMenuRegistry:

@@ -1,7 +1,7 @@
 """Unit tests for navigation manager."""
 
 import pytest
-from app.manager_bot.menus.navigation import NavigationManager, NavigationContext
+from app.manager_bot._menus.navigation import NavigationManager, NavigationContext
 
 
 class TestNavigationManager:

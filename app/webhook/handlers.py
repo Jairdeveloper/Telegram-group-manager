@@ -1,6 +1,7 @@
 """Webhook domain logic decoupled from infrastructure libraries."""
 
 import inspect
+import json
 import time
 from typing import Any, Callable, Dict, Optional
 
@@ -14,6 +15,23 @@ from app.ops.events import record_event
 from app.telegram.dispatcher import dispatch_telegram_update
 from app.telegram.services import extract_chat_payload
 from .ports import ChatApiClient, DedupStore, TaskQueue, TelegramClient
+
+
+async def _maybe_await(result):
+    if inspect.isawaitable(result):
+        return await result
+    return result
+
+
+_manager_bot_router = None
+
+
+def _get_manager_bot_router():
+    global _manager_bot_router
+    if _manager_bot_router is None:
+        from app.manager_bot.core import ManagerBot
+        _manager_bot_router = ManagerBot().get_router()
+    return _manager_bot_router
 
 
 def dedup_update_impl(
@@ -48,10 +66,15 @@ async def process_update_impl(
 ) -> None:
     """Process update by dispatching chat and OPS commands via application services."""
     start = time.time()
-    dispatch = dispatch_telegram_update(update)
+    if update.get("callback_query"):
+        dispatch = dispatch_telegram_update(update)
+    else:
+        router = _get_manager_bot_router()
+        dispatch = router.route_update(update).to_legacy_dispatch()
     update_id = dispatch.update_id
     chat_id = dispatch.chat_id
     log_ctx = {"update_id": update_id, "chat_id": chat_id}
+    menu_to_show: Optional[str] = None
 
     if dispatch.kind == "unsupported":
         logger.info("webhook.unsupported_update", extra=log_ctx)
@@ -98,11 +121,11 @@ async def process_update_impl(
             if rate_limiter and not rate_limiter.is_allowed(user_id, "callback"):
                 callback_query_id = dispatch.raw_update.get("callback_query", {}).get("id")
                 if callback_query_id:
-                    telegram_client.answer_callback_query(
+                    await _maybe_await(telegram_client.answer_callback_query(
                         callback_query_id=callback_query_id,
                         text="⚠️ Demasiadas solicitudes. Intenta más tarde.",
                         show_alert=True
-                    )
+                    ))
                 record_event(
                     component="webhook",
                     event="webhook.callback_query.rate_limited",
@@ -122,11 +145,11 @@ async def process_update_impl(
             else:
                 callback_query_id = dispatch.raw_update.get("callback_query", {}).get("id")
                 if callback_query_id:
-                    telegram_client.answer_callback_query(
+                    await _maybe_await(telegram_client.answer_callback_query(
                         callback_query_id=callback_query_id,
                         text="Acción no reconocida",
                         show_alert=True
-                    )
+                    ))
             record_event(
                 component="webhook",
                 event="webhook.callback_query.ok",
@@ -155,7 +178,38 @@ async def process_update_impl(
                 config.update_timestamp(user_id)
                 await config_storage.set(config)
                 conversation.clear_state(user_id, chat_id)
-                reply = f"✅ Mensaje de bienvenida guardado:\n\n{text}"
+                reply = f"Mensaje de bienvenida guardado:\n\n{text}"
+                menu_to_show = "welcome_customize"
+            elif state and state.get("state") == "waiting_welcome_media":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+
+                message = dispatch.raw_update.get("message") or dispatch.raw_update.get("edited_message") or {}
+                file_id = None
+                if message.get("photo"):
+                    file_id = message["photo"][-1].get("file_id")
+                elif message.get("video"):
+                    file_id = message["video"].get("file_id")
+                elif message.get("document"):
+                    file_id = message["document"].get("file_id")
+                elif message.get("animation"):
+                    file_id = message["animation"].get("file_id")
+                elif message.get("sticker"):
+                    file_id = message["sticker"].get("file_id")
+
+                if not file_id:
+                    reply = "Envia una foto o video para configurar la bienvenida."
+                else:
+                    config = await config_storage.get(chat_id)
+                    if not config:
+                        config = GroupConfig.create_default(chat_id, "default")
+                    config.welcome_media = file_id
+                    config.update_timestamp(user_id)
+                    await config_storage.set(config)
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Multimedia de bienvenida guardada."
+                    menu_to_show = "welcome_customize"
             elif state and state.get("state") == "waiting_goodbye_text":
                 from app.manager_bot._config.storage import get_config_storage
                 from app.manager_bot._config.group_config import GroupConfig
@@ -167,10 +221,35 @@ async def process_update_impl(
                 config.update_timestamp(user_id)
                 await config_storage.set(config)
                 conversation.clear_state(user_id, chat_id)
-                reply = f"✅ Mensaje de despedida guardado:\n\n{text}"
+                reply = f"Mensaje de despedida guardado:\n\n{text}"
             else:
-                result = handle_chat_message_fn(chat_id, text)
-                reply = result.get("response", "(no response)")
+                moderation = handle_enterprise_moderation_fn(
+                    actor_id=dispatch.user_id,
+                    chat_id=dispatch.chat_id,
+                    raw_text=dispatch.text or "",
+                    raw_update=dispatch.raw_update,
+                )
+                if moderation.get("status") == "blocked":
+                    reply = moderation.get("response_text", "Mensaje bloqueado.")
+                    record_event(
+                        component="webhook",
+                        event="webhook.enterprise_moderation.blocked",
+                        update_id=update_id,
+                        chat_id=chat_id,
+                        reason=moderation.get("reason"),
+                        source=moderation.get("source"),
+                        reply_len=len(reply or ""),
+                    )
+                else:
+                    result = handle_chat_message_fn(chat_id, text)
+                    reply = result.get("response", "(no response)")
+                    record_event(
+                        component="webhook",
+                        event="webhook.chat_service.ok",
+                        update_id=update_id,
+                        chat_id=chat_id,
+                        reply_len=len(reply or ""),
+                    )
         elif dispatch.kind == "ops_command":
             result = await handle_ops_command_fn(
                 chat_id,
@@ -270,7 +349,7 @@ async def process_update_impl(
         reply = "(internal error)"
 
     try:
-        telegram_client.send_message(chat_id=chat_id, text=reply)
+        await _maybe_await(telegram_client.send_message(chat_id=chat_id, text=reply))
         record_event(
             component="webhook",
             event="webhook.telegram_send.ok",
@@ -289,6 +368,18 @@ async def process_update_impl(
         if telegram_send_error_metric is not None:
             telegram_send_error_metric.inc()
 
+    if menu_to_show:
+        menu_engine = get_menu_engine()
+        if menu_engine:
+            try:
+                await menu_engine.send_menu_message(
+                    chat_id=chat_id,
+                    bot=telegram_client,
+                    menu_id=menu_to_show,
+                )
+            except Exception:
+                logger.exception("webhook.menu.send_error", extra=log_ctx)
+
     if process_time_metric is not None:
         process_time_metric.observe(time.time() - start)
 
@@ -305,6 +396,7 @@ async def handle_webhook_impl(
     process_update_sync: Callable[[Dict[str, Any]], None],
     requests_metric,
     logger,
+    ptb_webhook_handler: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """Main webhook flow with token validation, dedup and enqueue/process."""
     if not bot_token:
@@ -321,7 +413,42 @@ async def handle_webhook_impl(
             record_event(component="webhook", event="webhook.forbidden", level="WARN", detail="invalid_legacy_token")
             raise HTTPException(status_code=403, detail="Invalid token")
 
-    update = await request.json()
+    update = None
+    body = None
+    if hasattr(request, "body"):
+        try:
+            body = await request.body()
+        except Exception:
+            body = None
+
+    if body is not None:
+        if ptb_webhook_handler is not None and hasattr(ptb_webhook_handler, "to_internal"):
+            update = ptb_webhook_handler.to_internal(body)
+
+        if not update:
+            try:
+                update = json.loads(body)
+            except Exception:
+                logger.exception("webhook.invalid_json")
+                requests_metric.labels(status="invalid").inc()
+                return {"ok": True}
+    else:
+        try:
+            update = await request.json()
+        except Exception:
+            logger.exception("webhook.invalid_json")
+            requests_metric.labels(status="invalid").inc()
+            return {"ok": True}
+
+        if ptb_webhook_handler is not None and hasattr(ptb_webhook_handler, "to_internal"):
+            try:
+                body = json.dumps(update).encode("utf-8")
+            except Exception:
+                body = None
+            if body:
+                ptb_update = ptb_webhook_handler.to_internal(body)
+                if ptb_update:
+                    update = ptb_update
     update_id = update.get("update_id")
     payload = extract_chat_payload(update)
     chat_id = payload[0] if payload else None
@@ -398,3 +525,6 @@ async def handle_webhook_impl(
         )
         requests_metric.labels(status="error").inc()
         return {"ok": True}
+
+
+

@@ -47,6 +47,8 @@ DEDUP_STORE = runtime.dedup_store
 TASK_QUEUE = runtime.task_queue
 CHAT_API_CLIENT = runtime.chat_api_client
 TELEGRAM_CLIENT = runtime.telegram_client
+PTB_WEBHOOK_HANDLER = runtime.ptb_webhook_handler
+PTB_APPLICATION = runtime.ptb_application
 REQUESTS = runtime.requests_metric
 PROCESS_TIME = runtime.process_time_metric
 CHAT_API_ERROR = runtime.chat_api_error_metric
@@ -105,6 +107,19 @@ async def process_update_sync(update: Dict[str, Any]):
     )
 
 
+def _register_ptb_handlers() -> None:
+    """Register ManagerBot handlers into PTB application when available."""
+    if PTB_APPLICATION is None:
+        return
+    from app.manager_bot._transport.telegram.ptb_adapter import ManagerBotPtbAdapter
+
+    adapter = ManagerBotPtbAdapter(_get_manager_bot(), process_update_sync)
+    adapter.register(PTB_APPLICATION)
+
+
+_register_ptb_handlers()
+
+
 @app.post("/webhook/{token}")
 async def webhook(token: str, request: Request):
     return await handle_webhook_impl(
@@ -118,6 +133,7 @@ async def webhook(token: str, request: Request):
         process_update_sync=process_update_sync,
         requests_metric=REQUESTS,
         logger=LOGGER,
+        ptb_webhook_handler=PTB_WEBHOOK_HANDLER,
     )
 
 

@@ -3,9 +3,9 @@
 import pytest
 from unittest.mock import Mock
 
-from app.manager_bot.menus import MenuRegistry, register_all_menus
-from app.manager_bot.menus.base import MenuDefinition, MenuAction
-from app.manager_bot.menus.navigation import NavigationManager
+from app.manager_bot._menus import MenuRegistry, register_all_menus
+from app.manager_bot._menus.base import MenuDefinition, MenuAction
+from app.manager_bot._menus.navigation import NavigationManager
 from app.manager_bot.config.storage import InMemoryConfigStorage
 from app.manager_bot.config.group_config import GroupConfig
 from app.manager_bot.transport.telegram.callback_router import CallbackRouter

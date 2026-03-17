@@ -2,7 +2,7 @@
 
 from typing import Dict, Optional
 
-from app.manager_bot.menus.base import MenuDefinition
+from app.manager_bot._menus.base import MenuDefinition
 
 
 def create_antilink_menu(config: Optional[Dict] = None) -> MenuDefinition:

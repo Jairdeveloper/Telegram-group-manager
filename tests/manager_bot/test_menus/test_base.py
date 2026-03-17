@@ -1,7 +1,7 @@
 """Unit tests for menu base classes."""
 
 import pytest
-from app.manager_bot.menus.base import MenuAction, MenuRow, MenuDefinition
+from app.manager_bot._menus.base import MenuAction, MenuRow, MenuDefinition
 
 
 class TestMenuAction:

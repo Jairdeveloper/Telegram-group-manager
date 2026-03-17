@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from app.manager_bot.transport.telegram.callback_router import CallbackRouter
 from app.manager_bot.transport.telegram.menu_engine import MenuEngine
-from app.manager_bot.menus import MenuRegistry, NavigationManager
+from app.manager_bot._menus import MenuRegistry, NavigationManager
 from app.manager_bot.config.storage import InMemoryConfigStorage
 
 
@@ -161,7 +161,7 @@ class TestMenuEngineCallback:
     def menu_engine(self):
         """Create a MenuEngine for testing."""
         registry = MenuRegistry()
-        from app.manager_bot.menus import register_all_menus
+        from app.manager_bot._menus import register_all_menus
         register_all_menus(registry)
         
         router = CallbackRouter()
@@ -214,7 +214,7 @@ class TestCallbackFlowIntegration:
     
     def test_full_callback_flow(self):
         """Test complete flow from callback to response."""
-        from app.manager_bot.menus import register_all_menus
+        from app.manager_bot._menus import register_all_menus
         
         registry = MenuRegistry()
         register_all_menus(registry)

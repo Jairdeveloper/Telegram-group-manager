@@ -10,20 +10,20 @@ class TestOpsModule:
 
     @patch.dict(os.environ, {"MANAGER_ENABLE_OPS": "true"})
     def test_ops_module_enabled(self):
-        from app.manager_bot.application.ops import OpsModule
+        from app.manager_bot._application.ops import OpsModule
 
         module = OpsModule()
         assert module.is_enabled() is True
 
     @patch.dict(os.environ, {"MANAGER_ENABLE_OPS": "false"})
     def test_ops_module_disabled(self):
-        from app.manager_bot.application.ops import OpsModule
+        from app.manager_bot._application.ops import OpsModule
 
         module = OpsModule()
         assert module.is_enabled() is False
 
     def test_ops_module_contract(self):
-        from app.manager_bot.application.ops import OpsModule
+        from app.manager_bot._application.ops import OpsModule
 
         module = OpsModule()
         contract = module.contract
@@ -35,7 +35,7 @@ class TestOpsModule:
         assert "/e2e" in contract.routes
 
     def test_ops_module_has_handlers(self):
-        from app.manager_bot.application.ops import OpsModule
+        from app.manager_bot._application.ops import OpsModule
 
         module = OpsModule()
         handlers = module.get_handlers()
@@ -46,7 +46,7 @@ class TestOpsModule:
         assert "/logs" in handlers
 
     def test_ops_module_health_check(self):
-        from app.manager_bot.application.ops import OpsModule
+        from app.manager_bot._application.ops import OpsModule
 
         module = OpsModule()
         health = module.health_check()
@@ -56,7 +56,7 @@ class TestOpsModule:
         assert "/health" in health["commands"]
 
     def test_ops_command_descriptions(self):
-        from app.manager_bot.application.ops import OpsModule
+        from app.manager_bot._application.ops import OpsModule
 
         module = OpsModule()
         descriptions = module.get_command_descriptions()
