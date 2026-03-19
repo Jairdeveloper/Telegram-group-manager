@@ -14,6 +14,43 @@ class GroupConfig:
     antiflood_enabled: bool = False
     antiflood_limit: int = 5
     antiflood_interval: int = 5
+    antiflood_action: str = "off"
+    antiflood_delete_messages: bool = False
+    antiflood_warn_duration_sec: Optional[int] = None
+    antiflood_ban_duration_sec: Optional[int] = None
+    antiflood_mute_duration_sec: Optional[int] = None
+
+    antispan_telegram_action: str = "off"
+    antispan_telegram_delete_messages: bool = False
+    antispan_telegram_mute_duration_sec: Optional[int] = None
+    antispan_telegram_ban_duration_sec: Optional[int] = None
+    antispan_telegram_usernames_enabled: bool = False
+    antispan_telegram_bots_enabled: bool = False
+    antispan_telegram_exceptions: List[str] = field(default_factory=list)
+
+    antispan_forward_channels_action: str = "off"
+    antispan_forward_groups_action: str = "off"
+    antispan_forward_users_action: str = "off"
+    antispan_forward_bots_action: str = "off"
+    antispan_forward_delete_messages: bool = False
+    antispan_forward_mute_duration_sec: Optional[int] = None
+    antispan_forward_ban_duration_sec: Optional[int] = None
+    antispan_forward_exceptions: List[str] = field(default_factory=list)
+
+    antispan_quotes_channels_action: str = "off"
+    antispan_quotes_groups_action: str = "off"
+    antispan_quotes_users_action: str = "off"
+    antispan_quotes_bots_action: str = "off"
+    antispan_quotes_delete_messages: bool = False
+    antispan_quotes_mute_duration_sec: Optional[int] = None
+    antispan_quotes_ban_duration_sec: Optional[int] = None
+    antispan_quotes_exceptions: List[str] = field(default_factory=list)
+
+    antispan_internet_action: str = "off"
+    antispan_internet_delete_messages: bool = False
+    antispan_internet_mute_duration_sec: Optional[int] = None
+    antispan_internet_ban_duration_sec: Optional[int] = None
+    antispan_internet_exceptions: List[str] = field(default_factory=list)
 
     antichannel_enabled: bool = False
     antilink_enabled: bool = False
@@ -61,6 +98,14 @@ class GroupConfig:
             data["blocked_words"] = []
         if "filters" in data and data["filters"] is None:
             data["filters"] = []
+        if "antispan_telegram_exceptions" in data and data["antispan_telegram_exceptions"] is None:
+            data["antispan_telegram_exceptions"] = []
+        if "antispan_forward_exceptions" in data and data["antispan_forward_exceptions"] is None:
+            data["antispan_forward_exceptions"] = []
+        if "antispan_quotes_exceptions" in data and data["antispan_quotes_exceptions"] is None:
+            data["antispan_quotes_exceptions"] = []
+        if "antispan_internet_exceptions" in data and data["antispan_internet_exceptions"] is None:
+            data["antispan_internet_exceptions"] = []
         return cls(**data)
 
     @classmethod

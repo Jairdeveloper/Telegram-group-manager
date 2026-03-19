@@ -9,6 +9,7 @@ from fastapi import HTTPException, Request
 
 from app.enterprise import handle_enterprise_command, handle_enterprise_moderation
 from app.manager_bot._menu_service import get_menu_engine, get_rate_limiter
+from app.manager_bot._utils.duration_parser import parse_duration_to_seconds
 from app.ops.policies import check_rate_limit, is_admin
 from app.ops.services import handle_chat_message, handle_ops_command
 from app.ops.events import record_event
@@ -222,6 +223,191 @@ async def process_update_impl(
                 await config_storage.set(config)
                 conversation.clear_state(user_id, chat_id)
                 reply = f"Mensaje de despedida guardado:\n\n{text}"
+            elif state and state.get("state") == "waiting_antiflood_warn_duration":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "antiflood"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.antiflood_warn_duration_sec = seconds
+                        config.antiflood_action = "warn"
+                        config.antiflood_enabled = True
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de advertencia guardada."
+                        menu_to_show = "antiflood"
+            elif state and state.get("state") == "waiting_antiflood_ban_duration":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "antiflood"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.antiflood_ban_duration_sec = seconds
+                        config.antiflood_action = "ban"
+                        config.antiflood_enabled = True
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de ban guardada."
+                        menu_to_show = "antiflood"
+            elif state and state.get("state") == "waiting_antiflood_mute_duration":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "antiflood"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.antiflood_mute_duration_sec = seconds
+                        config.antiflood_action = "mute"
+                        config.antiflood_enabled = True
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de silenciar guardada."
+                        menu_to_show = "antiflood"
+            elif state and state.get("state", "").startswith("waiting_antispan_"):
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                state_name = state.get("state", "")
+                lowered = (text or "").strip().lower()
+
+                if lowered in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    if state_name.startswith("waiting_antispan_"):
+                        scope = state_name.replace("waiting_antispan_", "").split("_")[0]
+                        menu_to_show = f"antispan:{scope}" if scope else "antispan"
+                    else:
+                        menu_to_show = "antispan"
+                elif state_name.endswith("_mute_duration") or state_name.endswith("_ban_duration"):
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        suffix = state_name.replace("waiting_antispan_", "")
+                        if suffix.endswith("_mute_duration"):
+                            scope = suffix[:-len("_mute_duration")]
+                            kind = "mute"
+                        else:
+                            scope = suffix[:-len("_ban_duration")]
+                            kind = "ban"
+
+                        if scope == "telegram":
+                            if kind == "mute":
+                                config.antispan_telegram_mute_duration_sec = seconds
+                                config.antispan_telegram_action = "mute"
+                            else:
+                                config.antispan_telegram_ban_duration_sec = seconds
+                                config.antispan_telegram_action = "ban"
+                        elif scope == "forward":
+                            if kind == "mute":
+                                config.antispan_forward_mute_duration_sec = seconds
+                            else:
+                                config.antispan_forward_ban_duration_sec = seconds
+                        elif scope == "quotes":
+                            if kind == "mute":
+                                config.antispan_quotes_mute_duration_sec = seconds
+                            else:
+                                config.antispan_quotes_ban_duration_sec = seconds
+                        elif scope == "internet":
+                            if kind == "mute":
+                                config.antispan_internet_mute_duration_sec = seconds
+                                config.antispan_internet_action = "mute"
+                            else:
+                                config.antispan_internet_ban_duration_sec = seconds
+                                config.antispan_internet_action = "ban"
+
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion guardada."
+                        menu_to_show = f"antispan:{scope}"
+                elif state_name.endswith("_exceptions_add") or state_name.endswith("_exceptions_remove"):
+                    config = await config_storage.get(chat_id)
+                    if not config:
+                        config = GroupConfig.create_default(chat_id, "default")
+
+                    suffix = state_name.replace("waiting_antispan_", "")
+                    if suffix.endswith("_exceptions_add"):
+                        scope = suffix[:-len("_exceptions_add")]
+                        mode = "add"
+                    else:
+                        scope = suffix[:-len("_exceptions_remove")]
+                        mode = "remove"
+
+                    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
+                    if not lines:
+                        reply = "No se encontraron enlaces o usernames."
+                    else:
+                        if scope == "telegram":
+                            entries = list(config.antispan_telegram_exceptions)
+                        elif scope == "forward":
+                            entries = list(config.antispan_forward_exceptions)
+                        elif scope == "quotes":
+                            entries = list(config.antispan_quotes_exceptions)
+                        elif scope == "internet":
+                            entries = list(config.antispan_internet_exceptions)
+                        else:
+                            entries = []
+
+                        if mode == "add":
+                            for line in lines:
+                                if line not in entries:
+                                    entries.append(line)
+                            reply = "Excepciones agregadas."
+                        else:
+                            for line in lines:
+                                if line in entries:
+                                    entries.remove(line)
+                            reply = "Excepciones eliminadas."
+
+                        if scope == "telegram":
+                            config.antispan_telegram_exceptions = entries
+                        elif scope == "forward":
+                            config.antispan_forward_exceptions = entries
+                        elif scope == "quotes":
+                            config.antispan_quotes_exceptions = entries
+                        elif scope == "internet":
+                            config.antispan_internet_exceptions = entries
+
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        menu_to_show = f"antispan:{scope}"
             else:
                 moderation = handle_enterprise_moderation_fn(
                     actor_id=dispatch.user_id,

@@ -10,7 +10,7 @@ def create_media_menu(restrictions: Optional[Dict[str, bool]] = None) -> MenuDef
     menu = MenuDefinition(
         menu_id="mod:media",
         title="📸 Moderación de Multimedia",
-        parent_menu="mod",
+        parent_menu="main",
     )
 
     restrictions = restrictions or {}
@@ -43,6 +43,6 @@ def create_media_menu(restrictions: Optional[Dict[str, bool]] = None) -> MenuDef
         "😀"
     )
 
-    menu.add_row().add_action("nav:back:mod", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
 
     return menu

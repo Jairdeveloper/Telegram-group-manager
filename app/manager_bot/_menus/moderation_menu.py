@@ -54,14 +54,14 @@ def create_antichannel_menu(config: Optional[GroupConfig] = None) -> MenuDefinit
     menu = MenuDefinition(
         menu_id="mod:antichannel",
         title="📢 Configuración Anti-Canal",
-        parent_menu="mod",
+        parent_menu="main",
     )
 
     enabled = config.antichannel_enabled if config else False
     status = "✅ Activado" if enabled else "❌ Desactivado"
 
     menu.add_row().add_action(f"mod:antichannel:toggle:{'on' if enabled else 'off'}", f"{status} (Toggle)", "🔄")
-    menu.add_row().add_action("nav:back:mod", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
 
     return menu
 
@@ -71,14 +71,14 @@ def create_antilink_menu(config: Optional[GroupConfig] = None) -> MenuDefinition
     menu = MenuDefinition(
         menu_id="mod:antilink",
         title="🔗 Configuración Anti-Enlaces",
-        parent_menu="mod",
+        parent_menu="main",
     )
 
     enabled = config.antilink_enabled if config else False
     status = "✅ Activado" if enabled else "❌ Desactivado"
 
     menu.add_row().add_action(f"mod:antilink:toggle:{'on' if enabled else 'off'}", f"{status} (Toggle)", "🔄")
-    menu.add_row().add_action("nav:back:mod", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
 
     return menu
 
@@ -88,7 +88,7 @@ def create_media_moderation_menu(config: Optional[GroupConfig] = None) -> MenuDe
     menu = MenuDefinition(
         menu_id="mod:media",
         title="📸 Moderación de Multimedia",
-        parent_menu="mod",
+        parent_menu="main",
     )
 
     restrictions = config.media_restrictions if config else {}
@@ -97,7 +97,7 @@ def create_media_moderation_menu(config: Optional[GroupConfig] = None) -> MenuDe
     menu.add_row().add_action(f"mod:media:video:toggle:{'on' if restrictions.get('video') else 'off'}", "🎬 Videos", "🎬")
     menu.add_row().add_action(f"mod:media:document:toggle:{'on' if restrictions.get('document') else 'off'}", "📄 Documentos", "📄")
     menu.add_row().add_action(f"mod:media:sticker:toggle:{'on' if restrictions.get('sticker') else 'off'}", "😀 Stickers", "😀")
-    menu.add_row().add_action("nav:back:mod", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
 
     return menu
 
@@ -107,7 +107,7 @@ def create_blocked_words_menu(config: Optional[GroupConfig] = None) -> MenuDefin
     menu = MenuDefinition(
         menu_id="mod:words",
         title="🔇 Palabras Bloqueadas",
-        parent_menu="mod",
+        parent_menu="main",
     )
 
     words = config.blocked_words if config else []
@@ -120,7 +120,7 @@ def create_blocked_words_menu(config: Optional[GroupConfig] = None) -> MenuDefin
     else:
         menu.add_row().add_action("mod:words:add", "➕ Agregar palabra", "➕")
 
-    menu.add_row().add_action("nav:back:mod", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
 
     return menu
 
@@ -130,7 +130,7 @@ def create_nightmode_menu(config: Optional[GroupConfig] = None) -> MenuDefinitio
     menu = MenuDefinition(
         menu_id="mod:nightmode",
         title="🌙 Modo Nocturno",
-        parent_menu="mod",
+        parent_menu="main",
     )
 
     enabled = config.nightmode_enabled if config else False
@@ -145,6 +145,6 @@ def create_nightmode_menu(config: Optional[GroupConfig] = None) -> MenuDefinitio
             "⏰"
         )
 
-    menu.add_row().add_action("nav:back:mod", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
 
     return menu

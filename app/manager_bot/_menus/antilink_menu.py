@@ -10,7 +10,7 @@ def create_antilink_menu(config: Optional[Dict] = None) -> MenuDefinition:
     menu = MenuDefinition(
         menu_id="mod:antilink",
         title="🔗 Configuración Anti-Enlaces",
-        parent_menu="mod",
+        parent_menu="main",
     )
 
     enabled = config.get("enabled", False) if config else False
@@ -28,6 +28,6 @@ def create_antilink_menu(config: Optional[Dict] = None) -> MenuDefinition:
         "➕"
     )
 
-    menu.add_row().add_action("nav:back:mod", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
 
     return menu

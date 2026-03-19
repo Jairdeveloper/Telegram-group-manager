@@ -11,7 +11,7 @@ def create_nightmode_menu(config: Optional[GroupConfig] = None) -> MenuDefinitio
     menu = MenuDefinition(
         menu_id="mod:nightmode",
         title="🌙 Configuración de Modo Nocturno",
-        parent_menu="mod",
+        parent_menu="main",
     )
 
     enabled = config.nightmode_enabled if config else False
@@ -38,6 +38,6 @@ def create_nightmode_menu(config: Optional[GroupConfig] = None) -> MenuDefinitio
             "🔇"
         )
 
-    menu.add_row().add_action("nav:back:mod", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
 
     return menu

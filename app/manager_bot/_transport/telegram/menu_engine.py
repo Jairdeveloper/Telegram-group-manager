@@ -118,15 +118,19 @@ class MenuEngine:
         text: Optional[str] = None,
     ) -> Optional[Any]:
         """Show a menu to the user."""
-        menu = self.registry.get(menu_id)
-        if not menu:
-            logger.error(f"Menu not found: {menu_id}")
-            return None
-
         chat_id = update.effective_chat.id
         user_id = update.effective_user.id
 
         config = await self.config_storage.get(chat_id)
+        if menu_id == "main":
+            from app.manager_bot._menus.main_menu import create_main_menu
+            menu = create_main_menu(config)
+        else:
+            menu = self.registry.get(menu_id)
+        if not menu:
+            logger.error(f"Menu not found: {menu_id}")
+            return None
+
         keyboard = menu.to_keyboard(context={"config": config})
 
         menu_text = text or menu.title
@@ -159,11 +163,6 @@ class MenuEngine:
     ) -> Optional[Any]:
         """Show a menu from a callback query."""
         logger.debug(f"show_menu_by_callback: menu_id={menu_id}")
-        menu = self.registry.get(menu_id)
-        if not menu:
-            logger.error(f"Menu not found: {menu_id}")
-            return None
-
         chat_id = callback.message.chat.id if callback.message else None
         user_id = callback.from_user.id
 
@@ -174,6 +173,15 @@ class MenuEngine:
             return None
 
         config = await self.config_storage.get(chat_id)
+        if menu_id == "main":
+            from app.manager_bot._menus.main_menu import create_main_menu
+            menu = create_main_menu(config)
+        else:
+            menu = self.registry.get(menu_id)
+        if not menu:
+            logger.error(f"Menu not found: {menu_id}")
+            return None
+
         keyboard = menu.to_keyboard(context={"config": config})
 
         menu_text = text or menu.title
@@ -313,12 +321,16 @@ class MenuEngine:
             menu_id: The menu to display
             text: Optional custom text
         """
-        menu = self.registry.get(menu_id)
+        config = await self.config_storage.get(chat_id)
+        if menu_id == "main":
+            from app.manager_bot._menus.main_menu import create_main_menu
+            menu = create_main_menu(config)
+        else:
+            menu = self.registry.get(menu_id)
         if not menu:
             logger.error(f"Menu not found: {menu_id}")
             return None
 
-        config = await self.config_storage.get(chat_id)
         keyboard = menu.to_keyboard(context={"config": config})
 
         menu_text = text or menu.title

@@ -1,13 +1,14 @@
 """Base feature module for ManagerBot."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING
 
 from app.manager_bot._config.group_config import GroupConfig
 from app.manager_bot._config.storage import ConfigStorage
 from app.manager_bot._menus.base import MenuDefinition
 
 if TYPE_CHECKING:
+    from telegram import Bot, CallbackQuery
     from app.manager_bot._transport.telegram.callback_router import CallbackRouter
 
 
@@ -87,6 +88,50 @@ class FeatureModule(ABC):
         """Update configuration for a chat."""
         config.update_timestamp(user_id)
         await self.config_storage.set(config)
+
+    async def update_config_and_refresh(
+        self,
+        callback: "CallbackQuery",
+        bot: "Bot",
+        menu_id: str,
+        updater_fn: Callable[[GroupConfig], None],
+        *,
+        success_alert: Optional[str] = None,
+    ) -> None:
+        """Update config and refresh the menu without modal spam.
+
+        - Applies updater_fn to the config.
+        - Persists changes.
+        - Refreshes the requested menu.
+        - Answers the callback without a modal by default.
+        """
+        chat_id = callback.message.chat.id if callback.message else None
+        if not chat_id:
+            await callback.answer("Chat no identificado", show_alert=True)
+            return
+
+        config = await self.get_config(chat_id)
+        if not config:
+            config = GroupConfig.create_default(chat_id, "default")
+
+        updater_fn(config)
+        await self.update_config(config, callback.from_user.id)
+
+        from app.manager_bot._transport.telegram.menu_engine import get_menu_engine
+        menu_engine = get_menu_engine()
+        if menu_engine:
+            try:
+                await menu_engine.show_menu_by_callback(callback, bot, menu_id)
+            except Exception:
+                pass
+
+        try:
+            if success_alert:
+                await callback.answer(success_alert, show_alert=True)
+            else:
+                await callback.answer()
+        except Exception:
+            pass
 
     async def create_default_config(
         self, 
