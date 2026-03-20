@@ -4,43 +4,48 @@ from typing import Optional
 
 from app.manager_bot._menus.base import MenuDefinition
 from app.manager_bot._config.group_config import GroupConfig
+from app.manager_bot._menus.rendering import build_title, build_section
 
 
 def create_filters_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the filters management menu."""
+    filter_count = len(config.filters) if config else 0
+    blocked_count = len(config.blocked_words) if config else 0
+    title = build_title(
+        "Gestion de Filtros",
+        [
+            build_section("Filtros activos", str(filter_count)),
+            build_section("Palabras bloqueadas", str(blocked_count)),
+        ],
+    )
+
     menu = MenuDefinition(
         menu_id="filters",
-        title="🔤 Gestión de Filtros",
+        title=title,
         parent_menu="main",
     )
 
-    filter_count = len(config.filters) if config else 0
     menu.add_row().add_action(
         "filters:add",
-        f"➕ Agregar Filtro ({filter_count} activos)",
-        "➕"
+        "Agregar filtro",
     )
 
     menu.add_row().add_action(
         "filters:list",
-        "📋 Lista de Filtros",
-        "📋"
+        "Lista de filtros",
     )
 
-    blocked_count = len(config.blocked_words) if config else 0
     menu.add_row().add_action(
         "filters:words:show",
-        f"🔇 Palabras Bloqueadas ({blocked_count})",
-        "🔇"
+        f"Palabras Bloqueadas ({blocked_count})",
     )
 
     menu.add_row().add_action(
         "filters:sticker:show",
-        "🖼️ Sticker Blacklist",
-        "🖼️"
+        "Sticker blacklist",
     )
 
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "Volver")
 
     return menu
 
@@ -49,7 +54,7 @@ def create_filters_list_menu(config: Optional[GroupConfig] = None) -> MenuDefini
     """Create the filters list menu."""
     menu = MenuDefinition(
         menu_id="filters:list",
-        title="📋 Lista de Filtros",
+        title="Lista de Filtros",
         parent_menu="filters",
     )
 
@@ -59,16 +64,15 @@ def create_filters_list_menu(config: Optional[GroupConfig] = None) -> MenuDefini
             pattern = f.get("pattern", "unknown")
             menu.add_row().add_action(
                 f"filters:del:{pattern}",
-                f"❌ {pattern[:20]}",
-                "❌"
+                f"Eliminar: {pattern[:20]}",
             )
-        
-        if len(filters) > 10:
-            menu.add_row().add_action("filters:page:1", f"📄 Más ({len(filters) - 10})", "📄")
-    else:
-        menu.add_row().add_action("filters:add", "➕ Agregar primer filtro", "➕")
 
-    menu.add_row().add_action("nav:back:filters", "🔙 Volver", "🔙")
+        if len(filters) > 10:
+            menu.add_row().add_action("filters:page:1", f"Mas ({len(filters) - 10})")
+    else:
+        menu.add_row().add_action("filters:add", "Agregar primer filtro")
+
+    menu.add_row().add_action("nav:back:filters", "Volver")
 
     return menu
 
@@ -77,7 +81,7 @@ def create_blocked_words_menu(config: Optional[GroupConfig] = None) -> MenuDefin
     """Create the blocked words management menu."""
     menu = MenuDefinition(
         menu_id="filters:words",
-        title="🔇 Palabras Bloqueadas",
+        title="Palabras Bloqueadas",
         parent_menu="filters",
     )
 
@@ -86,16 +90,15 @@ def create_blocked_words_menu(config: Optional[GroupConfig] = None) -> MenuDefin
         for word in words[:10]:
             menu.add_row().add_action(
                 f"filters:words:del:{word}",
-                f"❌ {word}",
-                "❌"
+                f"Eliminar: {word}",
             )
-        
-        if len(words) > 10:
-            menu.add_row().add_action("filters:words:page:1", f"📄 Más ({len(words) - 10})", "📄")
-    else:
-        menu.add_row().add_action("filters:words:add", "➕ Agregar palabra", "➕")
 
-    menu.add_row().add_action("nav:back:filters", "🔙 Volver", "🔙")
+        if len(words) > 10:
+            menu.add_row().add_action("filters:words:page:1", f"Mas ({len(words) - 10})")
+    else:
+        menu.add_row().add_action("filters:words:add", "Agregar palabra")
+
+    menu.add_row().add_action("nav:back:filters", "Volver")
 
     return menu
 
@@ -104,12 +107,12 @@ def create_sticker_blacklist_menu(config: Optional[GroupConfig] = None) -> MenuD
     """Create the sticker blacklist menu."""
     menu = MenuDefinition(
         menu_id="filters:sticker",
-        title="🖼️ Sticker Blacklist",
+        title="Sticker Blacklist",
         parent_menu="filters",
     )
 
-    menu.add_row().add_action("filters:sticker:add", "➕ Agregar sticker", "➕")
-    menu.add_row().add_action("filters:sticker:list", "📋 Ver blacklist", "📋")
-    menu.add_row().add_action("nav:back:filters", "🔙 Volver", "🔙")
+    menu.add_row().add_action("filters:sticker:add", "Agregar sticker")
+    menu.add_row().add_action("filters:sticker:list", "Ver blacklist")
+    menu.add_row().add_action("nav:back:filters", "Volver")
 
     return menu

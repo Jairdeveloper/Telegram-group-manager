@@ -4,147 +4,94 @@ from typing import Optional
 
 from app.manager_bot._menus.base import MenuDefinition
 from app.manager_bot._config.group_config import GroupConfig
+from app.manager_bot._menus.formatters import yes_no, on_off
+from app.manager_bot._menus.rendering import build_title, build_section
 
 
 def create_moderation_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the moderation settings menu."""
+    title = build_title("Configuracion de Moderacion")
     menu = MenuDefinition(
         menu_id="mod",
-        title="🛡️ Configuración de Moderación",
+        title=title,
         parent_menu="main",
     )
 
-    antiflood_status = "✅" if config and config.antiflood_enabled else "❌"
+    antiflood_status = yes_no(config.antiflood_enabled if config else False)
     menu.add_row().add_action(
         f"mod:antiflood:toggle:{'on' if config and config.antiflood_enabled else 'off'}",
-        f"{antiflood_status} Anti-Flood",
-        "🌊"
+        f"Anti-Flood ({antiflood_status})",
     )
 
-    antichannel_status = "✅" if config and config.antichannel_enabled else "❌"
-    antilink_status = "✅" if config and config.antilink_enabled else "❌"
+    antichannel_status = yes_no(config.antichannel_enabled if config else False)
+    antilink_status = yes_no(config.antilink_enabled if config else False)
+    menu.add_row()         .add_action("mod:antichannel:show", f"Anti-Canal ({antichannel_status})")         .add_action("mod:antilink:show", f"Anti-Enlaces ({antilink_status})")
 
-    menu.add_row() \
-        .add_action("mod:antichannel:show", f"{antichannel_status} Anti-Canal", "📢") \
-        .add_action("mod:antilink:show", f"{antilink_status} Anti-Enlaces", "🔗")
-
-    menu.add_row().add_action("mod:media:show", "📸 Moderación Media", "📸")
+    menu.add_row().add_action("mod:media:show", "Moderacion Media")
 
     blocked_count = len(config.blocked_words) if config else 0
     menu.add_row().add_action(
         "mod:words:show",
-        f"🔇 Palabras Bloqueadas ({blocked_count})",
-        "🔇"
+        f"Palabras Bloqueadas ({blocked_count})",
     )
 
-    nightmode_status = "🌙" if config and config.nightmode_enabled else "☀️"
+    nightmode_status = yes_no(config.nightmode_enabled if config else False)
     menu.add_row().add_action(
         "mod:nightmode:show",
-        f"{nightmode_status} Modo Nocturno",
-        "🌙"
+        f"Modo Nocturno ({nightmode_status})",
     )
 
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "Volver")
 
     return menu
 
 
 def create_antichannel_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the anti-channel settings menu."""
+    enabled = config.antichannel_enabled if config else False
+    title = build_title(
+        "Configuracion Anti-Canal",
+        [build_section("Estado", on_off(enabled))],
+    )
     menu = MenuDefinition(
         menu_id="mod:antichannel",
-        title="📢 Configuración Anti-Canal",
+        title=title,
         parent_menu="main",
     )
 
-    enabled = config.antichannel_enabled if config else False
-    status = "✅ Activado" if enabled else "❌ Desactivado"
-
-    menu.add_row().add_action(f"mod:antichannel:toggle:{'on' if enabled else 'off'}", f"{status} (Toggle)", "🔄")
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
-
-    return menu
-
-
-def create_antilink_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
-    """Create the anti-link settings menu."""
-    menu = MenuDefinition(
-        menu_id="mod:antilink",
-        title="🔗 Configuración Anti-Enlaces",
-        parent_menu="main",
+    toggle_label = "Desactivar" if enabled else "Activar"
+    menu.add_row().add_action(
+        f"mod:antichannel:toggle:{'off' if enabled else 'on'}",
+        toggle_label,
     )
-
-    enabled = config.antilink_enabled if config else False
-    status = "✅ Activado" if enabled else "❌ Desactivado"
-
-    menu.add_row().add_action(f"mod:antilink:toggle:{'on' if enabled else 'off'}", f"{status} (Toggle)", "🔄")
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
-
-    return menu
-
-
-def create_media_moderation_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
-    """Create the media moderation settings menu."""
-    menu = MenuDefinition(
-        menu_id="mod:media",
-        title="📸 Moderación de Multimedia",
-        parent_menu="main",
-    )
-
-    restrictions = config.media_restrictions if config else {}
-    
-    menu.add_row().add_action(f"mod:media:photo:toggle:{'on' if restrictions.get('photo') else 'off'}", "📷 Fotos", "📷")
-    menu.add_row().add_action(f"mod:media:video:toggle:{'on' if restrictions.get('video') else 'off'}", "🎬 Videos", "🎬")
-    menu.add_row().add_action(f"mod:media:document:toggle:{'on' if restrictions.get('document') else 'off'}", "📄 Documentos", "📄")
-    menu.add_row().add_action(f"mod:media:sticker:toggle:{'on' if restrictions.get('sticker') else 'off'}", "😀 Stickers", "😀")
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "Volver")
 
     return menu
 
 
 def create_blocked_words_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the blocked words menu."""
+    total = len(config.blocked_words) if config else 0
+    title = build_title(
+        "Palabras Bloqueadas",
+        [build_section("Total", str(total))],
+    )
     menu = MenuDefinition(
         menu_id="mod:words",
-        title="🔇 Palabras Bloqueadas",
+        title=title,
         parent_menu="main",
     )
 
     words = config.blocked_words if config else []
     if words:
         for word in words[:10]:
-            menu.add_row().add_action(f"mod:words:del:{word}", f"❌ {word}", "❌")
-        
+            menu.add_row().add_action(f"mod:words:del:{word}", f"Eliminar: {word}")
+
         if len(words) > 10:
-            menu.add_row().add_action("mod:words:page:1", f"📄 Más ({len(words) - 10})", "📄")
+            menu.add_row().add_action("mod:words:page:1", f"Mas ({len(words) - 10})")
     else:
-        menu.add_row().add_action("mod:words:add", "➕ Agregar palabra", "➕")
+        menu.add_row().add_action("mod:words:add", "Agregar palabra")
 
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
-
-    return menu
-
-
-def create_nightmode_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
-    """Create the night mode settings menu."""
-    menu = MenuDefinition(
-        menu_id="mod:nightmode",
-        title="🌙 Modo Nocturno",
-        parent_menu="main",
-    )
-
-    enabled = config.nightmode_enabled if config else False
-    status = "✅ Activado" if enabled else "❌ Desactivado"
-
-    menu.add_row().add_action(f"mod:nightmode:toggle:{'on' if enabled else 'off'}", f"{status} (Toggle)", "🔄")
-
-    if enabled:
-        menu.add_row().add_action(
-            "mod:nightmode:time",
-            f"⏰ {config.nightmode_start} - {config.nightmode_end}" if config else "⏰ Horario",
-            "⏰"
-        )
-
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "Volver")
 
     return menu

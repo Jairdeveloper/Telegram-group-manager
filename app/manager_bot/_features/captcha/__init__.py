@@ -50,25 +50,17 @@ class CaptchaFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.captcha_enabled = enabled
 
-            config.captcha_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Captcha {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "captcha", _apply)
 
         async def handle_type(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
             captcha_type = parts[-1]
 
             if captcha_type not in self.CAPTCHA_TYPES:
-                await callback.answer("Tipo de captcha inválido", show_alert=True)
+                await callback.answer("Tipo de captcha invalido", show_alert=True)
                 return
 
             chat_id = callback.message.chat.id if callback.message else None
@@ -76,19 +68,11 @@ class CaptchaFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.captcha_type = captcha_type
+                config.captcha_enabled = True
 
-            config.captcha_type = captcha_type
-            config.captcha_enabled = True
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Tipo de captcha: {captcha_type}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "captcha", _apply)
 
         async def handle_timeout(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -99,19 +83,11 @@ class CaptchaFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.captcha_timeout = timeout
+                config.captcha_enabled = True
 
-            config.captcha_timeout = timeout
-            config.captcha_enabled = True
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Timeout configurado: {timeout} segundos",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "captcha", _apply)
 
         async def handle_show_menu(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.captcha_menu import create_captcha_menu

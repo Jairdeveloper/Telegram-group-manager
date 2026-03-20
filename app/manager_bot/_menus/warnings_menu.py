@@ -4,37 +4,44 @@ from typing import Optional
 
 from app.manager_bot._menus.base import MenuDefinition
 from app.manager_bot._config.group_config import GroupConfig
+from app.manager_bot._menus.formatters import yes_no
+from app.manager_bot._menus.rendering import build_title, build_section
 
 
 def create_warnings_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the warnings settings menu."""
+    max_warnings = config.max_warnings if config else 3
+    auto_ban = config.auto_ban_on_max if config else True
+
+    title = build_title(
+        "Configuracion de Advertencias",
+        [
+            build_section("Maximo", str(max_warnings)),
+            build_section("Auto-ban", yes_no(auto_ban)),
+        ],
+    )
+
     menu = MenuDefinition(
         menu_id="warnings",
-        title="⚠️ Configuración de Advertencias",
+        title=title,
         parent_menu="main",
     )
 
-    max_warnings = config.max_warnings if config else 3
     menu.add_row().add_action(
         f"warnings:max:{max_warnings}",
-        f"⚠️ Máximo: {max_warnings} advertencias",
-        "⚠️"
+        f"Maximo: {max_warnings}",
     )
 
-    auto_ban = config.auto_ban_on_max if config else True
-    auto_ban_status = "✅" if auto_ban else "❌"
     menu.add_row().add_action(
         f"warnings:autoban:{'on' if auto_ban else 'off'}",
-        f"{auto_ban_status} Auto-ban al límite",
-        "🚫"
+        "Auto-ban al limite",
     )
 
     menu.add_row().add_action(
         "warnings:list",
-        "📋 Ver advertencias",
-        "📋"
+        "Ver advertencias",
     )
 
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "Volver")
 
     return menu

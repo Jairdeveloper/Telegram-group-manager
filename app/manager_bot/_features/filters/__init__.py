@@ -25,17 +25,14 @@ class FiltersFeature(FeatureModule):
         """Register all callback handlers for filters."""
 
         async def handle_add_filter(callback: "CallbackQuery", bot: "Bot", data: str):
-            await callback.answer(
-                "Usa /filter add <patrón> <respuesta> para agregar un filtro",
-                show_alert=True
-            )
+            await callback.answer("Usa /filter add <patron> <respuesta> para agregar un filtro")
 
         async def handle_del_filter(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
             if len(parts) >= 3:
                 pattern = parts[2]
             else:
-                await callback.answer("Patrón no especificado", show_alert=True)
+                await callback.answer("Patron no especificado", show_alert=True)
                 return
 
             chat_id = callback.message.chat.id if callback.message else None
@@ -48,20 +45,18 @@ class FiltersFeature(FeatureModule):
                 config = GroupConfig.create_default(chat_id, "default")
 
             original_count = len(config.filters)
-            config.filters = [f for f in config.filters if f.get("pattern") != pattern]
-
-            if len(config.filters) < original_count:
-                config.update_timestamp(callback.from_user.id)
-                await self.update_config(config)
-                await callback.answer(f"Filtro '{pattern}' eliminado", show_alert=True)
-            else:
+            new_filters = [f for f in config.filters if f.get("pattern") != pattern]
+            if len(new_filters) == original_count:
                 await callback.answer(f"Filtro '{pattern}' no encontrado", show_alert=True)
+                return
+
+            def _apply(cfg: GroupConfig) -> None:
+                cfg.filters = new_filters
+
+            await self.update_config_and_refresh(callback, bot, "filters:list", _apply)
 
         async def handle_add_word(callback: "CallbackQuery", bot: "Bot", data: str):
-            await callback.answer(
-                "Usa /blacklist add <palabra> para bloquear una palabra",
-                show_alert=True
-            )
+            await callback.answer("Usa /blacklist add <palabra> para bloquear una palabra")
 
         async def handle_del_word(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -80,13 +75,15 @@ class FiltersFeature(FeatureModule):
             if not config:
                 config = GroupConfig.create_default(chat_id, "default")
 
-            if word in config.blocked_words:
-                config.blocked_words.remove(word)
-                config.update_timestamp(callback.from_user.id)
-                await self.update_config(config)
-                await callback.answer(f"Palabra '{word}' desbloqueada", show_alert=True)
-            else:
+            if word not in config.blocked_words:
                 await callback.answer(f"Palabra '{word}' no encontrada", show_alert=True)
+                return
+
+            def _apply(cfg: GroupConfig) -> None:
+                if word in cfg.blocked_words:
+                    cfg.blocked_words.remove(word)
+
+            await self.update_config_and_refresh(callback, bot, "filters:words", _apply)
 
         async def handle_show_menu(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.filters_menu import create_filters_menu

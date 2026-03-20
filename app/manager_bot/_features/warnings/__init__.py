@@ -48,18 +48,10 @@ class WarningsFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.auto_ban_on_max = enabled
 
-            config.auto_ban_on_max = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Auto-ban al llegar al límite {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "warnings", _apply)
 
         async def handle_max(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -70,18 +62,10 @@ class WarningsFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.max_warnings = max_warnings
 
-            config.max_warnings = max_warnings
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Máximo de advertencias: {max_warnings}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "warnings", _apply)
 
         async def handle_show_menu(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.warnings_menu import create_warnings_menu

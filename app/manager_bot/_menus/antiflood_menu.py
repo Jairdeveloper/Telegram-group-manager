@@ -4,55 +4,34 @@ from typing import Optional
 
 from app.manager_bot._config.group_config import GroupConfig
 from app.manager_bot._menus.base import MenuDefinition
-
-
-def _format_duration(seconds: Optional[int]) -> str:
-    if not seconds:
-        return "sin duracion"
-    if seconds < 60:
-        return f"{seconds}s"
-    if seconds < 3600:
-        return f"{seconds // 60}m"
-    if seconds < 86400:
-        return f"{seconds // 3600}h"
-    return f"{seconds // 86400}d"
-
-
-def _format_action(config: Optional[GroupConfig]) -> str:
-    if not config:
-        return "Off"
-    action = (config.antiflood_action or "off").lower()
-    mapping = {
-        "off": "Off",
-        "warn": "Warn",
-        "kick": "Kick",
-        "mute": "Silenciar",
-        "ban": "Ban",
-    }
-    label = mapping.get(action, action)
-    duration = ""
-    if action == "warn":
-        duration = f" ({_format_duration(config.antiflood_warn_duration_sec)})"
-    elif action == "ban":
-        duration = f" ({_format_duration(config.antiflood_ban_duration_sec)})"
-    elif action == "mute":
-        duration = f" ({_format_duration(config.antiflood_mute_duration_sec)})"
-    delete_suffix = " + Borrar mensajes" if config.antiflood_delete_messages else ""
-    return f"{label}{duration}{delete_suffix}"
+from app.manager_bot._menus.formatters import yes_no, duration_label, action_label
+from app.manager_bot._menus.rendering import build_title, build_section
 
 
 def create_antiflood_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the main Anti-Flood menu."""
     limit = config.antiflood_limit if config else 5
     interval = config.antiflood_interval if config else 5
-    action_text = _format_action(config)
+    action_text = action_label(
+        config.antiflood_action if config else "off",
+        mute_sec=config.antiflood_mute_duration_sec if config else None,
+        ban_sec=config.antiflood_ban_duration_sec if config else None,
+        warn_sec=config.antiflood_warn_duration_sec if config else None,
+    )
+    delete_text = yes_no(config.antiflood_delete_messages if config else False)
 
-    text = (
+    base = (
         "Anti-Flood\n"
-        "Desde este menu puedes establecer un castigo para quienes envien muchos mensajes en poco tiempo.\n\n"
+        "Desde este menu puedes establecer un castigo para quienes envien muchos mensajes en poco tiempo.\n"
         "Actualmente se activa si se envian:\n"
-        f"{limit} mensajes en {interval} segundos.\n\n"
-        f"Castigo: {action_text}"
+        f"{limit} mensajes en {interval} segundos."
+    )
+    text = build_title(
+        base,
+        [
+            build_section("Castigo", action_text),
+            build_section("Eliminacion", delete_text),
+        ],
     )
 
     menu = MenuDefinition(
@@ -75,10 +54,9 @@ def create_antiflood_menu(config: Optional[GroupConfig] = None) -> MenuDefinitio
         .add_action("mod:antiflood:action:ban", "Ban")
 
     delete_enabled = config.antiflood_delete_messages if config else False
-    delete_label = "Borrar mensajes: Si" if delete_enabled else "Borrar mensajes: No"
     menu.add_row().add_action(
         f"mod:antiflood:delete:toggle:{'off' if delete_enabled else 'on'}",
-        delete_label,
+        "Borrar mensajes",
     )
 
     if config:
@@ -149,7 +127,7 @@ def create_antiflood_interval_menu(config: Optional[GroupConfig] = None) -> Menu
 
 def create_antiflood_warn_duration_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the warn duration submenu."""
-    current = _format_duration(config.antiflood_warn_duration_sec) if config else "sin duracion"
+    current = duration_label(config.antiflood_warn_duration_sec) if config else "sin duracion"
     text = (
         "Duracion de Advertencia\n"
         "Envia ahora la duracion del castigo (Warn).\n\n"
@@ -172,7 +150,7 @@ def create_antiflood_warn_duration_menu(config: Optional[GroupConfig] = None) ->
 
 def create_antiflood_ban_duration_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the ban duration submenu."""
-    current = _format_duration(config.antiflood_ban_duration_sec) if config else "sin duracion"
+    current = duration_label(config.antiflood_ban_duration_sec) if config else "sin duracion"
     text = (
         "Duracion de Ban\n"
         "Envia ahora la duracion del castigo (Ban).\n\n"
@@ -195,7 +173,7 @@ def create_antiflood_ban_duration_menu(config: Optional[GroupConfig] = None) -> 
 
 def create_antiflood_mute_duration_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the mute duration submenu."""
-    current = _format_duration(config.antiflood_mute_duration_sec) if config else "sin duracion"
+    current = duration_label(config.antiflood_mute_duration_sec) if config else "sin duracion"
     text = (
         "Duracion de Silenciar\n"
         "Envia ahora la duracion del castigo (Silenciar).\n\n"

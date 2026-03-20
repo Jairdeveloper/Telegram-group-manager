@@ -50,7 +50,7 @@ def create_main_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     return menu
 
 
-def create_info_menu() -> MenuDefinition:
+def create_info_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the information menu."""
     menu = MenuDefinition(
         menu_id="info",

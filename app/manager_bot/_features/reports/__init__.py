@@ -70,17 +70,11 @@ class ReportsFeature(FeatureModule):
         """Register all callback handlers for reports."""
 
         async def handle_show_list(callback: "CallbackQuery", bot: "Bot", data: str):
-            await callback.answer(
-                "Usa /reports para ver la lista de reportes",
-                show_alert=True
-            )
+            await callback.answer("Usa /reports para ver la lista de reportes")
 
         async def handle_stats(callback: "CallbackQuery", bot: "Bot", data: str):
             stats = self.get_stats(0)
-            await callback.answer(
-                f"Reports: {stats.open} abiertos, {stats.resolved} resueltos",
-                show_alert=True
-            )
+            await callback.answer(f"Reports: {stats.open} abiertos, {stats.resolved} resueltos")
 
         async def handle_resolve(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -91,10 +85,7 @@ class ReportsFeature(FeatureModule):
                 await callback.answer("Datos incompletos", show_alert=True)
                 return
 
-            await callback.answer(
-                f"Reporte {report_id} resuelto con acción: {action}",
-                show_alert=True
-            )
+            await callback.answer(f"Reporte {report_id} resuelto con accion: {action}")
 
         async def handle_show_menu(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.reports_menu import create_reports_menu

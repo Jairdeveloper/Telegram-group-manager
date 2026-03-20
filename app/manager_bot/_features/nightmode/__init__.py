@@ -35,23 +35,14 @@ class NightModeFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.nightmode_enabled = enabled
 
-            config.nightmode_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Modo Nocturno {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "mod:nightmode", _apply)
 
         async def handle_time(callback: "CallbackQuery", bot: "Bot", data: str):
             await callback.answer(
-                "Usa /nightmode start/end <hora> para configurar el horario",
-                show_alert=True
+                "Usa /nightmode start/end <hora> para configurar el horario"
             )
 
         async def handle_action(callback: "CallbackQuery", bot: "Bot", data: str):
@@ -59,7 +50,7 @@ class NightModeFeature(FeatureModule):
             action = parts[-1]
 
             if action not in self.NIGHTMODE_ACTIONS:
-                await callback.answer("Acción inválida", show_alert=True)
+                await callback.answer("Accion invalida", show_alert=True)
                 return
 
             chat_id = callback.message.chat.id if callback.message else None
@@ -67,18 +58,10 @@ class NightModeFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.nightmode_enabled = True
 
-            config.nightmode_enabled = True
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Acción nocturnal configurada: {action}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "mod:nightmode", _apply)
 
         async def handle_show_menu(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.nightmode_menu import create_nightmode_menu

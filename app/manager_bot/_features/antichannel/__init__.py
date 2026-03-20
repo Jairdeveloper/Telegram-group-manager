@@ -33,18 +33,10 @@ class AntiChannelFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.antichannel_enabled = enabled
 
-            config.antichannel_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Anti-Canal {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "mod:antichannel", _apply)
 
         async def handle_show_menu(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.moderation_menu import create_antichannel_menu

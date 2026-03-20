@@ -54,22 +54,14 @@ class AntiFloodFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.antiflood_enabled = enabled
+                if not enabled:
+                    config.antiflood_action = "off"
+                elif config.antiflood_action == "off":
+                    config.antiflood_action = "warn"
 
-            config.antiflood_enabled = enabled
-            if not enabled:
-                config.antiflood_action = "off"
-            elif config.antiflood_action == "off":
-                config.antiflood_action = "warn"
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Anti-Flood {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "antiflood", _apply)
 
         async def handle_action(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -85,19 +77,11 @@ class AntiFloodFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.antiflood_action = action
+                config.antiflood_enabled = action != "off"
 
-            config.antiflood_action = action
-            config.antiflood_enabled = action != "off"
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer("Castigo actualizado", show_alert=True)
-
-            from app.manager_bot._menus.antiflood_menu import create_antiflood_menu
-            await _show_menu(callback, bot, create_antiflood_menu)
+            await self.update_config_and_refresh(callback, bot, "antiflood", _apply)
 
         async def handle_delete_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -108,18 +92,10 @@ class AntiFloodFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.antiflood_delete_messages = enabled
 
-            config.antiflood_delete_messages = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer("Borrar mensajes actualizado", show_alert=True)
-
-            from app.manager_bot._menus.antiflood_menu import create_antiflood_menu
-            await _show_menu(callback, bot, create_antiflood_menu)
+            await self.update_config_and_refresh(callback, bot, "antiflood", _apply)
 
         async def handle_limit(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -130,21 +106,13 @@ class AntiFloodFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.antiflood_limit = limit
+                config.antiflood_enabled = True
+                if config.antiflood_action == "off":
+                    config.antiflood_action = "warn"
 
-            config.antiflood_limit = limit
-            config.antiflood_enabled = True
-            if config.antiflood_action == "off":
-                config.antiflood_action = "warn"
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Límite configurado: {limit} mensajes",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "antiflood:limit", _apply)
 
         async def handle_interval(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -155,21 +123,13 @@ class AntiFloodFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.antiflood_interval = interval
+                config.antiflood_enabled = True
+                if config.antiflood_action == "off":
+                    config.antiflood_action = "warn"
 
-            config.antiflood_interval = interval
-            config.antiflood_enabled = True
-            if config.antiflood_action == "off":
-                config.antiflood_action = "warn"
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Intervalo configurado: {interval} segundos",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "antiflood:interval", _apply)
 
         async def handle_show_main(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menu_service import get_conversation_state
@@ -241,24 +201,22 @@ class AntiFloodFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                if target == "warn":
+                    config.antiflood_warn_duration_sec = None
+                elif target == "ban":
+                    config.antiflood_ban_duration_sec = None
+                elif target == "mute":
+                    config.antiflood_mute_duration_sec = None
 
-            if target == "warn":
-                config.antiflood_warn_duration_sec = None
-            elif target == "ban":
-                config.antiflood_ban_duration_sec = None
-            elif target == "mute":
-                config.antiflood_mute_duration_sec = None
+            menu_id = {
+                "warn": "antiflood:warn:duration",
+                "ban": "antiflood:ban:duration",
+                "mute": "antiflood:mute:duration",
+            }.get(target, "antiflood")
 
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
+            await self.update_config_and_refresh(callback, bot, menu_id, _apply)
 
-            await callback.answer("Duracion eliminada", show_alert=True)
-
-            from app.manager_bot._menus.antiflood_menu import create_antiflood_menu
-            await _show_menu(callback, bot, create_antiflood_menu)
 
         router.register_callback("mod:antiflood:toggle", handle_toggle)
         router.register_callback("mod:antiflood:limit", handle_limit)

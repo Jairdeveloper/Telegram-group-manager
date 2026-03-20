@@ -30,6 +30,7 @@ def action_label(
     action: Optional[str],
     mute_sec: Optional[int] = None,
     ban_sec: Optional[int] = None,
+    warn_sec: Optional[int] = None,
 ) -> str:
     """Return label for action with optional duration."""
     normalized = (action or "off").lower()
@@ -41,9 +42,10 @@ def action_label(
         "ban": "Ban",
     }
     label = mapping.get(normalized, normalized)
+    if normalized == "warn" and warn_sec:
+        return f"{label} {duration_label(warn_sec)}"
     if normalized == "mute":
         return f"{label} {duration_label(mute_sec)}"
     if normalized == "ban":
         return f"{label} {duration_label(ban_sec)}"
     return label
-

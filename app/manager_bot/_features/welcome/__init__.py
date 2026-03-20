@@ -25,8 +25,6 @@ class WelcomeFeature(FeatureModule):
         """Register all callback handlers for welcome."""
 
         async def handle_welcome_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
-            from app.manager_bot._menus.welcome_menu import create_welcome_menu
-            
             parts = data.split(":")
             enabled = parts[-1] == "on"
 
@@ -35,31 +33,12 @@ class WelcomeFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.welcome_enabled = enabled
 
-            config.welcome_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Bienvenida {'activada' if enabled else 'desactivada'}",
-                show_alert=True
-            )
-
-            menu = create_welcome_menu(config)
-            try:
-                await callback.edit_message_text(
-                    text=menu.title,
-                    reply_markup=menu.to_keyboard(),
-                )
-            except Exception:
-                pass
+            await self.update_config_and_refresh(callback, bot, "welcome", _apply)
 
         async def handle_goodbye_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
-            from app.manager_bot._menus.welcome_menu import create_goodbye_menu
-            
             parts = data.split(":")
             enabled = parts[-1] == "on"
 
@@ -68,83 +47,72 @@ class WelcomeFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.goodbye_enabled = enabled
 
-            config.goodbye_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Despedida {'activada' if enabled else 'desactivada'}",
-                show_alert=True
-            )
-
-            menu = create_goodbye_menu(config)
-            try:
-                await callback.edit_message_text(
-                    text=menu.title,
-                    reply_markup=menu.to_keyboard(),
-                )
-            except Exception:
-                pass
+            await self.update_config_and_refresh(callback, bot, "goodbye", _apply)
 
         async def handle_edit_text(callback: "CallbackQuery", bot: "Bot", data: str):
             """Handle edit text for welcome/goodbye messages."""
             from app.manager_bot._menu_service import get_conversation_state
-            
+
             parts = data.split(":")
             prefix = parts[0] if parts else "welcome"
-            
+
             chat_id = callback.message.chat.id if callback.message else None
             user_id = callback.from_user.id
-            
+
             if not chat_id:
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
-            
+
             conversation = get_conversation_state()
-            
+
             if prefix == "welcome":
                 conversation.set_state(user_id, chat_id, "waiting_welcome_text")
-                await callback.answer(
-                    "📝 *Envía el mensaje de bienvenida*\n\n"
+                instruction = (
+                    "Envia el mensaje de bienvenida\n\n"
                     "Variables disponibles:\n"
-                    "• {username} - Nombre del usuario\n"
-                    "• {title} - Nombre del grupo\n"
-                    "• {count} - Número de miembros",
-                    show_alert=True
+                    "- {username} Nombre del usuario\n"
+                    "- {title} Nombre del grupo\n"
+                    "- {count} Numero de miembros"
                 )
-            elif prefix == "goodbye":
+            else:
                 conversation.set_state(user_id, chat_id, "waiting_goodbye_text")
-                await callback.answer(
-                    "📝 *Envía el mensaje de despedida*\n\n"
+                instruction = (
+                    "Envia el mensaje de despedida\n\n"
                     "Variables disponibles:\n"
-                    "• {username} - Nombre del usuario\n"
-                    "• {title} - Nombre del grupo",
-                    show_alert=True
+                    "- {username} Nombre del usuario\n"
+                    "- {title} Nombre del grupo"
                 )
+
+            if callback.message:
+                await callback.message.reply_text(instruction)
+            else:
+                await callback.answer(instruction)
 
         async def handle_edit_media(callback: "CallbackQuery", bot: "Bot", data: str):
             """Handle edit media for welcome messages."""
             from app.manager_bot._menu_service import get_conversation_state
-            
+
             chat_id = callback.message.chat.id if callback.message else None
             user_id = callback.from_user.id
-            
+
             if not chat_id:
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
-            
+
             conversation = get_conversation_state()
             conversation.set_state(user_id, chat_id, "waiting_welcome_media")
-            
-            await callback.answer(
-                "🖼️ *Envía una foto o video para la bienvenida*\n\n"
-                "El archivo debe ser una imagen o video válido.",
-                show_alert=True
+
+            instruction = (
+                "Envia una foto o video para la bienvenida\n\n"
+                "El archivo debe ser una imagen o video valido."
             )
+            if callback.message:
+                await callback.message.reply_text(instruction)
+            else:
+                await callback.answer(instruction)
 
         async def handle_show_welcome(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.welcome_menu import create_welcome_menu
@@ -212,7 +180,11 @@ class WelcomeFeature(FeatureModule):
             except KeyError:
                 pass
             
-            await callback.answer(text, show_alert=True)
+            
+            if callback.message:
+                await callback.message.reply_text(text)
+            else:
+                await callback.answer(text)
 
         async def handle_customize_open(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.welcome_menu import create_welcome_customize_menu

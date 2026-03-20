@@ -27,24 +27,16 @@ class AntispamFeature(FeatureModule):
         async def handle_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
             enabled = parts[-1] == "on"
-            
+
             chat_id = callback.message.chat.id if callback.message else None
             if not chat_id:
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.antispam_enabled = enabled
 
-            config.antispam_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Antispam {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "antispam", _apply)
 
         async def handle_spamwatch_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -55,19 +47,11 @@ class AntispamFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.spamwatch_enabled = enabled
+                config.antispam_enabled = True
 
-            config.spamwatch_enabled = enabled
-            config.antispam_enabled = True
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"SpamWatch {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "antispam", _apply)
 
         async def handle_sibyl_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -78,40 +62,26 @@ class AntispamFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.sibyl_enabled = enabled
+                config.antispam_enabled = True
 
-            config.sibyl_enabled = enabled
-            config.antispam_enabled = True
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Sibyl {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "antispam", _apply)
 
         async def handle_sensitivity(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
-            sensitivity = parts[-1]
+            _sensitivity = parts[-1]
 
             chat_id = callback.message.chat.id if callback.message else None
             if not chat_id:
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                # Placeholder for future sensitivity persistence.
+                pass
 
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Sensibilidad configurada: {sensitivity}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "antispam:sensitivity", _apply)
 
         async def handle_show_menu(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.antispam_menu import create_antispam_menu
@@ -271,36 +241,41 @@ class AntispamFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                if scope == "telegram":
+                    config.antispan_telegram_action = action
+                elif scope == "internet":
+                    config.antispan_internet_action = action
+                elif scope == "forward" and target:
+                    if target == "channels":
+                        config.antispan_forward_channels_action = action
+                    elif target == "groups":
+                        config.antispan_forward_groups_action = action
+                    elif target == "users":
+                        config.antispan_forward_users_action = action
+                    elif target == "bots":
+                        config.antispan_forward_bots_action = action
+                elif scope == "quotes" and target:
+                    if target == "channels":
+                        config.antispan_quotes_channels_action = action
+                    elif target == "groups":
+                        config.antispan_quotes_groups_action = action
+                    elif target == "users":
+                        config.antispan_quotes_users_action = action
+                    elif target == "bots":
+                        config.antispan_quotes_bots_action = action
 
+            menu_id = "antispan"
             if scope == "telegram":
-                config.antispan_telegram_action = action
+                menu_id = "antispan:telegram"
             elif scope == "internet":
-                config.antispan_internet_action = action
+                menu_id = "antispan:internet"
             elif scope == "forward" and target:
-                if target == "channels":
-                    config.antispan_forward_channels_action = action
-                elif target == "groups":
-                    config.antispan_forward_groups_action = action
-                elif target == "users":
-                    config.antispan_forward_users_action = action
-                elif target == "bots":
-                    config.antispan_forward_bots_action = action
+                menu_id = f"antispan:forward:{target}"
             elif scope == "quotes" and target:
-                if target == "channels":
-                    config.antispan_quotes_channels_action = action
-                elif target == "groups":
-                    config.antispan_quotes_groups_action = action
-                elif target == "users":
-                    config.antispan_quotes_users_action = action
-                elif target == "bots":
-                    config.antispan_quotes_bots_action = action
+                menu_id = f"antispan:quotes:{target}"
 
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-            await callback.answer("Castigo actualizado", show_alert=True)
+            await self.update_config_and_refresh(callback, bot, menu_id, _apply)
 
         async def handle_antispan_delete_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -312,22 +287,27 @@ class AntispamFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                if scope == "telegram":
+                    config.antispan_telegram_delete_messages = enabled
+                elif scope == "internet":
+                    config.antispan_internet_delete_messages = enabled
+                elif scope == "forward":
+                    config.antispan_forward_delete_messages = enabled
+                elif scope == "quotes":
+                    config.antispan_quotes_delete_messages = enabled
 
+            menu_id = "antispan"
             if scope == "telegram":
-                config.antispan_telegram_delete_messages = enabled
+                menu_id = "antispan:telegram"
             elif scope == "internet":
-                config.antispan_internet_delete_messages = enabled
+                menu_id = "antispan:internet"
             elif scope == "forward":
-                config.antispan_forward_delete_messages = enabled
+                menu_id = "antispan:forward"
             elif scope == "quotes":
-                config.antispan_quotes_delete_messages = enabled
+                menu_id = "antispan:quotes"
 
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-            await callback.answer("Eliminacion actualizada", show_alert=True)
+            await self.update_config_and_refresh(callback, bot, menu_id, _apply)
 
         async def handle_antispan_usernames_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
             enabled = data.split(":")[-1] == "on"
@@ -336,13 +316,10 @@ class AntispamFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
-            config.antispan_telegram_usernames_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-            await callback.answer("Antispan usernames actualizado", show_alert=True)
+            def _apply(config: GroupConfig) -> None:
+                config.antispan_telegram_usernames_enabled = enabled
+
+            await self.update_config_and_refresh(callback, bot, "antispan:telegram", _apply)
 
         async def handle_antispan_bots_toggle(callback: "CallbackQuery", bot: "Bot", data: str):
             enabled = data.split(":")[-1] == "on"
@@ -351,13 +328,10 @@ class AntispamFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
-            config.antispan_telegram_bots_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-            await callback.answer("Antispan bots actualizado", show_alert=True)
+            def _apply(config: GroupConfig) -> None:
+                config.antispan_telegram_bots_enabled = enabled
+
+            await self.update_config_and_refresh(callback, bot, "antispan:telegram", _apply)
 
         async def handle_antispan_duration_clear(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -368,34 +342,31 @@ class AntispamFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                if scope == "telegram":
+                    if kind == "mute":
+                        config.antispan_telegram_mute_duration_sec = None
+                    elif kind == "ban":
+                        config.antispan_telegram_ban_duration_sec = None
+                elif scope == "forward":
+                    if kind == "mute":
+                        config.antispan_forward_mute_duration_sec = None
+                    elif kind == "ban":
+                        config.antispan_forward_ban_duration_sec = None
+                elif scope == "quotes":
+                    if kind == "mute":
+                        config.antispan_quotes_mute_duration_sec = None
+                    elif kind == "ban":
+                        config.antispan_quotes_ban_duration_sec = None
+                elif scope == "internet":
+                    if kind == "mute":
+                        config.antispan_internet_mute_duration_sec = None
+                    elif kind == "ban":
+                        config.antispan_internet_ban_duration_sec = None
 
-            if scope == "telegram":
-                if kind == "mute":
-                    config.antispan_telegram_mute_duration_sec = None
-                elif kind == "ban":
-                    config.antispan_telegram_ban_duration_sec = None
-            elif scope == "forward":
-                if kind == "mute":
-                    config.antispan_forward_mute_duration_sec = None
-                elif kind == "ban":
-                    config.antispan_forward_ban_duration_sec = None
-            elif scope == "quotes":
-                if kind == "mute":
-                    config.antispan_quotes_mute_duration_sec = None
-                elif kind == "ban":
-                    config.antispan_quotes_ban_duration_sec = None
-            elif scope == "internet":
-                if kind == "mute":
-                    config.antispan_internet_mute_duration_sec = None
-                elif kind == "ban":
-                    config.antispan_internet_ban_duration_sec = None
+            menu_id = f"antispan:{scope}:{kind}:duration"
+            await self.update_config_and_refresh(callback, bot, menu_id, _apply)
 
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-            await callback.answer("Duracion eliminada", show_alert=True)
 
         router.register_exact("antispan:show", handle_antispan_show_main)
         router.register_exact("antispan:telegram:show", handle_antispan_show_telegram)

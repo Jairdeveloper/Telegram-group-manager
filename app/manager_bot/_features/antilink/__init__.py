@@ -34,24 +34,13 @@ class AntiLinkFeature(FeatureModule):
                 await callback.answer("Chat no identificado", show_alert=True)
                 return
 
-            config = await self.get_config(chat_id)
-            if not config:
-                config = GroupConfig.create_default(chat_id, "default")
+            def _apply(config: GroupConfig) -> None:
+                config.antilink_enabled = enabled
 
-            config.antilink_enabled = enabled
-            config.update_timestamp(callback.from_user.id)
-            await self.update_config(config)
-
-            await callback.answer(
-                f"Anti-Enlaces {'activado' if enabled else 'desactivado'}",
-                show_alert=True
-            )
+            await self.update_config_and_refresh(callback, bot, "mod:antilink", _apply)
 
         async def handle_whitelist_add(callback: "CallbackQuery", bot: "Bot", data: str):
-            await callback.answer(
-                "Usa /antilink whitelist add <dominio> para agregar un dominio",
-                show_alert=True
-            )
+            await callback.answer("Usa /antilink whitelist add <dominio> para agregar un dominio")
 
         async def handle_whitelist_remove(callback: "CallbackQuery", bot: "Bot", data: str):
             parts = data.split(":")
@@ -70,7 +59,7 @@ class AntiLinkFeature(FeatureModule):
             if domain in whitelist:
                 whitelist.remove(domain)
                 self._whitelists[chat_id] = whitelist
-                await callback.answer(f"Dominio '{domain}' eliminado de whitelist", show_alert=True)
+                await callback.answer(f"Dominio '{domain}' eliminado de whitelist")
             else:
                 await callback.answer(f"Dominio '{domain}' no encontrado", show_alert=True)
 

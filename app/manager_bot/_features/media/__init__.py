@@ -37,7 +37,7 @@ class MediaFeature(FeatureModule):
                 return
 
             if media_type not in self.MEDIA_TYPES:
-                await callback.answer("Tipo de media inválido", show_alert=True)
+                await callback.answer("Tipo de media invalido", show_alert=True)
                 return
 
             chat_id = callback.message.chat.id if callback.message else None
@@ -50,10 +50,23 @@ class MediaFeature(FeatureModule):
 
             self._media_restrictions[chat_id][media_type] = enabled
 
-            await callback.answer(
-                f"{media_type.capitalize()} {'bloqueado' if enabled else 'permitido'}",
-                show_alert=True
-            )
+            from app.manager_bot._menu_service import get_menu_engine
+            menu_engine = get_menu_engine()
+            if menu_engine:
+                await menu_engine.show_menu_by_callback(callback, bot, "mod:media")
+            else:
+                from app.manager_bot._menus.media_menu import create_media_menu
+                restrictions = self._media_restrictions.get(chat_id, {})
+                menu = create_media_menu(restrictions)
+                try:
+                    await callback.edit_message_text(
+                        text=menu.title,
+                        reply_markup=menu.to_keyboard(),
+                    )
+                except Exception:
+                    pass
+
+            await callback.answer()
 
         async def handle_show_menu(callback: "CallbackQuery", bot: "Bot", data: str):
             from app.manager_bot._menus.media_menu import create_media_menu

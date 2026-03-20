@@ -11,11 +11,11 @@ def register_all_menus(registry: MenuRegistry) -> None:
     from app.manager_bot._menus.moderation_menu import (
         create_moderation_menu,
         create_antichannel_menu,
-        create_antilink_menu,
-        create_media_moderation_menu,
         create_blocked_words_menu,
-        create_nightmode_menu,
     )
+    from app.manager_bot._menus.antilink_menu import create_antilink_menu
+    from app.manager_bot._menus.media_menu import create_media_menu
+    from app.manager_bot._menus.nightmode_menu import create_nightmode_menu
     from app.manager_bot._menus.antispam_menu import (
         create_antispam_menu,
         create_sensitivity_menu,
@@ -55,61 +55,61 @@ def register_all_menus(registry: MenuRegistry) -> None:
         create_goodbye_menu,
     )
 
-    registry.register(create_main_menu())
-    registry.register(create_info_menu())
+    registry.register(create_main_menu)
+    registry.register(create_info_menu)
 
-    registry.register(create_moderation_menu())
-    registry.register(create_antichannel_menu())
-    registry.register(create_antilink_menu())
-    registry.register(create_media_moderation_menu())
-    registry.register(create_blocked_words_menu())
-    registry.register(create_nightmode_menu())
+    registry.register(create_moderation_menu)
+    registry.register(create_antichannel_menu)
+    registry.register(create_antilink_menu)
+    registry.register(create_media_menu)
+    registry.register(create_blocked_words_menu)
+    registry.register(create_nightmode_menu)
 
-    registry.register(create_antispam_menu())
-    registry.register(create_sensitivity_menu())
+    registry.register(create_antispam_menu)
+    registry.register(create_sensitivity_menu)
 
-    registry.register(create_antiflood_menu())
-    registry.register(create_antiflood_limit_menu())
-    registry.register(create_antiflood_interval_menu())
-    registry.register(create_antiflood_warn_duration_menu())
-    registry.register(create_antiflood_ban_duration_menu())
-    registry.register(create_antiflood_mute_duration_menu())
+    registry.register(create_antiflood_menu)
+    registry.register(create_antiflood_limit_menu)
+    registry.register(create_antiflood_interval_menu)
+    registry.register(create_antiflood_warn_duration_menu)
+    registry.register(create_antiflood_ban_duration_menu)
+    registry.register(create_antiflood_mute_duration_menu)
 
-    registry.register(create_antispan_telegram_menu())
-    registry.register(create_antispan_telegram_exceptions_menu())
-    registry.register(create_antispan_telegram_exception_input_menu("add"))
-    registry.register(create_antispan_telegram_exception_input_menu("remove"))
+    registry.register(create_antispan_telegram_menu)
+    registry.register(create_antispan_telegram_exceptions_menu)
+    registry.register(lambda config: create_antispan_telegram_exception_input_menu("add"))
+    registry.register(lambda config: create_antispan_telegram_exception_input_menu("remove"))
 
-    registry.register(create_antispan_forward_menu())
+    registry.register(create_antispan_forward_menu)
     for target in ("channels", "groups", "users", "bots"):
-        registry.register(create_antispan_forward_target_menu(target))
-    registry.register(create_antispan_forward_exceptions_menu())
-    registry.register(create_antispan_forward_exception_input_menu("add"))
-    registry.register(create_antispan_forward_exception_input_menu("remove"))
+        registry.register(lambda config, t=target: create_antispan_forward_target_menu(t, config))
+    registry.register(create_antispan_forward_exceptions_menu)
+    registry.register(lambda config: create_antispan_forward_exception_input_menu("add"))
+    registry.register(lambda config: create_antispan_forward_exception_input_menu("remove"))
 
-    registry.register(create_antispan_quotes_menu())
+    registry.register(create_antispan_quotes_menu)
     for target in ("channels", "groups", "users", "bots"):
-        registry.register(create_antispan_quotes_target_menu(target))
-    registry.register(create_antispan_quotes_exceptions_menu())
-    registry.register(create_antispan_quotes_exception_input_menu("add"))
-    registry.register(create_antispan_quotes_exception_input_menu("remove"))
+        registry.register(lambda config, t=target: create_antispan_quotes_target_menu(t, config))
+    registry.register(create_antispan_quotes_exceptions_menu)
+    registry.register(lambda config: create_antispan_quotes_exception_input_menu("add"))
+    registry.register(lambda config: create_antispan_quotes_exception_input_menu("remove"))
 
-    registry.register(create_antispan_internet_menu())
-    registry.register(create_antispan_internet_exceptions_menu())
-    registry.register(create_antispan_internet_exception_input_menu("add"))
-    registry.register(create_antispan_internet_exception_input_menu("remove"))
+    registry.register(create_antispan_internet_menu)
+    registry.register(create_antispan_internet_exceptions_menu)
+    registry.register(lambda config: create_antispan_internet_exception_input_menu("add"))
+    registry.register(lambda config: create_antispan_internet_exception_input_menu("remove"))
     for scope in ("telegram", "forward", "quotes", "internet"):
-        registry.register(create_antispan_duration_menu(scope, "mute"))
-        registry.register(create_antispan_duration_menu(scope, "ban"))
+        registry.register(lambda config, s=scope: create_antispan_duration_menu(s, "mute", config))
+        registry.register(lambda config, s=scope: create_antispan_duration_menu(s, "ban", config))
 
-    registry.register(create_filters_menu())
-    registry.register(create_filters_list_menu())
-    registry.register(create_filters_words_menu())
-    registry.register(create_sticker_blacklist_menu())
+    registry.register(create_filters_menu)
+    registry.register(create_filters_list_menu)
+    registry.register(create_filters_words_menu)
+    registry.register(create_sticker_blacklist_menu)
 
-    registry.register(create_welcome_menu())
-    registry.register(create_welcome_customize_menu())
-    registry.register(create_goodbye_menu())
+    registry.register(create_welcome_menu)
+    registry.register(create_welcome_customize_menu)
+    registry.register(create_goodbye_menu)
 
 
 __all__ = [

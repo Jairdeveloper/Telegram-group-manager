@@ -126,7 +126,7 @@ class MenuEngine:
             from app.manager_bot._menus.main_menu import create_main_menu
             menu = create_main_menu(config)
         else:
-            menu = self.registry.get(menu_id)
+            menu = self.registry.get(menu_id, config)
         if not menu:
             logger.error(f"Menu not found: {menu_id}")
             return None
@@ -177,7 +177,7 @@ class MenuEngine:
             from app.manager_bot._menus.main_menu import create_main_menu
             menu = create_main_menu(config)
         else:
-            menu = self.registry.get(menu_id)
+            menu = self.registry.get(menu_id, config)
         if not menu:
             logger.error(f"Menu not found: {menu_id}")
             return None
@@ -326,7 +326,7 @@ class MenuEngine:
             from app.manager_bot._menus.main_menu import create_main_menu
             menu = create_main_menu(config)
         else:
-            menu = self.registry.get(menu_id)
+            menu = self.registry.get(menu_id, config)
         if not menu:
             logger.error(f"Menu not found: {menu_id}")
             return None

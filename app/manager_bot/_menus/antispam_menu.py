@@ -4,50 +4,59 @@ from typing import Optional
 
 from app.manager_bot._menus.base import MenuDefinition
 from app.manager_bot._config.group_config import GroupConfig
+from app.manager_bot._menus.formatters import yes_no, on_off, action_label, duration_label
+from app.manager_bot._menus.rendering import build_title, build_section
 
 
 def create_antispam_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     """Create the antispam settings menu."""
+    antispam_enabled = config.antispam_enabled if config else False
+    spamwatch_enabled = config.spamwatch_enabled if config else False
+    sibyl_enabled = config.sibyl_enabled if config else False
+
+    title = build_title(
+        "Configuracion Antispam",
+        [
+            build_section("Estado", on_off(antispam_enabled)),
+            build_section("SpamWatch", yes_no(spamwatch_enabled)) if antispam_enabled else "",
+            build_section("Sibyl", yes_no(sibyl_enabled)) if antispam_enabled else "",
+        ],
+    )
+
     menu = MenuDefinition(
         menu_id="antispam",
-        title="🚫 Configuración Antispam",
+        title=title,
         parent_menu="main",
     )
 
-    antispam_enabled = config.antispam_enabled if config else False
-    antispam_status = "✅ Activado" if antispam_enabled else "❌ Desactivado"
+    antispam_status = "Activado" if antispam_enabled else "Desactivado"
 
     menu.add_row().add_action(
         f"antispam:toggle:{'on' if antispam_enabled else 'off'}",
         f"{antispam_status} Antispam General",
-        "🚫"
     )
 
     if antispam_enabled:
-        spamwatch_enabled = config.spamwatch_enabled if config else False
-        spamwatch_status = "✅" if spamwatch_enabled else "❌"
+        spamwatch_status = "ON" if spamwatch_enabled else "OFF"
         menu.add_row().add_action(
             f"antispam:spamwatch:toggle:{'on' if spamwatch_enabled else 'off'}",
             f"{spamwatch_status} SpamWatch",
-            "🔍"
         )
 
-        sibyl_enabled = config.sibyl_enabled if config else False
-        sibyl_status = "✅" if sibyl_enabled else "❌"
+        sibyl_status = "ON" if sibyl_enabled else "OFF"
         menu.add_row().add_action(
             f"antispam:sibyl:toggle:{'on' if sibyl_enabled else 'off'}",
             f"{sibyl_status} Sibyl",
-            "🛡️"
         )
 
-        menu.add_row().add_action("antispam:sensitivity:show", "📊 Sensibilidad", "📊")
+        menu.add_row().add_action("antispam:sensitivity:show", "Sensibilidad")
 
     menu.add_row().add_action("antispan:telegram:show", "Telegram")
     menu.add_row() \
         .add_action("antispan:forward:show", "Reenvio") \
         .add_action("antispan:quotes:show", "Citas")
     menu.add_row().add_action("antispan:internet:show", "General de internet")
-    menu.add_row().add_action("nav:back:main", "🔙 Volver", "🔙")
+    menu.add_row().add_action("nav:back:main", "Volver")
 
     return menu
 
@@ -88,32 +97,11 @@ def create_sensitivity_menu(config: Optional[GroupConfig] = None) -> MenuDefinit
 
 
 def _format_duration(seconds: Optional[int]) -> str:
-    if not seconds:
-        return "sin duracion"
-    if seconds < 60:
-        return f"{seconds}s"
-    if seconds < 3600:
-        return f"{seconds // 60}m"
-    if seconds < 86400:
-        return f"{seconds // 3600}h"
-    return f"{seconds // 86400}d"
+    return duration_label(seconds)
 
 
 def _format_action(action: str, mute_sec: Optional[int], ban_sec: Optional[int]) -> str:
-    action = (action or "off").lower()
-    mapping = {
-        "off": "Off",
-        "warn": "Warn",
-        "kick": "Kick",
-        "mute": "Silenciar",
-        "ban": "Ban",
-    }
-    label = mapping.get(action, action)
-    if action == "mute":
-        return f"{label} {_format_duration(mute_sec)}"
-    if action == "ban":
-        return f"{label} {_format_duration(ban_sec)}"
-    return label
+    return action_label(action, mute_sec, ban_sec)
 
 
 def create_antispan_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
@@ -183,7 +171,7 @@ def create_antispan_telegram_menu(config: Optional[GroupConfig] = None) -> MenuD
     return menu
 
 
-def create_antispan_telegram_exceptions_menu() -> MenuDefinition:
+def create_antispan_telegram_exceptions_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     menu = MenuDefinition(
         menu_id="antispan:telegram:exceptions",
         title=(
@@ -285,7 +273,7 @@ def create_antispan_forward_target_menu(target: str, config: Optional[GroupConfi
     return menu
 
 
-def create_antispan_forward_exceptions_menu() -> MenuDefinition:
+def create_antispan_forward_exceptions_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     menu = MenuDefinition(
         menu_id="antispan:forward:exceptions",
         title="Excepciones Reenvio",
@@ -376,7 +364,7 @@ def create_antispan_quotes_target_menu(target: str, config: Optional[GroupConfig
     return menu
 
 
-def create_antispan_quotes_exceptions_menu() -> MenuDefinition:
+def create_antispan_quotes_exceptions_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     menu = MenuDefinition(
         menu_id="antispan:quotes:exceptions",
         title="Excepciones Citas",
@@ -446,7 +434,7 @@ def create_antispan_internet_menu(config: Optional[GroupConfig] = None) -> MenuD
     return menu
 
 
-def create_antispan_internet_exceptions_menu() -> MenuDefinition:
+def create_antispan_internet_exceptions_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
     menu = MenuDefinition(
         menu_id="antispan:internet:exceptions",
         title="Excepciones General de internet",
