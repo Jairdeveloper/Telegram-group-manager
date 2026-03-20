@@ -48,6 +48,8 @@ class ConversationState:
         "waiting_antispan_internet_ban_duration": "Antispan Internet Ban",
         "waiting_antispan_internet_exceptions_add": "Antispan Internet Excepciones Add",
         "waiting_antispan_internet_exceptions_remove": "Antispan Internet Excepciones Remove",
+        "waiting_multimedia_duration_mute": "Duracion Multimedia Silenciar",
+        "waiting_multimedia_duration_ban": "Duracion Multimedia Ban",
     }
     
     def __init__(self):
@@ -183,6 +185,7 @@ def _register_features(callback_router: CallbackRouter, config_storage) -> None:
     from app.manager_bot._features.nightmode import NightModeFeature
     from app.manager_bot._features.antilink import AntiLinkFeature
     from app.manager_bot._features.media import MediaFeature
+    from app.manager_bot._features.multimedia import MultimediaFeature
     
     features = [
         AntispamFeature(config_storage),
@@ -196,6 +199,7 @@ def _register_features(callback_router: CallbackRouter, config_storage) -> None:
         NightModeFeature(config_storage),
         AntiLinkFeature(config_storage),
         MediaFeature(config_storage),
+        MultimediaFeature(config_storage),
     ]
     
     for feature in features:

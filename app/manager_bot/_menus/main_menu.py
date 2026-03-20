@@ -30,7 +30,7 @@ def create_main_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
 
     menu.add_row() \
         .add_action("mod:antilink:show", "🔗 Anti-Enlaces", "🔗") \
-        .add_action("mod:media:show", "📸 Moderación Media", "📸")
+        .add_action("multimedia:show", "🖼 Multimedia", "🖼")
 
     blocked_count = len(config.blocked_words) if config else 0
     menu.add_row() \

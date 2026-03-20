@@ -54,6 +54,13 @@ def register_all_menus(registry: MenuRegistry) -> None:
         create_welcome_customize_menu,
         create_goodbye_menu,
     )
+    from app.manager_bot._menus.multimedia_menu import (
+        create_multimedia_menu,
+        create_multimedia_page2_menu,
+        create_multimedia_duration_menu,
+        create_multimedia_mute_duration_menu,
+        create_multimedia_ban_duration_menu,
+    )
 
     registry.register(create_main_menu)
     registry.register(create_info_menu)
@@ -110,6 +117,12 @@ def register_all_menus(registry: MenuRegistry) -> None:
     registry.register(create_welcome_menu)
     registry.register(create_welcome_customize_menu)
     registry.register(create_goodbye_menu)
+
+    registry.register(create_multimedia_menu)
+    registry.register(create_multimedia_page2_menu)
+    registry.register(create_multimedia_duration_menu)
+    registry.register(create_multimedia_mute_duration_menu)
+    registry.register(create_multimedia_ban_duration_menu)
 
 
 __all__ = [

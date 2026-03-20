@@ -52,6 +52,34 @@ class GroupConfig:
     antispan_internet_ban_duration_sec: Optional[int] = None
     antispan_internet_exceptions: List[str] = field(default_factory=list)
 
+    multimedia_story_action: str = "warn"
+    multimedia_photo_action: str = "warn"
+    multimedia_video_action: str = "warn"
+    multimedia_album_action: str = "off"
+    multimedia_gif_action: str = "off"
+    multimedia_voice_action: str = "off"
+    multimedia_audio_action: str = "off"
+    multimedia_sticker_action: str = "off"
+    multimedia_animated_sticker_action: str = "off"
+    multimedia_game_sticker_action: str = "off"
+    multimedia_animated_emoji_action: str = "off"
+    multimedia_custom_emoji_action: str = "off"
+    multimedia_file_action: str = "off"
+    multimedia_game_action: str = "off"
+    multimedia_contact_action: str = "ban"
+    multimedia_poll_action: str = "mute"
+    multimedia_checklist_action: str = "off"
+    multimedia_location_action: str = "warn"
+    multimedia_caps_action: str = "ban"
+    multimedia_payment_action: str = "off"
+    multimedia_inline_bot_action: str = "kick"
+    multimedia_spoiler_action: str = "warn"
+    multimedia_spoiler_media_action: str = "kick"
+    multimedia_video_note_action: str = "off"
+    multimedia_giveaway_action: str = "off"
+    multimedia_mute_duration_sec: Optional[int] = None
+    multimedia_ban_duration_sec: Optional[int] = None
+
     antichannel_enabled: bool = False
     antilink_enabled: bool = False
 

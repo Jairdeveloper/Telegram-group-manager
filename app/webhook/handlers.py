@@ -408,6 +408,50 @@ async def process_update_impl(
                         await config_storage.set(config)
                         conversation.clear_state(user_id, chat_id)
                         menu_to_show = f"antispan:{scope}"
+            elif state and state.get("state") == "waiting_multimedia_duration_mute":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "multimedia:duration"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.multimedia_mute_duration_sec = seconds
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de silenciar para multimedia guardada."
+                        menu_to_show = "multimedia:duration"
+            elif state and state.get("state") == "waiting_multimedia_duration_ban":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "multimedia:duration"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.multimedia_ban_duration_sec = seconds
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de ban para multimedia guardada."
+                        menu_to_show = "multimedia:duration"
             else:
                 moderation = handle_enterprise_moderation_fn(
                     actor_id=dispatch.user_id,
