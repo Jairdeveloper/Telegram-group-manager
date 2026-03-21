@@ -52,7 +52,16 @@ def register_all_menus(registry: MenuRegistry) -> None:
     from app.manager_bot._menus.welcome_menu import (
         create_welcome_menu,
         create_welcome_customize_menu,
-        create_goodbye_menu,
+    )
+    from app.manager_bot._menus.despedida_menu import (
+        create_despedida_menu,
+        create_despedida_text_menu,
+        create_despedida_media_menu,
+        create_despedida_customize_menu,
+        create_despedida_header_menu,
+        create_despedida_footer_menu,
+        create_despedida_keyboard_menu,
+        create_despedida_preview_menu,
     )
     from app.manager_bot._menus.multimedia_menu import (
         create_multimedia_menu,
@@ -130,7 +139,15 @@ def register_all_menus(registry: MenuRegistry) -> None:
 
     registry.register(create_welcome_menu)
     registry.register(create_welcome_customize_menu)
-    registry.register(create_goodbye_menu)
+
+    registry.register(create_despedida_menu)
+    registry.register(create_despedida_text_menu)
+    registry.register(create_despedida_media_menu)
+    registry.register(create_despedida_customize_menu)
+    registry.register(create_despedida_header_menu)
+    registry.register(create_despedida_footer_menu)
+    registry.register(create_despedida_keyboard_menu)
+    registry.register(create_despedida_preview_menu)
 
     registry.register(create_multimedia_menu)
     registry.register(create_multimedia_page2_menu)

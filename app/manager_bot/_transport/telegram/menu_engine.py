@@ -100,7 +100,7 @@ class MenuEngine:
         self.callback_router.register_exact("welcome:show", handle_menu_show, "Welcome menu")
         self.callback_router.register_exact("captcha:show", handle_menu_show, "Captcha menu")
         self.callback_router.register_exact("reports:show", handle_menu_show, "Reports menu")
-        self.callback_router.register_exact("goodbye:show", handle_menu_show, "Goodbye menu")
+        self.callback_router.register_exact("despedida:show", handle_menu_show, "Despedida menu")
         self.callback_router.register_exact("nightmode:show", handle_menu_show, "Nightmode menu")
         self.callback_router.register_exact("antilink:show", handle_menu_show, "Antilink menu")
         self.callback_router.register_exact("antiflood:show", handle_menu_show, "Antiflood menu")

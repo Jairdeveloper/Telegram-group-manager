@@ -187,12 +187,14 @@ def _register_features(callback_router: CallbackRouter, config_storage) -> None:
     from app.manager_bot._features.media import MediaFeature
     from app.manager_bot._features.multimedia import MultimediaFeature
     from app.manager_bot._features.filtro import FiltroSeguridadFeature
+    from app.manager_bot._features.goodbye import GoodbyeFeature
     
     features = [
         AntispamFeature(config_storage),
         FiltroContenidoFeature(config_storage),
         FiltroSeguridadFeature(config_storage),
         WelcomeFeature(config_storage),
+        GoodbyeFeature(config_storage),
         AntiFloodFeature(config_storage),
         AntiChannelFeature(config_storage),
         CaptchaFeature(config_storage),

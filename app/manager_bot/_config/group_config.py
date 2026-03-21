@@ -112,6 +112,10 @@ class GroupConfig:
 
     goodbye_enabled: bool = False
     goodbye_text: str = ""
+    goodbye_media: Optional[str] = None
+    goodbye_inline_keyboard: List[List[str]] = field(default_factory=list)
+    goodbye_header: str = ""
+    goodbye_footer: str = ""
 
     blocked_words: List[str] = field(default_factory=list)
     filters: List[Dict[str, str]] = field(default_factory=list)

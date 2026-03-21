@@ -42,7 +42,7 @@ def create_main_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
 
     menu.add_row() \
         .add_action("welcome:show", "👋 Bienvenida", "👋") \
-        .add_action("goodbye:show", "👋 Despedida", "👋")
+        .add_action("despedida:show", "👋 Despedida", "👋")
 
     menu.add_row() \
         .add_action("captcha:show", "🔐 Captcha", "🔐") \
