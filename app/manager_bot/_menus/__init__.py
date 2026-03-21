@@ -43,11 +43,11 @@ def register_all_menus(registry: MenuRegistry) -> None:
         create_antiflood_ban_duration_menu,
         create_antiflood_mute_duration_menu,
     )
-    from app.manager_bot._menus.filters_menu import (
-        create_filters_menu,
-        create_filters_list_menu,
-        create_blocked_words_menu as create_filters_words_menu,
-        create_sticker_blacklist_menu,
+    from app.manager_bot._menus.filtro_contenido_menu import (
+        create_filtro_contenido_menu,
+        create_filtro_contenido_list_menu,
+        create_filtro_contenido_words_menu,
+        create_filtro_contenido_sticker_menu,
     )
     from app.manager_bot._menus.welcome_menu import (
         create_welcome_menu,
@@ -60,6 +60,20 @@ def register_all_menus(registry: MenuRegistry) -> None:
         create_multimedia_duration_menu,
         create_multimedia_mute_duration_menu,
         create_multimedia_ban_duration_menu,
+    )
+    from app.manager_bot._menus.captcha_menu import (
+        create_captcha_menu,
+        create_captcha_mode_menu,
+        create_captcha_time_menu,
+        create_captcha_fail_action_menu,
+    )
+    from app.manager_bot._menus.filtro_seguridad_menu import (
+        create_filtro_seguridad_menu,
+        create_obligation_menu,
+        create_obligation_action_menu,
+        create_block_menu,
+        create_block_action_menu,
+        create_config_menu,
     )
 
     registry.register(create_main_menu)
@@ -109,10 +123,10 @@ def register_all_menus(registry: MenuRegistry) -> None:
         registry.register(lambda config, s=scope: create_antispan_duration_menu(s, "mute", config))
         registry.register(lambda config, s=scope: create_antispan_duration_menu(s, "ban", config))
 
-    registry.register(create_filters_menu)
-    registry.register(create_filters_list_menu)
-    registry.register(create_filters_words_menu)
-    registry.register(create_sticker_blacklist_menu)
+    registry.register(create_filtro_contenido_menu)
+    registry.register(create_filtro_contenido_list_menu)
+    registry.register(create_filtro_contenido_words_menu)
+    registry.register(create_filtro_contenido_sticker_menu)
 
     registry.register(create_welcome_menu)
     registry.register(create_welcome_customize_menu)
@@ -123,6 +137,22 @@ def register_all_menus(registry: MenuRegistry) -> None:
     registry.register(create_multimedia_duration_menu)
     registry.register(create_multimedia_mute_duration_menu)
     registry.register(create_multimedia_ban_duration_menu)
+
+    registry.register(create_captcha_menu)
+    registry.register(create_captcha_mode_menu)
+    registry.register(create_captcha_time_menu)
+    registry.register(create_captcha_fail_action_menu)
+
+    registry.register(create_filtro_seguridad_menu)
+    registry.register(create_obligation_menu)
+    for obligation in ("username", "photo", "channel", "add_users"):
+        registry.register(lambda config, o=obligation: create_obligation_action_menu(o, config))
+
+    registry.register(create_block_menu)
+    for block in ("arabic", "chinese", "russian", "spam"):
+        registry.register(lambda config, b=block: create_block_action_menu(b, config))
+
+    registry.register(create_config_menu)
 
 
 __all__ = [

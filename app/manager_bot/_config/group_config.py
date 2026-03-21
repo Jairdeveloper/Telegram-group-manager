@@ -88,8 +88,23 @@ class GroupConfig:
     sibyl_enabled: bool = False
 
     captcha_enabled: bool = False
-    captcha_timeout: int = 300
-    captcha_type: str = "button"
+    captcha_mode: str = "math"
+    captcha_timeout: int = 180
+    captcha_fail_action: str = "kick"
+    captcha_delete_service_message: bool = False
+
+    filtro_on_entry: bool = True
+    filtro_delete_messages: bool = False
+
+    filtro_obligation_username_action: str = "off"
+    filtro_obligation_photo_action: str = "off"
+    filtro_obligation_channel_action: str = "off"
+    filtro_obligation_add_users_action: str = "off"
+
+    filtro_block_arabic_action: str = "off"
+    filtro_block_chinese_action: str = "off"
+    filtro_block_russian_action: str = "off"
+    filtro_block_spam_action: str = "off"
 
     welcome_enabled: bool = False
     welcome_text: str = ""

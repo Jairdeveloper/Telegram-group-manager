@@ -26,7 +26,10 @@ def create_main_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
 
     menu.add_row() \
         .add_action("antispam:show", "🚫 Antispam", "🚫") \
-        .add_action("filters:show", "🔤 Filtros", "🔤")
+        .add_action("filtro_seguridad:show", "🔒 Filtros de Seguridad", "🔒")
+
+    menu.add_row() \
+        .add_action("filtro_contenido:show", "🔤 Filtros de Contenido", "🔤")
 
     menu.add_row() \
         .add_action("mod:antilink:show", "🔗 Anti-Enlaces", "🔗") \

@@ -175,7 +175,7 @@ def create_menu_engine(
 def _register_features(callback_router: CallbackRouter, config_storage) -> None:
     """Register all feature callbacks."""
     from app.manager_bot._features.antispam import AntispamFeature
-    from app.manager_bot._features.filters import FiltersFeature
+    from app.manager_bot._features.filters import FiltroContenidoFeature
     from app.manager_bot._features.welcome import WelcomeFeature
     from app.manager_bot._features.antiflood import AntiFloodFeature
     from app.manager_bot._features.antichannel import AntiChannelFeature
@@ -186,10 +186,12 @@ def _register_features(callback_router: CallbackRouter, config_storage) -> None:
     from app.manager_bot._features.antilink import AntiLinkFeature
     from app.manager_bot._features.media import MediaFeature
     from app.manager_bot._features.multimedia import MultimediaFeature
+    from app.manager_bot._features.filtro import FiltroSeguridadFeature
     
     features = [
         AntispamFeature(config_storage),
-        FiltersFeature(config_storage),
+        FiltroContenidoFeature(config_storage),
+        FiltroSeguridadFeature(config_storage),
         WelcomeFeature(config_storage),
         AntiFloodFeature(config_storage),
         AntiChannelFeature(config_storage),
