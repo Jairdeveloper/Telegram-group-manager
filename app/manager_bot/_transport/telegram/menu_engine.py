@@ -107,6 +107,7 @@ class MenuEngine:
         self.callback_router.register_exact("antichannel:show", handle_menu_show, "Antichannel menu")
         self.callback_router.register_exact("media:show", handle_menu_show, "Media menu")
         self.callback_router.register_exact("warnings:show", handle_menu_show, "Warnings menu")
+        self.callback_router.register_exact("palabras_prohibidas:show", handle_menu_show, "Palabras Prohibidas menu")
 
         self.callback_router.register_prefix("nav", handle_noop, "General nav")
 

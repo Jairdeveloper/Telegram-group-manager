@@ -118,6 +118,9 @@ class GroupConfig:
     goodbye_footer: str = ""
 
     blocked_words: List[str] = field(default_factory=list)
+    blocked_words_enabled: bool = True
+    blocked_words_action: str = "off"
+    blocked_words_delete: bool = False
     filters: List[Dict[str, str]] = field(default_factory=list)
 
     nightmode_enabled: bool = False

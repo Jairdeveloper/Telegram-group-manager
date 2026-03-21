@@ -37,7 +37,7 @@ def create_main_menu(config: Optional[GroupConfig] = None) -> MenuDefinition:
 
     blocked_count = len(config.blocked_words) if config else 0
     menu.add_row() \
-        .add_action("mod:words:show", f"🔇 Palabras Bloqueadas ({blocked_count})", "🔇") \
+        .add_action("palabras_prohibidas:show", f"🔇 Palabras Prohibidas ({blocked_count})", "🔇") \
         .add_action("mod:nightmode:show", "🌙 Modo Nocturno", "🌙")
 
     menu.add_row() \
