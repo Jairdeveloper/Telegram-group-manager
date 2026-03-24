@@ -582,7 +582,208 @@ def handle_enterprise_command(
             return {"status": "ok", "response_text": f"Antichannel: {status_text}"}
         return {"status": "error", "response_text": f"Accion no soportada: {action}"}
 
+    if normalized == "/report":
+        return _handle_report_command(actor_id, chat_id, args, raw_update)
+
+    if normalized == "/reports":
+        return _handle_reports_command(actor_id, chat_id, args, raw_update)
+
     return {"status": "unsupported", "response_text": f"Unsupported command: {normalized}"}
+
+
+def _handle_report_command(
+    actor_id: int,
+    chat_id: int,
+    args: tuple,
+    raw_update: dict | None,
+) -> dict:
+    """Handle /report command - report a user for inappropriate behavior."""
+    from app.manager_bot._features.reports import ReportAction, ReportsFeature
+
+    message = raw_update.get("message") or raw_update.get("edited_message") or {} if raw_update else {}
+
+    reported_id = None
+    reason = None
+    message_id = None
+
+    if args and len(args) >= 1:
+        first_arg = args[0].strip()
+        if first_arg.isdigit():
+            reported_id = int(first_arg)
+            reason = " ".join(args[1:]).strip() if len(args) > 1 else "Sin razón"
+        else:
+            reason = " ".join(args).strip()
+
+    if not reported_id and message.get("reply_to_message"):
+        reply_msg = message.get("reply_to_message")
+        if reply_msg:
+            user = reply_msg.get("from")
+            if user:
+                reported_id = user.get("id")
+                message_id = reply_msg.get("message_id")
+                if not reason:
+                    reason = " ".join(args).strip() if args else "Reporte sin razón"
+
+    if not reported_id:
+        return {
+            "status": "error",
+            "response_text": "Uso: /report <user_id> <razón>\nO responde a un mensaje con /report <razón>",
+        }
+
+    if not reason:
+        reason = "Sin razón especificada"
+
+    if reported_id == actor_id:
+        return {"status": "error", "response_text": "No puedes reportarte a ti mismo"}
+
+    from app.manager_bot._config.storage import get_config_storage
+    from app.manager_bot._features.reports.repository import ReportRepository
+    from app.config.settings import load_api_settings
+
+    config_storage = get_config_storage()
+    settings = load_api_settings()
+    repository = None
+
+    if settings.database_url:
+        try:
+            repository = ReportRepository(settings.database_url)
+        except Exception:
+            pass
+
+    reports_feature = ReportsFeature(config_storage, repository)
+    report = reports_feature.create_report(
+        chat_id=chat_id,
+        reporter_id=actor_id,
+        reported_id=reported_id,
+        reason=reason,
+        message_id=message_id,
+    )
+
+    return {
+        "status": "ok",
+        "response_text": f"Reporte creado ID: {report.report_id[:8]}...\nEl equipo de administración será notificado.",
+    }
+
+
+def _handle_reports_command(
+    actor_id: int,
+    chat_id: int,
+    args: tuple,
+    raw_update: dict | None,
+) -> dict:
+    """Handle /reports command - list reports or show reports menu."""
+    from app.manager_bot._features.reports import ReportStatus, ReportsFeature
+    from app.manager_bot._config.storage import get_config_storage
+    from app.manager_bot._features.reports.repository import ReportRepository
+    from app.config.settings import load_api_settings
+
+    config_storage = get_config_storage()
+    settings = load_api_settings()
+    repository = None
+
+    if settings.database_url:
+        try:
+            repository = ReportRepository(settings.database_url)
+        except Exception:
+            pass
+
+    reports_feature = ReportsFeature(config_storage, repository)
+
+    if not args:
+        return {"status": "menu", "menu_id": "reports"}
+
+    subcmd = args[0].lower()
+
+    if subcmd == "abiertos":
+        reports = reports_feature.get_reports(chat_id, ReportStatus.OPEN)
+        if not reports:
+            return {"status": "ok", "response_text": "No hay reportes abiertos."}
+
+        lines = ["📋 Reportes abiertos:"]
+        for r in reports[:10]:
+            lines.append(f"• ID: {r.report_id[:8]} | Usuario: {r.reported_id} | Razón: {r.reason[:30]}")
+        return {"status": "ok", "response_text": "\n".join(lines)}
+
+    if subcmd == "resueltos":
+        reports = reports_feature.get_reports(chat_id, ReportStatus.RESOLVED)
+        if not reports:
+            return {"status": "ok", "response_text": "No hay reportes resueltos."}
+
+        lines = ["✅ Reportes resueltos:"]
+        for r in reports[:10]:
+            action = r.action.value if r.action else "N/A"
+            lines.append(f"• ID: {r.report_id[:8]} | Acción: {action} | Razón: {r.reason[:30]}")
+        return {"status": "ok", "response_text": "\n".join(lines)}
+
+    if subcmd in ("stats", "estadisticas"):
+        stats = reports_feature.get_stats(chat_id)
+        return {
+            "status": "ok",
+            "response_text": (
+                f"📊 Estadísticas de Reportes:\n"
+                f"• Total: {stats.total}\n"
+                f"• Abiertos: {stats.open}\n"
+                f"• Resueltos: {stats.resolved}\n"
+                f"• Descartados: {stats.dismissed}"
+            ),
+        }
+
+    if subcmd in ("export", "exportar"):
+        return _handle_reports_export(actor_id, chat_id, args[1:] if len(args) > 1 else ())
+
+    if subcmd in ("top", "mas_reportados"):
+        if not repository:
+            return {"status": "error", "response_text": "Base de datos no configurada"}
+        top_users = repository.get_top_reported_users(chat_id)
+        if not top_users:
+            return {"status": "ok", "response_text": "No hay usuarios reportados."}
+        lines = ["👤 Usuarios más reportados:"]
+        for u in top_users:
+            lines.append(f"• User ID: {u['user_id']} - {u['count']} reportes")
+        return {"status": "ok", "response_text": "\n".join(lines)}
+
+    return {
+        "status": "error",
+        "response_text": "Uso: /reports [abiertos|resueltos|stats|export|top]",
+    }
+
+
+def _handle_reports_export(
+    actor_id: int,
+    chat_id: int,
+    args: tuple,
+) -> dict:
+    """Handle /reports export command."""
+    from app.manager_bot._features.reports.repository import ReportRepository
+    from app.config.settings import load_api_settings
+
+    settings = load_api_settings()
+    if not settings.database_url:
+        return {"status": "error", "response_text": "Base de datos no configurada"}
+
+    try:
+        repository = ReportRepository(settings.database_url)
+    except Exception as e:
+        return {"status": "error", "response_text": f"Error: {str(e)}"}
+
+    export_format = args[0].lower() if args else "json"
+
+    if export_format == "csv":
+        csv_data = repository.export_to_csv(chat_id)
+        return {
+            "status": "file",
+            "content": csv_data,
+            "filename": f"reports_{chat_id}.csv",
+            "content_type": "text/csv",
+        }
+    else:
+        json_data = repository.export_to_json(chat_id)
+        return {
+            "status": "file",
+            "content": json_data,
+            "filename": f"reports_{chat_id}.json",
+            "content_type": "application/json",
+        }
 
 
 def handle_enterprise_moderation(

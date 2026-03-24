@@ -130,6 +130,9 @@ class GroupConfig:
     max_warnings: int = 3
     auto_ban_on_max: bool = True
 
+    report_destination: str = "ninguno"
+    report_destination_enabled: bool = True
+
     updated_at: datetime = field(default_factory=datetime.utcnow)
     updated_by: Optional[int] = None
 

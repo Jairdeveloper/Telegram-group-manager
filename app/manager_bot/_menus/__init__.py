@@ -91,6 +91,9 @@ def register_all_menus(registry: MenuRegistry) -> None:
         create_palabras_prohibidas_add_menu,
         create_palabras_prohibidas_list_menu,
     )
+    from app.manager_bot._menus.reports_menu import (
+        create_reports_menu,
+    )
 
     registry.register(create_main_menu)
     registry.register(create_info_menu)
@@ -183,6 +186,8 @@ def register_all_menus(registry: MenuRegistry) -> None:
     registry.register(create_palabras_prohibidas_delete_menu)
     registry.register(create_palabras_prohibidas_add_menu)
     registry.register(create_palabras_prohibidas_list_menu)
+
+    registry.register(create_reports_menu)
 
 
 __all__ = [
