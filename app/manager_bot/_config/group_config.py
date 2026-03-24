@@ -126,6 +126,10 @@ class GroupConfig:
     nightmode_enabled: bool = False
     nightmode_start: str = "23:00"
     nightmode_end: str = "07:00"
+    nightmode_mode: str = "multimedia"
+    nightmode_delete_media: bool = True
+    nightmode_silence: bool = False
+    nightmode_announcements: bool = True
 
     max_warnings: int = 3
     auto_ban_on_max: bool = True
