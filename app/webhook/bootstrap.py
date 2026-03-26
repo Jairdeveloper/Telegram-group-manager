@@ -7,7 +7,7 @@ import os
 from dataclasses import dataclass
 
 from dotenv import load_dotenv
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Histogram, REGISTRY
 
 from app.config.settings import load_webhook_settings
 from app.manager_bot._menu_service import create_menu_engine
@@ -131,10 +131,53 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
         except Exception as e:
             logger.warning(f"Failed to initialize PTB compat runtime: {e}")
 
-    requests_metric = Counter("telegram_webhook_requests_total", "Total webhook requests", ["status"])
-    process_time_metric = Histogram("telegram_webhook_process_seconds", "Time spent processing webhook")
-    chat_api_error_metric = Counter("telegram_webhook_chat_api_errors_total", "Total Chat API errors")
-    telegram_send_error_metric = Counter("telegram_webhook_telegram_send_errors_total", "Total Telegram send errors")
+    def _get_existing_metric(name: str):
+        try:
+            return REGISTRY._names_to_collectors.get(name)
+        except Exception:
+            return None
+
+    def _get_or_create_counter(name: str, doc: str, labelnames=None):
+        existing = _get_existing_metric(name)
+        if existing:
+            return existing
+        try:
+            return Counter(name, doc, labelnames or [])
+        except ValueError:
+            existing = _get_existing_metric(name)
+            if existing:
+                return existing
+            raise
+
+    def _get_or_create_histogram(name: str, doc: str, labelnames=None):
+        existing = _get_existing_metric(name)
+        if existing:
+            return existing
+        try:
+            return Histogram(name, doc, labelnames or [])
+        except ValueError:
+            existing = _get_existing_metric(name)
+            if existing:
+                return existing
+            raise
+
+    requests_metric = _get_or_create_counter(
+        "telegram_webhook_requests_total",
+        "Total webhook requests",
+        ["status"],
+    )
+    process_time_metric = _get_or_create_histogram(
+        "telegram_webhook_process_seconds",
+        "Time spent processing webhook",
+    )
+    chat_api_error_metric = _get_or_create_counter(
+        "telegram_webhook_chat_api_errors_total",
+        "Total Chat API errors",
+    )
+    telegram_send_error_metric = _get_or_create_counter(
+        "telegram_webhook_telegram_send_errors_total",
+        "Total Telegram send errors",
+    )
 
     return WebhookRuntime(
         logger=logger,

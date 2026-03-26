@@ -1035,6 +1035,54 @@
       "bot": "Hello! It's nice to meet you",
       "ts": null,
       "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "cual es el clima actual",
+      "bot": "That's interesting, tell me more",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "cual es el clima actual",
+      "bot": "I see. Could you elaborate?",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "cual es el clima actual",
+      "bot": "That's interesting, tell me more",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "cual es el clima actual",
+      "bot": "That's interesting, tell me more",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "cual es el clima actual",
+      "bot": "Sí, el clima actual en la ciudad de Barcelona es un clima mediterráneo con inviernos fríos y secos y veranos calientes y suaves. La temperatura media anual es de 12 °C (54 °F), mientras que las temperaturas máximas son de 30 °C (86 °F) en julio y las mínimas de -2 °C (27 °F) en enero. La precipitación anual es de 900-1200 mm (35-47 inches), con un promedio de 800-900 mm (31-35 inches).",
+      "ts": null,
+      "metadata": {}
     }
   ]
 }

@@ -30,7 +30,15 @@ class ManagerBotPtbAdapter:
             for command in module.get_handlers().keys():
                 if not command.startswith("/"):
                     continue
-                commands.append(command.lstrip("/").lower())
+                normalized = command.lstrip("/").lower()
+                # Telegram commands must be 1-32 chars, only letters, digits and underscore.
+                if "/" in normalized:
+                    continue
+                if not normalized or len(normalized) > 32:
+                    continue
+                if not all(ch.isalnum() or ch == "_" for ch in normalized):
+                    continue
+                commands.append(normalized)
         return sorted(set(commands))
 
     async def _handle_update(self, update: Any, context: Any) -> Any:

@@ -20,6 +20,7 @@ class ApiSettings(BaseSettings):
     llm_enabled: bool = False
     llm_provider: str = "ollama"
     llm_model: str = "llama3"
+    ollama_model: str = "llama3"
     llm_timeout: int = 30
     llm_temperature: float = 0.2
     ollama_base_url: str = "http://localhost:11434"
