@@ -1,7 +1,13 @@
 .venv/
 pycache/
+__pycache__/
+*.pyc
 .env
-LLM/
+/LLM/
+!chat_service/llm/
+!chat_service/llm/**
+chat_service/llm/**/__pycache__/
+chat_service/llm/**/*.pyc
 venv/
 logs/
 BASE_DE_CONOCIMIENTO/
