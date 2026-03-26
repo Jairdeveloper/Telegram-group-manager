@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Awaitable, Callable, Dict, Optional, Type
+from typing import Awaitable, Callable, Dict, Optional, Type, Any
 
 from pydantic import BaseModel
 
@@ -27,6 +27,12 @@ class ActionDefinition:
     schema: Type[BaseModel]
     permissions: tuple[str, ...]
     execute: Callable[[ActionContext, BaseModel], Awaitable[ActionResult]]
+    snapshot: Optional[Callable[[ActionContext, BaseModel], Awaitable[Dict[str, Any]]]] = None
+    undo: Optional[
+        Callable[[ActionContext, BaseModel, Dict[str, Any]], Awaitable[ActionResult]]
+    ] = None
+    dry_run: Optional[Callable[[ActionContext, BaseModel], Awaitable[ActionResult]]] = None
+    requires_confirmation: bool = False
 
 
 class ActionRegistry:

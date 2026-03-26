@@ -487,7 +487,10 @@ async def process_update_impl(
                             tenant_id="default",
                             user_id=str(user_id) if user_id is not None else None,
                         )
-                        agent_result = agent_core.process(text or "", agent_context)
+                        if hasattr(agent_core, "process_async"):
+                            agent_result = await agent_core.process_async(text or "", agent_context)
+                        else:
+                            agent_result = agent_core.process(text or "", agent_context)
                         reply = agent_result.response or "(no response)"
                         record_event(
                             component="webhook",

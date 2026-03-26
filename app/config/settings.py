@@ -35,6 +35,8 @@ class ApiSettings(BaseSettings):
     rag_use_postgres: bool = False
     agent_react_enabled: bool = False
     agent_max_iterations: int = 3
+    agent_actions_enabled: bool = False
+    action_parser_llm_enabled: bool = False
     search_api_url: str = "https://api.duckduckgo.com/"
     search_api_key: Optional[str] = None
     search_provider: str = "duckduckgo"

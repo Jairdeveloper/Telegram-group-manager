@@ -10,6 +10,13 @@ from app.agent.memory import MemorySystem
 from app.agent.rag import RAGService
 from app.agent.reasoning import ReActReasoner, ReasoningAction
 from app.agent.planner import AgentPlanner
+from app.agent.actions import (
+    ActionContext as AgentActionContext,
+    ActionExecutor,
+    ActionParser,
+    SlotResolver,
+    get_default_registry,
+)
 from app.monitoring.agent_metrics import (
     record_agent_action,
     record_agent_thought,
@@ -63,6 +70,13 @@ class AgentCore:
         self.max_iterations = settings.agent_max_iterations
         self.reasoner = reasoner or ReActReasoner()
         self.planner = planner or AgentPlanner()
+        self.actions_enabled = settings.agent_actions_enabled
+        self.action_registry = get_default_registry() if self.actions_enabled else None
+        self.action_executor = (
+            ActionExecutor(self.action_registry) if self.actions_enabled else None
+        )
+        self.action_parser = ActionParser() if self.actions_enabled else None
+        self.slot_resolver = SlotResolver() if self.actions_enabled else None
 
     def process(self, message: str, context: AgentContext) -> AgentResponse:
         message = (message or "").strip()
@@ -74,6 +88,10 @@ class AgentCore:
             react_response = self._process_react(message, rendered_context, context)
             if react_response:
                 return react_response
+        if self.actions_enabled and self.action_parser and self.action_executor:
+            action_response = self._process_actions_sync(message, context)
+            if action_response:
+                return action_response
         if self.rag_enabled:
             docs = self.rag_service.search(message, tenant_id=tenant_id)
             if docs:
@@ -137,6 +155,82 @@ class AgentCore:
                 "plan_id": result.plan_id,
                 "tools_executed": result.tools_executed,
                 "blocked": result.blocked,
+            },
+        )
+
+    async def process_async(self, message: str, context: AgentContext) -> AgentResponse:
+        message = (message or "").strip()
+        tenant_id = context.tenant_id
+        session_id = str(context.chat_id)
+        context_window = self.context_builder.build(tenant_id=tenant_id, session_id=session_id)
+        rendered_context = context_window.render()
+        if self.react_enabled:
+            react_response = self._process_react(message, rendered_context, context)
+            if react_response:
+                return react_response
+        if self.actions_enabled and self.action_parser and self.action_executor:
+            action_response = await self._process_actions_async(message, context)
+            if action_response:
+                return action_response
+        # Fallback to sync implementation for remaining paths
+        return self.process(message, context)
+
+    def _process_actions_sync(self, message: str, context: AgentContext) -> Optional[AgentResponse]:
+        # Avoid blocking if no running loop available for async actions.
+        return None
+
+    async def _process_actions_async(
+        self,
+        message: str,
+        context: AgentContext,
+    ) -> Optional[AgentResponse]:
+        decision = self.action_parser.parse(message)
+        if not decision.action_id:
+            return None
+        action_def = self.action_registry.get(decision.action_id)
+        resolution = self.slot_resolver.missing(action_def.schema, decision.payload)
+        if resolution.missing_fields:
+            return AgentResponse(
+                response=resolution.prompt,
+                source="action_slots",
+                metadata={
+                    "action_id": decision.action_id,
+                    "missing_fields": resolution.missing_fields,
+                },
+            )
+        roles = []
+        if context.metadata and isinstance(context.metadata, dict):
+            roles = context.metadata.get("roles", []) or []
+        action_context = AgentActionContext(
+            chat_id=context.chat_id,
+            tenant_id=context.tenant_id,
+            user_id=int(context.user_id) if context.user_id else None,
+            roles=roles,
+        )
+        result = await self.action_executor.execute(
+            decision.action_id,
+            action_context,
+            decision.payload,
+        )
+        response_text = result.message or "Accion ejecutada."
+        self.memory.add_exchange(
+            tenant_id=context.tenant_id,
+            session_id=str(context.chat_id),
+            user_message=message,
+            bot_response=response_text,
+            metadata={
+                "source": "action",
+                "action_id": decision.action_id,
+                "status": result.status,
+            },
+        )
+        return AgentResponse(
+            response=response_text,
+            source="action",
+            metadata={
+                "action_id": decision.action_id,
+                "status": result.status,
+                "data": result.data,
             },
         )
 

@@ -70,3 +70,102 @@ Validación
 Para validar manualmente:
 - Ejecutar una acción con `context.roles=[]` y verificar `status=denied`.
 - Ejecutar una acción con `roles=["admin"]` y verificar `status=ok`.
+
+Fase:
+Fase 3 - Dry-run y previsualización
+OBjetivo fase:
+Permitir simular cambios y mostrar impacto antes de confirmar.
+Implementacion fase:
+- Se extendió `ActionDefinition` con `dry_run` y `requires_confirmation`.
+- Se agregó soporte en `ActionExecutor` para:
+  - ejecutar dry-run (`status=preview`)
+  - exigir confirmación (`status=confirm`) cuando corresponde.
+- Se implementó previsualización en las 3 acciones piloto:
+  - `welcome.toggle`
+  - `welcome.set_text` (requiere confirmación)
+  - `antispam.toggle`
+
+Archivos modificados:
+- `app/agent/actions/registry.py`
+- `app/agent/actions/executor.py`
+- `app/agent/actions/pilot_actions.py`
+
+Validación
+
+Para validar manualmente:
+- Ejecutar `dry_run=True` y verificar `status=preview` con `data.current/next`.
+- Ejecutar `welcome.set_text` sin confirmación y validar `status=confirm`.
+
+Fase:
+Fase 4 - Rollback básico
+OBjetivo fase:
+Revertir acciones críticas cuando exista operación inversa segura.
+Implementacion fase:
+- Se extendió `ActionDefinition` con `snapshot` y `undo`.
+- Se agregó `rollback()` en `ActionExecutor`.
+- Se agregó logging de auditoría con `previous_state` usando `app.audit`.
+- Se implementó rollback para las 3 acciones piloto:
+  - `welcome.toggle`
+  - `welcome.set_text`
+  - `antispam.toggle`
+
+Archivos modificados/creados:
+- `app/agent/actions/registry.py`
+- `app/agent/actions/executor.py`
+- `app/agent/actions/audit.py`
+- `app/agent/actions/pilot_actions.py`
+
+Validación
+
+Para validar manualmente:
+- Ejecutar una acción y verificar que `previous_state` queda en `ActionResult.data`.
+- Ejecutar `rollback()` con el `previous_state` y confirmar que el valor vuelve al estado anterior.
+
+Fase:
+Fase 5 - Plantillas de respuesta centralizadas
+OBjetivo fase:
+Normalizar respuestas y estados de UI para todos los canales.
+Implementacion fase:
+- Se creó `ActionTemplateEngine` con plantillas base para estados (`error`, `denied`, `confirm`, `preview`).
+- Se integró el motor de plantillas en `ActionExecutor` para respuestas estandarizadas.
+- Se exportó el motor en `app/agent/actions/__init__.py` para uso transversal.
+
+Archivos modificados/creados:
+- `app/agent/actions/templates.py`
+- `app/agent/actions/executor.py`
+- `app/agent/actions/__init__.py`
+
+Validación
+
+Para validar manualmente:
+- Ejecutar una acción inválida y verificar mensaje estándar de error.
+- Ejecutar una acción con `requires_confirmation` y verificar mensaje estándar de confirmación.
+
+Fase:
+Fase 6 - Integración completa con NL y menús
+OBjetivo fase:
+Hacer que NL, comandos y menús disparen la misma acción.
+Implementacion fase:
+- Se creó `ActionParser` (reglas + opción LLM) para convertir NL a `action_id` + `payload`.
+- Se agregó `SlotResolver` para resolver parámetros faltantes.
+- Se creó `ActionStateProvider` para consultar estado actual por acción.
+- Se integró `ActionParser` → `ActionExecutor` en `AgentCore.process_async`.
+- Se ajustó webhook para usar `process_async` cuando está disponible.
+- Se agregaron flags de configuración: `AGENT_ACTIONS_ENABLED` y `ACTION_PARSER_LLM_ENABLED`.
+
+Archivos modificados/creados:
+- `app/agent/actions/parser.py`
+- `app/agent/actions/slots.py`
+- `app/agent/actions/state_provider.py`
+- `app/agent/actions/__init__.py`
+- `app/agent/core.py`
+- `app/webhook/handlers.py`
+- `app/config/settings.py`
+- `.env.example`
+
+Validación
+
+Para validar manualmente:
+- Activar `AGENT_ACTIONS_ENABLED=true`.
+- Enviar “activar antispam” y verificar ejecución vía Action Registry.
+- Enviar “bienvenida: Hola equipo” y validar `welcome.set_text`.
