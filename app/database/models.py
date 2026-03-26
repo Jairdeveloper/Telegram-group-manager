@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, Index, BigInteger
+from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -263,4 +264,20 @@ class EnterpriseAntiChannel(Base):
 
     __table_args__ = (
         Index("ix_enterprise_antichannel_tenant_chat", "tenant_id", "chat_id", unique=True),
+    )
+
+
+class KnowledgeDocument(Base):
+    __tablename__ = "knowledge_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tenant_id = Column(String(255), index=True, nullable=False, default="default")
+    source = Column(String(512), nullable=True)
+    content = Column(Text, nullable=False)
+    extra_metadata = Column("metadata", JSON, default={})
+    embedding = Column(Vector(384))
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    __table_args__ = (
+        Index("ix_knowledge_documents_tenant", "tenant_id"),
     )

@@ -1,5 +1,6 @@
 """Tests for report destination configuration."""
 
+import asyncio
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 import json
@@ -43,132 +44,141 @@ class TestReportsConfigService:
         """Create config service."""
         return ReportsConfigService(storage)
 
-    @pytest.mark.asyncio
-    async def test_get_destination_default(self, service, storage):
+    def test_get_destination_default(self, service, storage):
         """Test get_destination returns default when no config exists."""
-        result = await service.get_destination(12345)
+        async def run():
+            return await service.get_destination(12345)
+        result = asyncio.run(run())
         assert result == DestinationType.NINGUNO
 
-    @pytest.mark.asyncio
-    async def test_get_destination_from_config(self, service, storage):
+    def test_get_destination_from_config(self, service, storage):
         """Test get_destination returns configured value."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination = "fundador"
-        await storage.set(config)
-
-        result = await service.get_destination(12345)
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination = "fundador"
+            await storage.set(config)
+            return await service.get_destination(12345)
+        
+        result = asyncio.run(run())
         assert result == DestinationType.FUNDADOR
 
-    @pytest.mark.asyncio
-    async def test_set_destination(self, service, storage):
+    def test_set_destination(self, service, storage):
         """Test set_destination saves configuration."""
-        await service.set_destination(12345, DestinationType.GRUPO_STAFF)
+        async def run():
+            await service.set_destination(12345, DestinationType.GRUPO_STAFF)
+            config = await storage.get(12345)
+            return config.report_destination
+        
+        result = asyncio.run(run())
+        assert result == "grupo_staff"
 
-        config = await storage.get(12345)
-        assert config.report_destination == "grupo_staff"
-
-    @pytest.mark.asyncio
-    async def test_set_destination_creates_config_if_missing(self, service, storage):
+    def test_set_destination_creates_config_if_missing(self, service, storage):
         """Test set_destination creates config if not exists."""
-        await service.set_destination(99999, DestinationType.FUNDADOR)
+        async def run():
+            await service.set_destination(99999, DestinationType.FUNDADOR)
+            config = await storage.get(99999)
+            return config.report_destination if config else None
+        
+        result = asyncio.run(run())
+        assert result == "fundador"
 
-        config = await storage.get(99999)
-        assert config is not None
-        assert config.report_destination == "fundador"
-
-    @pytest.mark.asyncio
-    async def test_is_enabled_default(self, service, storage):
+    def test_is_enabled_default(self, service, storage):
         """Test is_enabled returns True by default."""
-        result = await service.is_enabled(12345)
+        async def run():
+            return await service.is_enabled(12345)
+        
+        result = asyncio.run(run())
         assert result is True
 
-    @pytest.mark.asyncio
-    async def test_is_enabled_from_config(self, service, storage):
+    def test_is_enabled_from_config(self, service, storage):
         """Test is_enabled returns configured value."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination_enabled = False
-        await storage.set(config)
-
-        result = await service.is_enabled(12345)
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination_enabled = False
+            await storage.set(config)
+            return await service.is_enabled(12345)
+        
+        result = asyncio.run(run())
         assert result is False
 
-    @pytest.mark.asyncio
-    async def test_set_enabled(self, service, storage):
+    def test_set_enabled(self, service, storage):
         """Test set_enabled updates configuration."""
-        await service.set_enabled(12345, False)
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            await storage.set(config)
+            
+            await service.set_enabled(12345, False)
+            config = await storage.get(12345)
+            return config.report_destination_enabled
+        
+        result = asyncio.run(run())
+        assert result is False
 
-        config = await storage.get(12345)
-        assert config.report_destination_enabled is False
-
-    @pytest.mark.asyncio
-    async def test_get_destination_recipients_disabled(self, service, storage):
+    def test_get_destination_recipients_disabled(self, service, storage):
         """Test get_destination_recipients returns empty when disabled."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination = "fundador"
-        config.report_destination_enabled = False
-        await storage.set(config)
-
-        result = await service.get_destination_recipients(12345, founder_id=100)
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination = "fundador"
+            config.report_destination_enabled = False
+            await storage.set(config)
+            return await service.get_destination_recipients(12345, founder_id=100)
+        
+        result = asyncio.run(run())
         assert result == []
 
-    @pytest.mark.asyncio
-    async def test_get_destination_recipients_ninguno(self, service, storage):
+    def test_get_destination_recipients_ninguno(self, service, storage):
         """Test get_destination_recipients returns empty for ninguno."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination = "ninguno"
-        await storage.set(config)
-
-        result = await service.get_destination_recipients(
-            12345, founder_id=100, staff_ids=[200, 300]
-        )
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination = "ninguno"
+            await storage.set(config)
+            return await service.get_destination_recipients(12345, founder_id=100, staff_ids=[200, 300])
+        
+        result = asyncio.run(run())
         assert result == []
 
-    @pytest.mark.asyncio
-    async def test_get_destination_recipients_fundador(self, service, storage):
+    def test_get_destination_recipients_fundador(self, service, storage):
         """Test get_destination_recipients returns founder."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination = "fundador"
-        await storage.set(config)
-
-        result = await service.get_destination_recipients(
-            12345, founder_id=100, staff_ids=[200, 300]
-        )
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination = "fundador"
+            await storage.set(config)
+            return await service.get_destination_recipients(12345, founder_id=100, staff_ids=[200, 300])
+        
+        result = asyncio.run(run())
         assert result == [100]
 
-    @pytest.mark.asyncio
-    async def test_get_destination_recipients_fundador_no_id(self, service, storage):
+    def test_get_destination_recipients_fundador_no_id(self, service, storage):
         """Test get_destination_recipients returns empty when no founder_id."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination = "fundador"
-        await storage.set(config)
-
-        result = await service.get_destination_recipients(
-            12345, founder_id=None, staff_ids=[200, 300]
-        )
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination = "fundador"
+            await storage.set(config)
+            return await service.get_destination_recipients(12345, founder_id=None, staff_ids=[200, 300])
+        
+        result = asyncio.run(run())
         assert result == []
 
-    @pytest.mark.asyncio
-    async def test_get_destination_recipients_grupo_staff(self, service, storage):
+    def test_get_destination_recipients_grupo_staff(self, service, storage):
         """Test get_destination_recipients returns staff_ids."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination = "grupo_staff"
-        await storage.set(config)
-
-        result = await service.get_destination_recipients(
-            12345, founder_id=100, staff_ids=[200, 300]
-        )
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination = "grupo_staff"
+            await storage.set(config)
+            return await service.get_destination_recipients(12345, founder_id=100, staff_ids=[200, 300])
+        
+        result = asyncio.run(run())
         assert result == [200, 300]
 
-    @pytest.mark.asyncio
-    async def test_get_destination_recipients_grupo_staff_empty(self, service, storage):
+    def test_get_destination_recipients_grupo_staff_empty(self, service, storage):
         """Test get_destination_recipients returns empty when no staff_ids."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination = "grupo_staff"
-        await storage.set(config)
-
-        result = await service.get_destination_recipients(
-            12345, founder_id=100, staff_ids=None
-        )
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination = "grupo_staff"
+            await storage.set(config)
+            return await service.get_destination_recipients(12345, founder_id=100, staff_ids=None)
+        
+        result = asyncio.run(run())
         assert result == []
 
     def test_validate_destination_valid(self, service):
@@ -183,14 +193,15 @@ class TestReportsConfigService:
         assert service.validate_destination("") is False
         assert service.validate_destination("ADMIN") is False
 
-    @pytest.mark.asyncio
-    async def test_invalid_destination_falls_back_to_ninguno(self, service, storage):
+    def test_invalid_destination_falls_back_to_ninguno(self, service, storage):
         """Test invalid destination values fall back to ninguno."""
-        config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
-        config.report_destination = "invalid_value"
-        await storage.set(config)
-
-        result = await service.get_destination(12345)
+        async def run():
+            config = GroupConfig.create_default(chat_id=12345, tenant_id="test")
+            config.report_destination = "invalid_value"
+            await storage.set(config)
+            return await service.get_destination(12345)
+        
+        result = asyncio.run(run())
         assert result == DestinationType.NINGUNO
 
 

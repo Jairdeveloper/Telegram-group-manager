@@ -278,13 +278,16 @@ class NightModeFeature(FeatureModule):
         router.register_callback("mod:nightmode:schedule:end", handle_schedule_hour)
         router.register_callback("mod:nightmode:announcements", handle_announcements)
 
-    def is_active(self, config: GroupConfig) -> bool:
+    def is_active(self, config: GroupConfig, *, ignore_schedule: bool = False) -> bool:
         """Check if night mode is currently active."""
         if not config.nightmode_enabled:
             return False
         
         if not config.nightmode_delete_media and not config.nightmode_silence:
             return False
+
+        if ignore_schedule:
+            return True
         
         from datetime import datetime
         
@@ -353,7 +356,7 @@ class NightModeFeature(FeatureModule):
         
         Returns True if message should be deleted.
         """
-        if not self.is_active(config):
+        if not self.is_active(config, ignore_schedule=True):
             return False
 
         if self.should_delete_media(config):

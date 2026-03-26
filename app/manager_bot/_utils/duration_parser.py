@@ -68,7 +68,7 @@ def parse_duration_to_seconds(text: str) -> Optional[int]:
     if not normalized:
         return None
 
-    tokens = re.findall(r"(\\d+)\\s*([a-zA-Z]+)?", normalized)
+    tokens = re.findall(r"(\d+)\s*([a-zA-Z]+)?", normalized)
     if not tokens:
         return None
 

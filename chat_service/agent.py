@@ -2,6 +2,9 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 from .pattern_engine import PatternEngine, Tokenizer, PronounTranslator
+from app.config.settings import load_api_settings
+from chat_service.llm.factory import LLMFactory, config_from_settings
+from chat_service.llm.base import LLMError
 
 
 @dataclass
@@ -20,7 +23,10 @@ class Agent:
         self,
         pattern_responses: List[Tuple[List, List]],
         default_responses: List[List[str]],
-    ): 
+        llm_enabled: Optional[bool] = None,
+        llm_provider: Optional[str] = None,
+        llm_model: Optional[str] = None,
+    ):
         self.pattern_responses = pattern_responses
         self.default_responses = default_responses
 
@@ -31,6 +37,13 @@ class Agent:
         self.username = ""
         self.username_tag = "Username"
         self.default_response_index = 0
+        settings = load_api_settings()
+        self.llm_enabled = settings.llm_enabled if llm_enabled is None else llm_enabled
+        self.llm_config = config_from_settings(
+            settings,
+            provider=llm_provider,
+            model=llm_model,
+        )
 
     def process(self, user_input: str) -> Response:
         tokens = self.tokenizer.tokenize(user_input)
@@ -49,6 +62,14 @@ class Agent:
                 break
 
         if binding_list is None:
+            llm_text = self._generate_llm_response(input_text)
+            if llm_text:
+                return Response(
+                    text=llm_text,
+                    confidence=0.7,
+                    pattern_matched=False,
+                    source="llm",
+                )
             response = self._generate_default_response()
             response.source = "default"
         else:
@@ -96,3 +117,12 @@ class Agent:
                 reply.append(str(elem))
 
         return " ".join(reply)
+
+    def _generate_llm_response(self, prompt: str) -> Optional[str]:
+        if not self.llm_enabled:
+            return None
+        try:
+            provider = LLMFactory.get_provider(self.llm_config)
+            return provider.generate(prompt)
+        except LLMError:
+            return None

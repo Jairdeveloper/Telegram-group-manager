@@ -20,6 +20,18 @@ from app.monitoring.health import (
     get_health_check,
     set_health_check,
 )
+from app.monitoring.agent_metrics import (
+    AGENT_THOUGHTS,
+    AGENT_ACTIONS,
+    RAG_RETRIEVAL_LATENCY,
+    TOOL_EXECUTION_DURATION,
+    LLM_TOKENS_USED,
+    record_llm_usage,
+    record_tool_execution,
+    record_rag_latency,
+    record_agent_thought,
+    record_agent_action,
+)
 
 __all__ = [
     "MetricsService",
@@ -39,4 +51,14 @@ __all__ = [
     "LivenessCheck",
     "get_health_check",
     "set_health_check",
+    "AGENT_THOUGHTS",
+    "AGENT_ACTIONS",
+    "RAG_RETRIEVAL_LATENCY",
+    "TOOL_EXECUTION_DURATION",
+    "LLM_TOKENS_USED",
+    "record_llm_usage",
+    "record_tool_execution",
+    "record_rag_latency",
+    "record_agent_thought",
+    "record_agent_action",
 ]

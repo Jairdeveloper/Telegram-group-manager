@@ -13,6 +13,7 @@ from app.manager_bot._utils.duration_parser import parse_duration_to_seconds
 from app.ops.policies import check_rate_limit, is_admin
 from app.ops.services import handle_chat_message, handle_ops_command
 from app.ops.events import record_event
+from app.agent.core import AgentContext, get_default_agent_core
 from app.telegram.dispatcher import dispatch_telegram_update
 from app.telegram.services import extract_chat_payload
 from .ports import ChatApiClient, DedupStore, TaskQueue, TelegramClient
@@ -25,6 +26,7 @@ async def _maybe_await(result):
 
 
 _manager_bot_router = None
+_agent_core = None
 
 
 def _get_manager_bot_router():
@@ -33,6 +35,13 @@ def _get_manager_bot_router():
         from app.manager_bot.core import ManagerBot
         _manager_bot_router = ManagerBot().get_router()
     return _manager_bot_router
+
+
+def _get_agent_core():
+    global _agent_core
+    if _agent_core is None:
+        _agent_core = get_default_agent_core()
+    return _agent_core
 
 
 def dedup_update_impl(
@@ -160,7 +169,7 @@ async def process_update_impl(
             )
             return
         
-        if dispatch.kind == "chat_message":
+        if dispatch.kind in ("chat_message", "agent_task"):
             from app.manager_bot._menu_service import get_conversation_state
             conversation = get_conversation_state()
             user_id = dispatch.user_id
@@ -471,15 +480,33 @@ async def process_update_impl(
                         reply_len=len(reply or ""),
                     )
                 else:
-                    result = handle_chat_message_fn(chat_id, text)
-                    reply = result.get("response", "(no response)")
-                    record_event(
-                        component="webhook",
-                        event="webhook.chat_service.ok",
-                        update_id=update_id,
-                        chat_id=chat_id,
-                        reply_len=len(reply or ""),
-                    )
+                    if dispatch.kind == "agent_task":
+                        agent_core = _get_agent_core()
+                        agent_context = AgentContext(
+                            chat_id=chat_id,
+                            tenant_id="default",
+                            user_id=str(user_id) if user_id is not None else None,
+                        )
+                        agent_result = agent_core.process(text or "", agent_context)
+                        reply = agent_result.response or "(no response)"
+                        record_event(
+                            component="webhook",
+                            event="webhook.agent_flow.ok",
+                            update_id=update_id,
+                            chat_id=chat_id,
+                            reply_len=len(reply or ""),
+                            source=agent_result.source,
+                        )
+                    else:
+                        result = handle_chat_message_fn(chat_id, text)
+                        reply = result.get("response", "(no response)")
+                        record_event(
+                            component="webhook",
+                            event="webhook.chat_service.ok",
+                            update_id=update_id,
+                            chat_id=chat_id,
+                            reply_len=len(reply or ""),
+                        )
         elif dispatch.kind == "ops_command":
             result = await handle_ops_command_fn(
                 chat_id,

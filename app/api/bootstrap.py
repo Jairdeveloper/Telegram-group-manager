@@ -22,7 +22,17 @@ def build_api_runtime() -> ApiRuntime:
     """Build runtime dependencies for modular API entrypoint."""
     api_settings = load_api_settings()
     pattern_responses, default_responses = get_default_brain()
-    agent = Agent(pattern_responses, default_responses)
+    try:
+        agent = Agent(
+            pattern_responses,
+            default_responses,
+            llm_enabled=getattr(api_settings, "llm_enabled", False),
+            llm_provider=getattr(api_settings, "llm_provider", None),
+            llm_model=getattr(api_settings, "llm_model", None),
+        )
+    except TypeError:
+        # Backward-compatible for Agent implementations that only accept two args (tests/mocks).
+        agent = Agent(pattern_responses, default_responses)
     
     repository = create_conversation_repository()
     storage = StorageAdapter(repository)

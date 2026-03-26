@@ -24,7 +24,7 @@ class TestMenuIntegration:
         assert "main" in menus
         assert "mod" in menus
         assert "antispam" in menus
-        assert "filters" in menus
+        assert "mod:nightmode" in menus
         assert "welcome" in menus
 
     def test_navigation_push_pop(self):

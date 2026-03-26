@@ -3,6 +3,7 @@
 from typing import Any, Dict, Optional
 
 from app.enterprise.transport.dispatcher import is_enterprise_command
+from app.agent.intent_router import get_default_intent_router, IntentKind
 
 from .models import DispatchResult
 from .services import OPS_COMMANDS, extract_chat_payload, extract_sender_id, split_command
@@ -109,6 +110,18 @@ def dispatch_telegram_update(update: Dict[str, Any]) -> DispatchResult:
             command=command,
             args=args,
             reason="unsupported_command",
+            raw_update=update,
+        )
+
+    intent_router = get_default_intent_router()
+    decision = intent_router.route(text)
+    if decision.kind == IntentKind.AGENT_TASK:
+        return DispatchResult(
+            kind="agent_task",
+            update_id=update_id,
+            chat_id=chat_id,
+            user_id=sender_id,
+            text=text,
             raw_update=update,
         )
 
