@@ -6,6 +6,14 @@ from .rag import RAGService
 from .reasoning import ReActReasoner, ReasoningDecision, ReasoningAction
 from .planner import AgentPlanner
 from .tool_executor import ToolExecutor
+from .actions import (
+    ActionContext as AgentActionContext,
+    ActionResult as AgentActionResult,
+    ActionRegistry,
+    ActionDefinition,
+    ActionExecutor,
+    get_default_registry,
+)
 
 __all__ = [
     "AgentCore",
@@ -26,4 +34,10 @@ __all__ = [
     "ReasoningAction",
     "AgentPlanner",
     "ToolExecutor",
+    "AgentActionContext",
+    "AgentActionResult",
+    "ActionRegistry",
+    "ActionDefinition",
+    "ActionExecutor",
+    "get_default_registry",
 ]
