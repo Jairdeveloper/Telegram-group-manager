@@ -111,8 +111,13 @@ class ActionExecutor:
                 previous_state=previous_state,
                 result=result,
             )
-            result.data = dict(result.data)
-            result.data["previous_state"] = previous_state
+            merged = dict(result.data)
+            merged["previous_state"] = previous_state
+            return ActionResult(
+                status=result.status,
+                message=result.message,
+                data=merged,
+            )
 
         return result
 

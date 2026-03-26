@@ -72,6 +72,15 @@ class ActionParser:
                     confidence=0.8,
                     reason="welcome_toggle_off",
                 )
+            match = re.search(r"(?:welcome|bienvenida)\s*:\s*(.+)", message, re.IGNORECASE)
+            if match:
+                text = match.group(1).strip()
+                return ActionParseResult(
+                    action_id="welcome.set_text",
+                    payload={"text": text} if text else {},
+                    confidence=0.75,
+                    reason="welcome_set_text_colon",
+                )
             if any(word in lowered for word in ("mensaje", "texto", "set", "establece", "definir")):
                 match = re.search(r"(?:welcome|bienvenida)[:\\s]+(.+)", message, re.IGNORECASE)
                 text = match.group(1).strip() if match else ""
