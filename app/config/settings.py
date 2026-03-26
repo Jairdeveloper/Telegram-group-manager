@@ -18,6 +18,7 @@ class ApiSettings(BaseSettings):
     openai_api_key: Optional[str] = None
     openai_base_url: Optional[str] = None
     llm_enabled: bool = False
+    intent_router_llm_enabled: bool = False
     llm_provider: str = "ollama"
     llm_model: str = "llama3"
     ollama_model: str = "llama3"

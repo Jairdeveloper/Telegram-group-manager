@@ -45,7 +45,9 @@ class IntentRouter:
         llm_model: Optional[str] = None,
     ):
         settings = load_api_settings()
-        self.llm_enabled = settings.llm_enabled if llm_enabled is None else llm_enabled
+        self.llm_enabled = (
+            settings.intent_router_llm_enabled if llm_enabled is None else llm_enabled
+        )
         self.llm_config = config_from_settings(
             settings,
             provider=llm_provider,
