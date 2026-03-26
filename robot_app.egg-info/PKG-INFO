@@ -1,0 +1,292 @@
+Metadata-Version: 2.4
+Name: robot-app
+Version: 1.0.0
+Summary: Manufacturing robot application with Telegram integration
+Author-email: Robot Team <team@robot.local>
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.133.0
+Requires-Dist: uvicorn[standard]>=0.41.0
+Requires-Dist: python-telegram-bot>=22.6
+Requires-Dist: redis>=7.2.1
+Requires-Dist: rq>=1.16.0
+Requires-Dist: sqlalchemy>=2.0.0
+Requires-Dist: psycopg2-binary>=2.9.0
+Requires-Dist: pydantic>=2.12.0
+Requires-Dist: pydantic-settings>=2.13.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: httpx>=0.28.0
+Requires-Dist: prometheus-client>=0.24.0
+Requires-Dist: pyyaml>=6.0.0
+Requires-Dist: click>=8.3.0
+Requires-Dist: jinja2>=3.1.0
+Requires-Dist: aiofiles>=25.1.0
+Requires-Dist: email-validator>=2.3.0
+Requires-Dist: python-dateutil>=2.9.0
+Provides-Extra: dev
+Requires-Dist: pytest>=9.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.24.0; extra == "dev"
+Requires-Dist: pytest-cov>=6.0.0; extra == "dev"
+
+﻿# Robot Chatbot - Plan de Debug
+
+Este README define un plan operativo para debuguear el proyecto actual sin romper contratos.
+
+## 0. Estado operativo canonico
+
+Ingreso canonico de Telegram:
+- `app.webhook.entrypoint:app` (procesa mensajes y comandos OPS)
+
+Runtimes deprecated:
+- `telegram_adapter.py` -> deprecated
+- `app.telegram_ops.entrypoint.py` -> deprecated (funcionalidad integrada en webhook)
+
+Regla operativa:
+- no ejecutar en paralelo mas de un runtime Telegram para el mismo `TELEGRAM_BOT_TOKEN`
+
+**Nota**: Desde la Fase 4, el webhook canónico procesa todos los mensajes y comandos OPS. Ya no es necesario ejecutar `telegram_adapter.py` ni `app.telegram_ops.entrypoint.py`.
+
+Checklist rapido de arranque canonico:
+1. levantar API en `app.api.entrypoint:app`
+2. levantar webhook en `app.webhook.entrypoint:app`
+3. exponer `8001` por ngrok o ingress equivalente
+4. registrar webhook Telegram hacia `/webhook/<TELEGRAM_BOT_TOKEN>`
+5. NO arrancar `telegram_adapter.py` (deprecated)
+6. NO arrancar `app.telegram_ops.entrypoint.py` (deprecated)
+
+## 1. Objetivo del debug
+
+Validar y aislar fallos en:
+- API (`/api/v1/chat`)
+- Webhook (`/webhook/{token}`)
+- Flujo dedup (`update_id`)
+- Integracion Chat API <-> Telegram
+- Cableado modular (`app/api`, `app/webhook`) vs entrypoints legacy
+
+Referencia de contratos:
+- `design/contratos.md`
+
+## 2. Baseline rapido
+
+1. Verificar entorno Python y dependencias.
+2. Ejecutar suite completa:
+
+```bash
+pytest -q
+```
+
+3. Si falla, ejecutar modulo por modulo:
+
+```bash
+pytest -q tests/test_api_contract.py
+pytest -q tests/test_webhook_contract.py
+pytest -q tests/test_modular_entrypoints.py
+pytest -q tests/test_webhook_handlers_unit.py
+pytest -q tests/test_agent_unit.py tests/test_pattern_engine_unit.py
+```
+
+## 3. Variables de entorno clave
+
+Para webhook/API:
+- `TELEGRAM_BOT_TOKEN`
+- `CHATBOT_API_URL` (default `http://127.0.0.1:8000/api/v1/chat`)
+- `REDIS_URL` (opcional)
+- `PROCESS_ASYNC` (`true/false`)
+- `DEDUP_TTL` (default `86400`)
+
+Para API monolith wrapper:
+- `API_HOST`
+- `API_PORT`
+- `LOG_LEVEL`
+
+Comprobacion rapida (PowerShell):
+
+```powershell
+$env:TELEGRAM_BOT_TOKEN
+$env:CHATBOT_API_URL
+$env:REDIS_URL
+$env:PROCESS_ASYNC
+$env:DEDUP_TTL
+```
+
+## 4. Plan de debug por capa
+
+### 4.1 API
+
+Archivos foco:
+- `app/api/factory.py`
+- `app/api/routes.py`
+
+
+Pasos:
+1. Confirmar contrato `POST /api/v1/chat` con test de contrato.
+2. Verificar validacion de `message` vacio (`400 message required`).
+3. Revisar dependencias inyectadas (`actor`, `storage`).
+
+### 4.2 Webhook
+
+Archivos foco:
+
+- `app/webhook/handlers.py`
+- `app/webhook/entrypoint.py`
+
+Pasos:
+1. Token invalido debe devolver `403`.
+2. Token ausente en config debe devolver `500`.
+3. `update_id` repetido debe no reprocesar y devolver `{"ok": true}`.
+4. Confirmar camino sync (`PROCESS_ASYNC=false`) y async (`PROCESS_ASYNC=true` + queue).
+
+### 4.3 Infra (requests/redis/rq)
+
+Archivos foco:
+
+- `webhook_tasks.py`
+- `worker.py`
+
+Pasos:
+1. Simular sin Redis (`REDIS_URL` vacio) y validar fallback dedup en memoria.
+2. Simular con Redis y validar `setnx + expire`.
+3. En async, validar enqueue en cola `telegram_tasks`.
+
+## 5. Casos negativos minimos a repetir
+
+1. Chat API caido o timeout -> webhook no debe romper contrato de respuesta.
+2. Error al enviar a Telegram -> registrar error y continuar.
+3. Payload sin `message` ni `edited_message` -> no explotar.
+4. Duplicado de `update_id` -> no reprocesar.
+
+## 6. Comandos utiles de diagnostico
+
+Estado de cambios antes de debug:
+
+```bash
+git status --short --branch
+git diff --name-status
+```
+
+Correr una prueba concreta con detalle:
+
+```bash
+pytest -q tests/test_webhook_contract.py -k deduplicates -vv
+```
+
+## 7. Checklist de cierre
+
+- [ ] `pytest -q` en verde.
+- [ ] Contratos HTTP siguen intactos (`design/contratos.md`).
+- [ ] No hay cambios no relacionados en el commit.
+- [ ] README y documentos de migracion actualizados si hubo cambios de comportamiento.
+
+## 8. Riesgos conocidos actuales
+
+- Configuracion distribuida en varios archivos (`os.getenv` disperso).
+- Acoplamiento directo a infraestructura en adapters actuales.
+- Codigo legacy aun activo (transicion no cerrada).
+
+## 9. Siguiente mejora recomendada
+
+Ejecutar la migracion Semana 2-3 pendiente:
+1. Centralizar settings.
+2. Aislar interfaces de infraestructura.
+3. Aumentar pruebas negativas de webhook.
+4. Plan de retiro progresivo de legacy.
+
+---
+
+## 10. Instalación y Ejecución (Nueva Arquitectura)
+
+### Requisitos
+- Python 3.10+
+- pip
+
+### Instalación
+
+#### Linux/Mac
+```bash
+./install.sh
+```
+
+#### Windows
+```batch
+install.bat
+```
+
+#### Manual
+```bash
+pip install -e .
+```
+
+### Ejecución
+
+#### Opción 1: Comandos CLI (después de instalación)
+```bash
+robot           # Servidor completo en puerto 8080
+robot-worker    # Worker de tareas
+```
+
+#### Opción 2: Módulos Python
+```bash
+python -m app.webhook.entrypoint
+python worker.py
+```
+
+#### Opción 3: Uvicorn directo
+```bash
+uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 8080
+```
+
+### Variables de Entorno
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `TELEGRAM_BOT_TOKEN` | - | Token del bot de Telegram (requerido) |
+| `WEBHOOK_TOKEN` | - | Token para validación de webhook |
+| `CHATBOT_API_URL` | `http://127.0.0.1:8000/api/v1/chat` | URL del API de chat |
+| `REDIS_URL` | - | URL de Redis (opcional) |
+| `HOST` | `0.0.0.0` | Host del servidor |
+| `PORT` | `8080` | Puerto del servidor |
+| `RELOAD` | `false` | Recarga automática (desarrollo) |
+| `MANAGER_ENABLE_OPS` | `true` | Habilitar módulo OPS |
+| `MANAGER_ENABLE_ENTERPRISE` | `true` | Habilitar módulo Enterprise |
+| `MANAGER_ENABLE_AGENT` | `false` | Habilitar agente autónomo |
+
+### Docker
+
+```dockerfile
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY pyproject.toml .
+RUN pip install -e .
+
+COPY . .
+
+CMD ["robot"]
+```
+
+### Desarrollo
+
+```bash
+# Instalar con dependencias de desarrollo
+pip install -e ".[dev]"
+
+# Ejecutar con reload automático
+RELOAD=true PORT=8080 robot
+
+# Ejecutar tests
+pytest -q
+```
+
+### Legacy (Deprecated)
+
+Los siguientes entrypoints están **deprecated** y no deben usarse:
+
+| Archivo | Razón |
+|---------|-------|
+| `app/api/entrypoint.py` | API ya incluida en webhook entrypoint |
+| `app/telegram_ops/entrypoint.py` | OPS migrado a ManagerBot vía webhook |
+| `telegram_adapter.py` | Legacy adapter, no operativo |
+
+

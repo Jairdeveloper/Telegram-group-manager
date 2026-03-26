@@ -1,7 +1,15 @@
 import re
 import math
-from typing import Any, Dict
+from typing import Any, Dict, Iterable, List, Optional
+from urllib.parse import urlparse
+
+import httpx
+
+from app.config.settings import load_api_settings
+from app.guardrails.middleware import apply_guardrails, filter_sensitive_data
 from app.tools.registry import Tool, ToolType
+from chat_service.llm.factory import LLMFactory, config_from_settings
+from chat_service.llm.base import LLMError
 
 
 def calculator_handler(expression: str) -> str:
@@ -18,11 +26,94 @@ def calculator_handler(expression: str) -> str:
 
 
 def search_handler(query: str) -> str:
-    return f"Search results for: {query}"
+    guard = _guard_inputs([query])
+    if guard:
+        return guard
+
+    settings = load_api_settings()
+    if not settings.search_api_url:
+        return "Error: SEARCH_API_URL not configured"
+    provider = (settings.search_provider or "duckduckgo").lower()
+    if provider != "duckduckgo":
+        return f"Error: Unsupported search provider '{provider}'"
+
+    params = {
+        "q": query,
+        "format": "json",
+        "no_html": 1,
+        "skip_disambig": 1,
+    }
+    if settings.search_api_key:
+        params["api_key"] = settings.search_api_key
+
+    try:
+        response = httpx.get(
+            settings.search_api_url,
+            params=params,
+            timeout=settings.search_timeout,
+        )
+        response.raise_for_status()
+        data = response.json()
+    except Exception as exc:
+        return f"Error: Search failed - {exc}"
+
+    abstract = data.get("AbstractText")
+    if abstract:
+        return _sanitize_output(abstract)
+
+    related = data.get("RelatedTopics", [])
+    snippets: List[str] = []
+    for item in related:
+        if isinstance(item, dict) and item.get("Text"):
+            snippets.append(item["Text"])
+        if len(snippets) >= 3:
+            break
+
+    if snippets:
+        return _sanitize_output(" | ".join(snippets))
+
+    return "No results found"
 
 
 def weather_handler(location: str) -> str:
-    return f"Weather for {location}: (placeholder)"
+    guard = _guard_inputs([location])
+    if guard:
+        return guard
+
+    settings = load_api_settings()
+    if not settings.weather_api_key:
+        return "Error: WEATHER_API_KEY not configured"
+
+    params = {
+        "q": location,
+        "appid": settings.weather_api_key,
+        "units": settings.weather_units,
+        "lang": settings.weather_lang,
+    }
+    try:
+        response = httpx.get(
+            settings.weather_api_url,
+            params=params,
+            timeout=settings.weather_timeout,
+        )
+        response.raise_for_status()
+        data = response.json()
+    except Exception as exc:
+        return f"Error: Weather lookup failed - {exc}"
+
+    main = data.get("main", {})
+    weather = data.get("weather", [{}])[0]
+    temp = main.get("temp")
+    desc = weather.get("description")
+    if temp is None and not desc:
+        return "Error: Weather response incomplete"
+
+    parts = [f"Weather for {location}:"]
+    if desc:
+        parts.append(str(desc))
+    if temp is not None:
+        parts.append(f"{temp}°")
+    return _sanitize_output(" ".join(parts))
 
 
 def convert_handler(value: str, from_unit: str, to_unit: str) -> str:
@@ -72,7 +163,87 @@ def date_handler(action: str, format: str = "%Y-%m-%d") -> str:
 
 
 def llm_handler(prompt: str, **kwargs) -> str:
-    return f"LLM response for: {prompt}"
+    settings = load_api_settings()
+    if not settings.llm_enabled:
+        return "LLM disabled. Set LLM_ENABLED=true to enable."
+    config = config_from_settings(settings)
+    provider = LLMFactory.get_provider(config)
+    try:
+        guard = _guard_inputs([prompt])
+        if guard:
+            return guard
+        output = provider.generate(prompt)
+        return _sanitize_output(output)
+    except LLMError as exc:
+        return f"LLM error: {exc}"
+
+
+def database_handler(query: str) -> str:
+    guard = _guard_inputs([query])
+    if guard:
+        return guard
+
+    settings = load_api_settings()
+    if not settings.is_postgres_enabled():
+        return "Error: DATABASE_URL not configured"
+
+    clean = (query or "").strip()
+    lowered = clean.lower()
+    if not (lowered.startswith("select") or lowered.startswith("with")):
+        return "Error: Only SELECT queries are allowed"
+    if ";" in clean.rstrip(";"):
+        return "Error: Multiple statements are not allowed"
+
+    limit = settings.database_max_rows
+    if "limit" not in lowered:
+        clean = f"{clean} LIMIT {limit}"
+
+    try:
+        from sqlalchemy import create_engine, text
+        engine = create_engine(settings.database_url, pool_pre_ping=True)
+        with engine.connect() as conn:
+            result = conn.execute(text(clean))
+            rows = result.fetchmany(limit)
+            if not rows:
+                return "No rows returned"
+            headers = result.keys()
+            lines = [", ".join(headers)]
+            for row in rows:
+                values = [str(value) for value in row]
+                lines.append(", ".join(values))
+            return _sanitize_output("\n".join(lines))
+    except Exception as exc:
+        return f"Error: Database query failed - {exc}"
+
+
+def http_get_handler(url: str) -> str:
+    guard = _guard_inputs([url])
+    if guard:
+        return guard
+
+    settings = load_api_settings()
+    allowed_hosts = _parse_allowed_hosts(settings.http_allowed_hosts)
+    if not allowed_hosts:
+        return "Error: HTTP_ALLOWED_HOSTS not configured"
+
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        return "Error: Only http/https URLs are allowed"
+    host = parsed.hostname or ""
+    if host not in allowed_hosts:
+        return f"Error: Host '{host}' not allowed"
+
+    try:
+        response = httpx.get(
+            url,
+            timeout=settings.http_timeout,
+            follow_redirects=settings.http_follow_redirects,
+        )
+        response.raise_for_status()
+        text = response.text[: settings.http_max_bytes]
+        return _sanitize_output(f"HTTP {response.status_code}: {text}")
+    except Exception as exc:
+        return f"Error: HTTP request failed - {exc}"
 
 
 CALCULATOR_TOOL = Tool(
@@ -123,6 +294,22 @@ LLM_TOOL = Tool(
     parameters={"prompt": "str"}
 )
 
+DATABASE_TOOL = Tool(
+    name="database",
+    description="Run read-only SQL queries (SELECT only)",
+    tool_type=ToolType.DATABASE,
+    handler=database_handler,
+    parameters={"query": "str"}
+)
+
+HTTP_TOOL = Tool(
+    name="http",
+    description="Fetch an HTTP URL from allowed hosts",
+    tool_type=ToolType.HTTP,
+    handler=http_get_handler,
+    parameters={"url": "str"}
+)
+
 BUILTIN_TOOLS = [
     CALCULATOR_TOOL,
     SEARCH_TOOL,
@@ -130,9 +317,31 @@ BUILTIN_TOOLS = [
     CONVERT_TOOL,
     DATE_TOOL,
     LLM_TOOL,
+    DATABASE_TOOL,
+    HTTP_TOOL,
 ]
 
 
 def register_builtin_tools(registry) -> None:
     for tool in BUILTIN_TOOLS:
         registry.register(tool)
+
+
+def _guard_inputs(values: Iterable[Optional[str]]) -> Optional[str]:
+    for value in values:
+        if value is None:
+            continue
+        result = apply_guardrails(value)
+        if not result.allowed:
+            return f"Error: Input blocked by guardrails ({result.reason})"
+    return None
+
+
+def _sanitize_output(text: str) -> str:
+    return filter_sensitive_data(text or "")
+
+
+def _parse_allowed_hosts(raw: str) -> List[str]:
+    if not raw:
+        return []
+    return [token.strip() for token in raw.split(",") if token.strip()]

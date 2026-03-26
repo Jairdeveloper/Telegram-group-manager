@@ -37,7 +37,6 @@ class AuditEvent(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
-
 class AuditQuery(BaseModel):
     tenant_id: str
     event_types: Optional[List[AuditEventType]] = None

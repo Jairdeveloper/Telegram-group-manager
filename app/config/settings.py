@@ -5,6 +5,8 @@ from typing import Optional
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_webhook_settings: Optional["WebhookSettings"] = None
+
 
 class ApiSettings(BaseSettings):
     """Settings used by the chatbot API/monolith runtime."""
@@ -14,6 +16,39 @@ class ApiSettings(BaseSettings):
     debug: bool = False
     database_url: Optional[str] = None
     openai_api_key: Optional[str] = None
+    openai_base_url: Optional[str] = None
+    llm_enabled: bool = False
+    intent_router_llm_enabled: bool = False
+    llm_provider: str = "ollama"
+    llm_model: str = "llama3"
+    ollama_model: str = "llama3"
+    llm_timeout: int = 30
+    llm_temperature: float = 0.2
+    ollama_base_url: str = "http://localhost:11434"
+    rag_enabled: bool = False
+    rag_embedding_model: str = "all-MiniLM-L6-v2"
+    rag_embedding_dim: int = 384
+    rag_top_k: int = 5
+    rag_min_score: float = 0.2
+    rag_chunk_size: int = 1000
+    rag_chunk_overlap: int = 100
+    rag_use_postgres: bool = False
+    agent_react_enabled: bool = False
+    agent_max_iterations: int = 3
+    search_api_url: str = "https://api.duckduckgo.com/"
+    search_api_key: Optional[str] = None
+    search_provider: str = "duckduckgo"
+    search_timeout: int = 10
+    weather_api_url: str = "https://api.openweathermap.org/data/2.5/weather"
+    weather_api_key: Optional[str] = None
+    weather_units: str = "metric"
+    weather_lang: str = "es"
+    weather_timeout: int = 10
+    http_allowed_hosts: str = ""
+    http_timeout: int = 10
+    http_max_bytes: int = 2000
+    http_follow_redirects: bool = False
+    database_max_rows: int = 20
     log_level: str = "INFO"
     api_host: str = "127.0.0.1"
     api_port: int = 8000
@@ -101,7 +136,10 @@ def load_api_settings() -> ApiSettings:
 
 
 def load_webhook_settings() -> WebhookSettings:
-    return WebhookSettings()
+    global _webhook_settings
+    if _webhook_settings is None:
+        _webhook_settings = WebhookSettings()
+    return _webhook_settings
 
 
 def load_worker_settings() -> WorkerSettings:

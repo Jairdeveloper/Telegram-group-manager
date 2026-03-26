@@ -97,21 +97,21 @@ class TestFeatureFlags:
 
     @patch.dict(os.environ, {"MANAGER_ENABLE_OPS": "false"})
     def test_ops_module_respects_feature_flag(self):
-        from app.manager_bot.application.ops import OpsModule
+        from app.manager_bot._application.ops import OpsModule
 
         module = OpsModule()
         assert module.is_enabled() is False
 
     @patch.dict(os.environ, {"MANAGER_ENABLE_ENTERPRISE": "false"})
     def test_enterprise_module_respects_feature_flag(self):
-        from app.manager_bot.application.enterprise import EnterpriseModule
+        from app.manager_bot._application.enterprise import EnterpriseModule
 
         module = EnterpriseModule()
         assert module.is_enabled() is False
 
     @patch.dict(os.environ, {"MANAGER_ENABLE_AGENT": "true"})
     def test_agent_module_respects_feature_flag(self):
-        from app.manager_bot.application.agent import AgentModule
+        from app.manager_bot._application.agent import AgentModule
 
         module = AgentModule()
         assert module.is_enabled() is True

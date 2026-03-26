@@ -161,4 +161,101 @@ Ejecutar la migracion Semana 2-3 pendiente:
 3. Aumentar pruebas negativas de webhook.
 4. Plan de retiro progresivo de legacy.
 
+---
+
+## 10. Instalación y Ejecución (Nueva Arquitectura)
+
+### Requisitos
+- Python 3.10+
+- pip
+
+### Instalación
+
+#### Linux/Mac
+```bash
+./install.sh
+```
+
+#### Windows
+```batch
+install.bat
+```
+
+#### Manual
+```bash
+pip install -e .
+```
+
+### Ejecución
+
+#### Opción 1: Comandos CLI (después de instalación)
+```bash
+robot           # Servidor completo en puerto 8080
+robot-worker    # Worker de tareas
+```
+
+#### Opción 2: Módulos Python
+```bash
+python -m app.webhook.entrypoint
+python worker.py
+```
+
+#### Opción 3: Uvicorn directo
+```bash
+uvicorn app.webhook.entrypoint:app --host 0.0.0.0 --port 8080
+```
+
+### Variables de Entorno
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `TELEGRAM_BOT_TOKEN` | - | Token del bot de Telegram (requerido) |
+| `WEBHOOK_TOKEN` | - | Token para validación de webhook |
+| `CHATBOT_API_URL` | `http://127.0.0.1:8000/api/v1/chat` | URL del API de chat |
+| `REDIS_URL` | - | URL de Redis (opcional) |
+| `HOST` | `0.0.0.0` | Host del servidor |
+| `PORT` | `8080` | Puerto del servidor |
+| `RELOAD` | `false` | Recarga automática (desarrollo) |
+| `MANAGER_ENABLE_OPS` | `true` | Habilitar módulo OPS |
+| `MANAGER_ENABLE_ENTERPRISE` | `true` | Habilitar módulo Enterprise |
+| `MANAGER_ENABLE_AGENT` | `false` | Habilitar agente autónomo |
+
+### Docker
+
+```dockerfile
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY pyproject.toml .
+RUN pip install -e .
+
+COPY . .
+
+CMD ["robot"]
+```
+
+### Desarrollo
+
+```bash
+# Instalar con dependencias de desarrollo
+pip install -e ".[dev]"
+
+# Ejecutar con reload automático
+RELOAD=true PORT=8080 robot
+
+# Ejecutar tests
+pytest -q
+```
+
+### Legacy (Deprecated)
+
+Los siguientes entrypoints están **deprecated** y no deben usarse:
+
+| Archivo | Razón |
+|---------|-------|
+| `app/api/entrypoint.py` | API ya incluida en webhook entrypoint |
+| `app/telegram_ops/entrypoint.py` | OPS migrado a ManagerBot vía webhook |
+| `telegram_adapter.py` | Legacy adapter, no operativo |
+
 

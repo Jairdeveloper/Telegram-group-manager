@@ -57,9 +57,9 @@ class ManagerBot:
 
     def _register_core_modules(self):
         """Registrar módulos base del ManagerBot."""
-        from app.manager_bot.application.ops import OpsModule
-        from app.manager_bot.application.enterprise import EnterpriseModule
-        from app.manager_bot.application.agent import AgentModule
+        from app.manager_bot._application.ops import OpsModule
+        from app.manager_bot._application.enterprise import EnterpriseModule
+        from app.manager_bot._application.agent import AgentModule
 
         ops_module = OpsModule()
         self.registry.register(ops_module)
@@ -105,7 +105,7 @@ class ManagerBot:
     def get_router(self):
         """Obtener el router de Telegram."""
         if self._router is None:
-            from app.manager_bot.transport.telegram.router import TelegramRouter
+            from app.manager_bot._transport.telegram.router import TelegramRouter
 
             self._router = TelegramRouter(self.registry)
         return self._router

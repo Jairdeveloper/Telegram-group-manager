@@ -1,0 +1,4 @@
+app
+chat_service
+migrations
+scripts

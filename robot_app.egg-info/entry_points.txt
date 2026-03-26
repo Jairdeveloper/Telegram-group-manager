@@ -1,0 +1,3 @@
+[console_scripts]
+robot = app.webhook.entrypoint:main
+robot-worker = worker:main

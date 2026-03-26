@@ -1,5 +1,7 @@
 from typing import List, Optional, Dict, Any, Callable
 from dataclasses import dataclass
+import time
+from app.monitoring.agent_metrics import record_tool_execution
 from app.tools.registry import ToolRegistry, Tool
 from app.policies.engine import PolicyEngine
 from app.policies.models import Action
@@ -79,13 +81,15 @@ class ToolRouter:
         tool = self.registry.get_tool(tool_name)
         if not tool:
             raise ValueError(f"Tool '{tool_name}' not found")
-        
+        start = time.time()
         try:
             return tool.handler(**parameters)
         except TypeError as e:
             return f"Error: Invalid parameters - {str(e)}"
         except Exception as e:
             return f"Error: {str(e)}"
+        finally:
+            record_tool_execution(tool_name, time.time() - start)
     
     def execute_tool_call(self, tool_call: ToolCall) -> Any:
         return self.execute_tool(tool_call.tool, tool_call.parameters)
@@ -95,7 +99,7 @@ class ToolRouter:
         tool_params = tool.parameters
         
         clean_message = message.lower()
-        for name in ['calculator', 'calculate', 'search', 'search for', 'convert', 'weather']:
+        for name in ['calculator', 'calculate', 'search', 'search for', 'convert', 'weather', 'database', 'db', 'http', 'fetch', 'get']:
             if clean_message.startswith(name + ' '):
                 clean_message = clean_message[len(name):].strip()
                 break
@@ -103,10 +107,10 @@ class ToolRouter:
         for param_name, param_type in tool_params.items():
             if param_name == "expression" or param_name == "query" or param_name == "prompt":
                 params[param_name] = clean_message if clean_message else message
-            elif param_name in ["location", "value", "action"]:
+            elif param_name in ["location", "value", "action", "url"]:
                 words = message.split()
                 for word in words:
-                    if word.lower() not in [tool.name, 'calculate', 'search', 'for', 'convert', 'weather', 'the', 'web']:
+                    if word.lower() not in [tool.name, 'calculate', 'search', 'for', 'convert', 'weather', 'database', 'db', 'http', 'fetch', 'get', 'the', 'web']:
                         params[param_name] = word
                         break
                 if param_name not in params:

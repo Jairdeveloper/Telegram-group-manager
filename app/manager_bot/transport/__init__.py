@@ -1,1 +1,2 @@
-"""Transport layer for ManagerBot."""
+"""Compatibility transport package (aliases to _transport)."""
+

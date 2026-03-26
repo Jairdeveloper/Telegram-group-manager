@@ -1,18 +1,47 @@
 """Webhook domain logic decoupled from infrastructure libraries."""
 
 import inspect
+import json
 import time
 from typing import Any, Callable, Dict, Optional
 
 from fastapi import HTTPException, Request
 
 from app.enterprise import handle_enterprise_command, handle_enterprise_moderation
+from app.manager_bot._menu_service import get_menu_engine, get_rate_limiter
+from app.manager_bot._utils.duration_parser import parse_duration_to_seconds
 from app.ops.policies import check_rate_limit, is_admin
 from app.ops.services import handle_chat_message, handle_ops_command
 from app.ops.events import record_event
+from app.agent.core import AgentContext, get_default_agent_core
 from app.telegram.dispatcher import dispatch_telegram_update
 from app.telegram.services import extract_chat_payload
 from .ports import ChatApiClient, DedupStore, TaskQueue, TelegramClient
+
+
+async def _maybe_await(result):
+    if inspect.isawaitable(result):
+        return await result
+    return result
+
+
+_manager_bot_router = None
+_agent_core = None
+
+
+def _get_manager_bot_router():
+    global _manager_bot_router
+    if _manager_bot_router is None:
+        from app.manager_bot.core import ManagerBot
+        _manager_bot_router = ManagerBot().get_router()
+    return _manager_bot_router
+
+
+def _get_agent_core():
+    global _agent_core
+    if _agent_core is None:
+        _agent_core = get_default_agent_core()
+    return _agent_core
 
 
 def dedup_update_impl(
@@ -47,10 +76,15 @@ async def process_update_impl(
 ) -> None:
     """Process update by dispatching chat and OPS commands via application services."""
     start = time.time()
-    dispatch = dispatch_telegram_update(update)
+    if update.get("callback_query"):
+        dispatch = dispatch_telegram_update(update)
+    else:
+        router = _get_manager_bot_router()
+        dispatch = router.route_update(update).to_legacy_dispatch()
     update_id = dispatch.update_id
     chat_id = dispatch.chat_id
     log_ctx = {"update_id": update_id, "chat_id": chat_id}
+    menu_to_show: Optional[str] = None
 
     if dispatch.kind == "unsupported":
         logger.info("webhook.unsupported_update", extra=log_ctx)
@@ -87,7 +121,393 @@ async def process_update_impl(
     )
 
     try:
-        if dispatch.kind == "ops_command":
+        if dispatch.kind == "callback_query":
+            menu_engine = get_menu_engine()
+            rate_limiter = get_rate_limiter()
+            callback_data = dispatch.text
+            user_id = dispatch.user_id
+            
+            # Rate limit check
+            if rate_limiter and not rate_limiter.is_allowed(user_id, "callback"):
+                callback_query_id = dispatch.raw_update.get("callback_query", {}).get("id")
+                if callback_query_id:
+                    await _maybe_await(telegram_client.answer_callback_query(
+                        callback_query_id=callback_query_id,
+                        text="⚠️ Demasiadas solicitudes. Intenta más tarde.",
+                        show_alert=True
+                    ))
+                record_event(
+                    component="webhook",
+                    event="webhook.callback_query.rate_limited",
+                    update_id=update_id,
+                    user_id=user_id,
+                )
+                return
+            
+            if menu_engine and callback_data:
+                await menu_engine.handle_callback_query_raw(
+                    callback_data=callback_data,
+                    callback_query_id=dispatch.raw_update.get("callback_query", {}).get("id"),
+                    chat_id=chat_id,
+                    message_id=dispatch.raw_update.get("callback_query", {}).get("message", {}).get("message_id"),
+                    user_id=user_id,
+                )
+            else:
+                callback_query_id = dispatch.raw_update.get("callback_query", {}).get("id")
+                if callback_query_id:
+                    await _maybe_await(telegram_client.answer_callback_query(
+                        callback_query_id=callback_query_id,
+                        text="Acción no reconocida",
+                        show_alert=True
+                    ))
+            record_event(
+                component="webhook",
+                event="webhook.callback_query.ok",
+                update_id=update_id,
+                chat_id=chat_id,
+                callback_data=callback_data,
+            )
+            return
+        
+        if dispatch.kind in ("chat_message", "agent_task"):
+            from app.manager_bot._menu_service import get_conversation_state
+            conversation = get_conversation_state()
+            user_id = dispatch.user_id
+            chat_id = dispatch.chat_id
+            text = dispatch.text
+            
+            state = conversation.get_state(user_id, chat_id)
+            if state and state.get("state") == "waiting_welcome_text":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                config = await config_storage.get(chat_id)
+                if not config:
+                    config = GroupConfig.create_default(chat_id, "default")
+                config.welcome_text = text
+                config.update_timestamp(user_id)
+                await config_storage.set(config)
+                conversation.clear_state(user_id, chat_id)
+                reply = f"Mensaje de bienvenida guardado:\n\n{text}"
+                menu_to_show = "welcome_customize"
+            elif state and state.get("state") == "waiting_welcome_media":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+
+                message = dispatch.raw_update.get("message") or dispatch.raw_update.get("edited_message") or {}
+                file_id = None
+                if message.get("photo"):
+                    file_id = message["photo"][-1].get("file_id")
+                elif message.get("video"):
+                    file_id = message["video"].get("file_id")
+                elif message.get("document"):
+                    file_id = message["document"].get("file_id")
+                elif message.get("animation"):
+                    file_id = message["animation"].get("file_id")
+                elif message.get("sticker"):
+                    file_id = message["sticker"].get("file_id")
+
+                if not file_id:
+                    reply = "Envia una foto o video para configurar la bienvenida."
+                else:
+                    config = await config_storage.get(chat_id)
+                    if not config:
+                        config = GroupConfig.create_default(chat_id, "default")
+                    config.welcome_media = file_id
+                    config.update_timestamp(user_id)
+                    await config_storage.set(config)
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Multimedia de bienvenida guardada."
+                    menu_to_show = "welcome_customize"
+            elif state and state.get("state") == "waiting_goodbye_text":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                config = await config_storage.get(chat_id)
+                if not config:
+                    config = GroupConfig.create_default(chat_id, "default")
+                config.goodbye_text = text
+                config.update_timestamp(user_id)
+                await config_storage.set(config)
+                conversation.clear_state(user_id, chat_id)
+                reply = f"Mensaje de despedida guardado:\n\n{text}"
+            elif state and state.get("state") == "waiting_antiflood_warn_duration":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "antiflood"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.antiflood_warn_duration_sec = seconds
+                        config.antiflood_action = "warn"
+                        config.antiflood_enabled = True
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de advertencia guardada."
+                        menu_to_show = "antiflood"
+            elif state and state.get("state") == "waiting_antiflood_ban_duration":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "antiflood"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.antiflood_ban_duration_sec = seconds
+                        config.antiflood_action = "ban"
+                        config.antiflood_enabled = True
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de ban guardada."
+                        menu_to_show = "antiflood"
+            elif state and state.get("state") == "waiting_antiflood_mute_duration":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "antiflood"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.antiflood_mute_duration_sec = seconds
+                        config.antiflood_action = "mute"
+                        config.antiflood_enabled = True
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de silenciar guardada."
+                        menu_to_show = "antiflood"
+            elif state and state.get("state", "").startswith("waiting_antispan_"):
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                state_name = state.get("state", "")
+                lowered = (text or "").strip().lower()
+
+                if lowered in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    if state_name.startswith("waiting_antispan_"):
+                        scope = state_name.replace("waiting_antispan_", "").split("_")[0]
+                        menu_to_show = f"antispan:{scope}" if scope else "antispan"
+                    else:
+                        menu_to_show = "antispan"
+                elif state_name.endswith("_mute_duration") or state_name.endswith("_ban_duration"):
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        suffix = state_name.replace("waiting_antispan_", "")
+                        if suffix.endswith("_mute_duration"):
+                            scope = suffix[:-len("_mute_duration")]
+                            kind = "mute"
+                        else:
+                            scope = suffix[:-len("_ban_duration")]
+                            kind = "ban"
+
+                        if scope == "telegram":
+                            if kind == "mute":
+                                config.antispan_telegram_mute_duration_sec = seconds
+                                config.antispan_telegram_action = "mute"
+                            else:
+                                config.antispan_telegram_ban_duration_sec = seconds
+                                config.antispan_telegram_action = "ban"
+                        elif scope == "forward":
+                            if kind == "mute":
+                                config.antispan_forward_mute_duration_sec = seconds
+                            else:
+                                config.antispan_forward_ban_duration_sec = seconds
+                        elif scope == "quotes":
+                            if kind == "mute":
+                                config.antispan_quotes_mute_duration_sec = seconds
+                            else:
+                                config.antispan_quotes_ban_duration_sec = seconds
+                        elif scope == "internet":
+                            if kind == "mute":
+                                config.antispan_internet_mute_duration_sec = seconds
+                                config.antispan_internet_action = "mute"
+                            else:
+                                config.antispan_internet_ban_duration_sec = seconds
+                                config.antispan_internet_action = "ban"
+
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion guardada."
+                        menu_to_show = f"antispan:{scope}"
+                elif state_name.endswith("_exceptions_add") or state_name.endswith("_exceptions_remove"):
+                    config = await config_storage.get(chat_id)
+                    if not config:
+                        config = GroupConfig.create_default(chat_id, "default")
+
+                    suffix = state_name.replace("waiting_antispan_", "")
+                    if suffix.endswith("_exceptions_add"):
+                        scope = suffix[:-len("_exceptions_add")]
+                        mode = "add"
+                    else:
+                        scope = suffix[:-len("_exceptions_remove")]
+                        mode = "remove"
+
+                    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
+                    if not lines:
+                        reply = "No se encontraron enlaces o usernames."
+                    else:
+                        if scope == "telegram":
+                            entries = list(config.antispan_telegram_exceptions)
+                        elif scope == "forward":
+                            entries = list(config.antispan_forward_exceptions)
+                        elif scope == "quotes":
+                            entries = list(config.antispan_quotes_exceptions)
+                        elif scope == "internet":
+                            entries = list(config.antispan_internet_exceptions)
+                        else:
+                            entries = []
+
+                        if mode == "add":
+                            for line in lines:
+                                if line not in entries:
+                                    entries.append(line)
+                            reply = "Excepciones agregadas."
+                        else:
+                            for line in lines:
+                                if line in entries:
+                                    entries.remove(line)
+                            reply = "Excepciones eliminadas."
+
+                        if scope == "telegram":
+                            config.antispan_telegram_exceptions = entries
+                        elif scope == "forward":
+                            config.antispan_forward_exceptions = entries
+                        elif scope == "quotes":
+                            config.antispan_quotes_exceptions = entries
+                        elif scope == "internet":
+                            config.antispan_internet_exceptions = entries
+
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        menu_to_show = f"antispan:{scope}"
+            elif state and state.get("state") == "waiting_multimedia_duration_mute":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "multimedia:duration"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.multimedia_mute_duration_sec = seconds
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de silenciar para multimedia guardada."
+                        menu_to_show = "multimedia:duration"
+            elif state and state.get("state") == "waiting_multimedia_duration_ban":
+                from app.manager_bot._config.storage import get_config_storage
+                from app.manager_bot._config.group_config import GroupConfig
+                config_storage = get_config_storage()
+                if (text or "").strip().lower() in ("cancel", "/cancel", "cancelar"):
+                    conversation.clear_state(user_id, chat_id)
+                    reply = "Operacion cancelada."
+                    menu_to_show = "multimedia:duration"
+                else:
+                    seconds = parse_duration_to_seconds(text or "")
+                    if not seconds or seconds < 30 or seconds > 365 * 24 * 60 * 60:
+                        reply = "Duracion invalida. Minimo 30 segundos, maximo 365 dias."
+                    else:
+                        config = await config_storage.get(chat_id)
+                        if not config:
+                            config = GroupConfig.create_default(chat_id, "default")
+                        config.multimedia_ban_duration_sec = seconds
+                        config.update_timestamp(user_id)
+                        await config_storage.set(config)
+                        conversation.clear_state(user_id, chat_id)
+                        reply = "Duracion de ban para multimedia guardada."
+                        menu_to_show = "multimedia:duration"
+            else:
+                moderation = handle_enterprise_moderation_fn(
+                    actor_id=dispatch.user_id,
+                    chat_id=dispatch.chat_id,
+                    raw_text=dispatch.text or "",
+                    raw_update=dispatch.raw_update,
+                )
+                if moderation.get("status") == "blocked":
+                    reply = moderation.get("response_text", "Mensaje bloqueado.")
+                    record_event(
+                        component="webhook",
+                        event="webhook.enterprise_moderation.blocked",
+                        update_id=update_id,
+                        chat_id=chat_id,
+                        reason=moderation.get("reason"),
+                        source=moderation.get("source"),
+                        reply_len=len(reply or ""),
+                    )
+                else:
+                    if dispatch.kind == "agent_task":
+                        agent_core = _get_agent_core()
+                        agent_context = AgentContext(
+                            chat_id=chat_id,
+                            tenant_id="default",
+                            user_id=str(user_id) if user_id is not None else None,
+                        )
+                        agent_result = agent_core.process(text or "", agent_context)
+                        reply = agent_result.response or "(no response)"
+                        record_event(
+                            component="webhook",
+                            event="webhook.agent_flow.ok",
+                            update_id=update_id,
+                            chat_id=chat_id,
+                            reply_len=len(reply or ""),
+                            source=agent_result.source,
+                        )
+                    else:
+                        result = handle_chat_message_fn(chat_id, text)
+                        reply = result.get("response", "(no response)")
+                        record_event(
+                            component="webhook",
+                            event="webhook.chat_service.ok",
+                            update_id=update_id,
+                            chat_id=chat_id,
+                            reply_len=len(reply or ""),
+                        )
+        elif dispatch.kind == "ops_command":
             result = await handle_ops_command_fn(
                 chat_id,
                 dispatch.command or "",
@@ -114,6 +534,26 @@ async def process_update_impl(
                 raw_text=dispatch.text or "",
                 raw_update=dispatch.raw_update,
             )
+            
+            # Handle menu status - display interactive menu instead of text
+            if result.get("status") == "menu":
+                menu_engine = get_menu_engine()
+                menu_id = result.get("menu_id", "main")
+                if menu_engine:
+                    await menu_engine.send_menu_message(
+                        chat_id=chat_id,
+                        bot=telegram_client,
+                        menu_id=menu_id,
+                    )
+                    record_event(
+                        component="webhook",
+                        event="webhook.menu.display",
+                        update_id=update_id,
+                        chat_id=chat_id,
+                        menu_id=menu_id,
+                    )
+                    return
+            
             reply = result.get("response_text", "(no response)")
             record_event(
                 component="webhook",
@@ -166,7 +606,7 @@ async def process_update_impl(
         reply = "(internal error)"
 
     try:
-        telegram_client.send_message(chat_id=chat_id, text=reply)
+        await _maybe_await(telegram_client.send_message(chat_id=chat_id, text=reply))
         record_event(
             component="webhook",
             event="webhook.telegram_send.ok",
@@ -185,6 +625,18 @@ async def process_update_impl(
         if telegram_send_error_metric is not None:
             telegram_send_error_metric.inc()
 
+    if menu_to_show:
+        menu_engine = get_menu_engine()
+        if menu_engine:
+            try:
+                await menu_engine.send_menu_message(
+                    chat_id=chat_id,
+                    bot=telegram_client,
+                    menu_id=menu_to_show,
+                )
+            except Exception:
+                logger.exception("webhook.menu.send_error", extra=log_ctx)
+
     if process_time_metric is not None:
         process_time_metric.observe(time.time() - start)
 
@@ -201,6 +653,7 @@ async def handle_webhook_impl(
     process_update_sync: Callable[[Dict[str, Any]], None],
     requests_metric,
     logger,
+    ptb_webhook_handler: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """Main webhook flow with token validation, dedup and enqueue/process."""
     if not bot_token:
@@ -217,7 +670,42 @@ async def handle_webhook_impl(
             record_event(component="webhook", event="webhook.forbidden", level="WARN", detail="invalid_legacy_token")
             raise HTTPException(status_code=403, detail="Invalid token")
 
-    update = await request.json()
+    update = None
+    body = None
+    if hasattr(request, "body"):
+        try:
+            body = await request.body()
+        except Exception:
+            body = None
+
+    if body is not None:
+        if ptb_webhook_handler is not None and hasattr(ptb_webhook_handler, "to_internal"):
+            update = ptb_webhook_handler.to_internal(body)
+
+        if not update:
+            try:
+                update = json.loads(body)
+            except Exception:
+                logger.exception("webhook.invalid_json")
+                requests_metric.labels(status="invalid").inc()
+                return {"ok": True}
+    else:
+        try:
+            update = await request.json()
+        except Exception:
+            logger.exception("webhook.invalid_json")
+            requests_metric.labels(status="invalid").inc()
+            return {"ok": True}
+
+        if ptb_webhook_handler is not None and hasattr(ptb_webhook_handler, "to_internal"):
+            try:
+                body = json.dumps(update).encode("utf-8")
+            except Exception:
+                body = None
+            if body:
+                ptb_update = ptb_webhook_handler.to_internal(body)
+                if ptb_update:
+                    update = ptb_update
     update_id = update.get("update_id")
     payload = extract_chat_payload(update)
     chat_id = payload[0] if payload else None
@@ -294,3 +782,6 @@ async def handle_webhook_impl(
         )
         requests_metric.labels(status="error").inc()
         return {"ok": True}
+
+
+

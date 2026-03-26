@@ -13,6 +13,7 @@ ENTERPRISE_COMMANDS: FrozenSet[str] = frozenset(
         "/anilist",
         "/ban",
         "/blacklist",
+        "/config",
         "/delnote",
         "/fun",
         "/gettime",

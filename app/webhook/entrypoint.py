@@ -1,6 +1,7 @@
 """Canonical webhook entrypoint (composition root)."""
 
 from typing import Any, Dict
+import importlib.util
 
 from app.ops.policies import check_rate_limit, is_admin
 from app.ops.services import handle_chat_message, handle_ops_command
@@ -12,9 +13,26 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from app.webhook.handlers import dedup_update_impl, handle_webhook_impl, process_update_impl
 from app.webhook.infrastructure import InMemoryDedupStore
 from app.webhook.bootstrap import build_webhook_runtime
-from webhook_tasks import process_update as process_update_task
 
 from app.manager_bot.core import ManagerBot
+
+
+def _load_webhook_tasks():
+    """Dynamically load webhook_tasks module from project root."""
+    import os
+    from pathlib import Path
+    
+    project_root = Path(__file__).parent.parent.parent
+    webhook_tasks_path = project_root / "webhook_tasks.py"
+    
+    spec = importlib.util.spec_from_file_location("webhook_tasks", webhook_tasks_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+webhook_tasks_module = _load_webhook_tasks()
+process_update_task = webhook_tasks_module.process_update
 
 runtime = build_webhook_runtime(process_update_callable=process_update_task)
 
@@ -29,6 +47,8 @@ DEDUP_STORE = runtime.dedup_store
 TASK_QUEUE = runtime.task_queue
 CHAT_API_CLIENT = runtime.chat_api_client
 TELEGRAM_CLIENT = runtime.telegram_client
+PTB_WEBHOOK_HANDLER = runtime.ptb_webhook_handler
+PTB_APPLICATION = runtime.ptb_application
 REQUESTS = runtime.requests_metric
 PROCESS_TIME = runtime.process_time_metric
 CHAT_API_ERROR = runtime.chat_api_error_metric
@@ -87,6 +107,19 @@ async def process_update_sync(update: Dict[str, Any]):
     )
 
 
+def _register_ptb_handlers() -> None:
+    """Register ManagerBot handlers into PTB application when available."""
+    if PTB_APPLICATION is None:
+        return
+    from app.manager_bot._transport.telegram.ptb_adapter import ManagerBotPtbAdapter
+
+    adapter = ManagerBotPtbAdapter(_get_manager_bot(), process_update_sync)
+    adapter.register(PTB_APPLICATION)
+
+
+_register_ptb_handlers()
+
+
 @app.post("/webhook/{token}")
 async def webhook(token: str, request: Request):
     return await handle_webhook_impl(
@@ -100,6 +133,7 @@ async def webhook(token: str, request: Request):
         process_update_sync=process_update_sync,
         requests_metric=REQUESTS,
         logger=LOGGER,
+        ptb_webhook_handler=PTB_WEBHOOK_HANDLER,
     )
 
 
@@ -117,3 +151,25 @@ async def metrics():
 def create_webhook_app():
     """Factory-compatible accessor for webhook app."""
     return app
+
+
+def main():
+    """Entry point para CLI."""
+    import uvicorn
+    import os
+    
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "8000"))
+    reload = os.getenv("RELOAD", "false").lower() == "true"
+    
+    uvicorn.run(
+        "app.webhook.entrypoint:app",
+        host=host,
+        port=port,
+        reload=reload,
+        log_level="info",
+    )
+
+
+if __name__ == "__main__":
+    main()

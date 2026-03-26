@@ -1,0 +1,58 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Robot (Webhook)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.webhook.entrypoint:app",
+                "--host", "0.0.0.0",
+                "--port", "8000"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "BOT_TOKEN": "${env:BOT_TOKEN}",
+                "WEBHOOK_TOKEN": "${env:WEBHOOK_TOKEN}",
+                "CHATBOT_API_URL": "${env:CHATBOT_API_URL}",
+                "DATABASE_URL": "${env:DATABASE_URL}",
+                "REDIS_URL": "${env:REDIS_URL}",
+                "ENVIRONMENT": "development"
+            },
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "subProcess": true
+        },
+        {
+            "name": "Python: Robot (Debug with Reload)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.webhook.entrypoint:app",
+                "--host", "0.0.0.0",
+                "--port", "8000",
+                "--reload"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "BOT_TOKEN": "${env:BOT_TOKEN}",
+                "WEBHOOK_TOKEN": "${env:WEBHOOK_TOKEN}",
+                "CHATBOT_API_URL": "${env:CHATBOT_API_URL}",
+                "DATABASE_URL": "${env:DATABASE_URL}",
+                "REDIS_URL": "${env:REDIS_URL}",
+                "ENVIRONMENT": "development"
+            },
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        }
+    ]
+}
