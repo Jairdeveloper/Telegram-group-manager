@@ -516,6 +516,21 @@ HOST=0.0.0.0 PORT=8000 robot
 
 ---
 
+Cobertura por fase
+
+Fase 1 (Action Registry + GroupConfigService)
+Verifica actualización de config y rechazo de acciones duplicadas.
+Fase 2 (Permisos desacoplados)
+Verifica jerarquía/alias de roles (ej. sudo → admin).
+Fase 3 (Dry‑run + confirmación)
+Valida preview y confirm en acciones piloto.
+Fase 4 (Rollback + auditoría)
+Verifica que se guarde previous_state y se registre en audit log.
+Fase 5 (Plantillas centralizadas)
+Mensajes estándar para denied.
+Fase 6 (NL + slots + state provider + AgentCore)
+Parser NL, slots faltantes, estado de acción y flujo con AgentCore.process_async.
+
 *Documento generado para la Migración de Arquitectura*
 *Versión: 1.0*
 *Fecha: 2026-03-13*

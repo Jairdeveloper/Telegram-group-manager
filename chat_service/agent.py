@@ -37,13 +37,18 @@ class Agent:
         self.username = ""
         self.username_tag = "Username"
         self.default_response_index = 0
-        settings = load_api_settings()
-        self.llm_enabled = settings.llm_enabled if llm_enabled is None else llm_enabled
-        self.llm_config = config_from_settings(
-            settings,
-            provider=llm_provider,
-            model=llm_model,
-        )
+        if llm_enabled is None:
+            llm_enabled = False
+        self.llm_enabled = llm_enabled
+        if self.llm_enabled:
+            settings = load_api_settings()
+            self.llm_config = config_from_settings(
+                settings,
+                provider=llm_provider,
+                model=llm_model,
+            )
+        else:
+            self.llm_config = None
 
     def process(self, user_input: str) -> Response:
         tokens = self.tokenizer.tokenize(user_input)
