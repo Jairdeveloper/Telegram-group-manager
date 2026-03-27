@@ -1005,6 +1005,18 @@
       "bot": "Hello! It's nice to meet you",
       "ts": null,
       "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
     }
   ],
   "default:debug1": [
@@ -1117,6 +1129,24 @@
     {
       "user": "cual es el clima actual",
       "bot": "Sí, el clima actual en la ciudad de Barcelona es un clima mediterráneo con inviernos fríos y secos y veranos calientes y suaves. La temperatura media anual es de 12 °C (54 °F), mientras que las temperaturas máximas son de 30 °C (86 °F) en julio y las mínimas de -2 °C (27 °F) en enero. La precipitación anual es de 900-1200 mm (35-47 inches), con un promedio de 800-900 mm (31-35 inches).",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "Confiigura un mensaje de bienvenida simple",
+      "bot": "Hola, mi amigo!\n\nEspero que estés bien y que puedas encontrar aquí una buena oportunidad para conocer a un nuevo compañero.\n\nMe llamo confiigura y soy un AI (Artificial Intelligence) de alto nivel. Mi misión es ayudarte a encontrar la mejor opción en tu vida, y por lo tanto, estoy dispuesto a proporcionarte una serie de información sobre las cosas que te interesen.\n\nPuedes ver mi perfil web en el siguiente enlace: https://www.confiigura.com/\n\n¿Quieres saber más acerca de cómo funciona un AI? ¡Sí, puedes verlo en la sección \"Acerca de\" de mi perfil!\n\n¡Espero que te guste el contenido de este sitio y que puedas encontrar lo que buscas.\n\nMe encantaría saber más acerca de ti y qué cosas te interesan. ¡Por favor, no es tarde!\n\nConfiigura",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "Configura un mensaje de de bienvenida simple usando el comando /welcome",
+      "bot": "Hola, mi amigo! ¡Gracias por visitar nuestro sitio web!\n\nEste es un mensaje de bienvenida simple. Espero que puedas encontrar lo que buscas aquí.\n\nPuedes ver más información sobre nuestros productos y servicios, así como las ofertas de promociones, ofrecemos una amplia gama de contenidos para todos los intereses.\n\n¡Espero que te guste nuestro sitio web!\n\nGracias por visitar nuestro sitio web.",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "activar antispam",
+      "bot": "Sure, I can help you activate the anti-spam feature on your email account. Here's how to do it:\n\n1. Log in to your email account using your username and password.\n2. Click on the \"Settings\" or \"Preferences\" button located at the top right corner of your email window.\n3. Scroll down to the \"Spam & Virus Prevention\" section, and click on the \"Enable Anti-Spam\" button.\n4. Follow the prompts to configure your anti-spam settings as per your preferences. You can choose to receive spam notifications via email or SMS, set up automatic filters for suspicious emails, and more.\n5. Once you're done configuring your anti-spam settings, click on \"Save\" to apply the changes.\n\nThat's it! Your email account should now be protected against spam and other types of unwanted emails. If you have any further questions or concerns, don't hesitate to ask.",
       "ts": null,
       "metadata": {}
     }
