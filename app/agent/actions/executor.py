@@ -31,10 +31,14 @@ class ActionExecutor:
         dry_run: bool = False,
         confirm: bool = False,
     ) -> ActionResult:
+        import logging
+        logger = logging.getLogger(__name__)
         action = self._get_action(action_id)
         payload = payload or {}
+        logger.info(f"ActionExecutor.execute: action_id={action_id}, payload={payload}")
         params, error = self._parse_payload(action, payload)
         if error:
+            logger.error(f"ActionExecutor: payload validation error: {error}")
             return ActionResult(
                 status="error",
                 message=self.template_engine.render(
