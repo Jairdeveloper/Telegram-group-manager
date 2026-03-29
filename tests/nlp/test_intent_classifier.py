@@ -107,3 +107,34 @@ class TestIntentMatch:
         assert match.intent == "test"
         assert match.confidence == 0.8
         assert match.matched_keywords == ["test"]
+
+
+class TestNewIntents:
+    def setup_method(self):
+        self.classifier = IntentClassifier()
+
+    def test_classify_get_status(self):
+        intent, confidence = self.classifier.classify("como esta el antiflood")
+        assert intent in ("get_status", "toggle_feature")
+        assert confidence > 0
+
+    def test_classify_get_settings(self):
+        intent, confidence = self.classifier.classify("cuales son los filtros")
+        assert intent in ("get_settings", "get_status", "remove_filter")
+        assert confidence > 0
+
+    def test_classify_help(self):
+        intent, confidence = self.classifier.classify("ayudame con los comandos")
+        assert intent == "help"
+        assert confidence > 0
+
+    def test_classify_list_actions(self):
+        intent, confidence = self.classifier.classify("que puedes hacer")
+        assert intent in ("list_actions", "help")
+        assert confidence > 0
+
+    def test_intents_available(self):
+        assert "get_status" in self.classifier.INTENTS
+        assert "get_settings" in self.classifier.INTENTS
+        assert "help" in self.classifier.INTENTS
+        assert "list_actions" in self.classifier.INTENTS

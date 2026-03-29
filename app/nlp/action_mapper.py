@@ -1,11 +1,17 @@
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from app.agent.actions.parser import ActionParseResult
-
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ActionParseResult:
+    action_id: Optional[str]
+    payload: Dict[str, Any] = field(default_factory=dict)
+    confidence: float = 0.0
+    reason: str = ""
 
 
 @dataclass

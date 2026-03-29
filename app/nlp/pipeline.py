@@ -1,16 +1,18 @@
 import logging
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
-from app.agent.actions.parser import ActionParseResult
-from app.nlp.normalizer import TextNormalizer
-from app.nlp.tokenizer import NLPTokenizer
-from app.nlp.intent_classifier import IntentClassifier
-from app.nlp.ner import EntityExtractor
-from app.nlp.action_mapper import ActionMapper
 from app.nlp.exceptions import PipelineError, PipelineConfigurationError
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ActionParseResult:
+    action_id: Optional[str]
+    payload: Dict[str, Any] = field(default_factory=dict)
+    confidence: float = 0.0
+    reason: str = ""
 
 
 @dataclass
@@ -44,6 +46,12 @@ class NLPPipeline:
 
     def _initialize_components(self) -> None:
         try:
+            from app.nlp.normalizer import TextNormalizer
+            from app.nlp.tokenizer import NLPTokenizer
+            from app.nlp.intent_classifier import IntentClassifier
+            from app.nlp.ner import EntityExtractor
+            from app.nlp.action_mapper import ActionMapper
+            
             self.normalizer = TextNormalizer() if self.config.use_normalizer else None
             self.tokenizer = NLPTokenizer() if self.config.use_tokenizer else None
             self.intent_classifier = IntentClassifier() if self.config.use_intent_classifier else None

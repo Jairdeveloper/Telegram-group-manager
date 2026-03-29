@@ -1,23 +1,31 @@
 import logging
-from typing import Optional
-
-from app.agent.actions.parser import ActionParseResult
-from app.nlp.pipeline import NLPPipeline, PipelineConfig, PipelineResult
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class ActionParseResult:
+    action_id: Optional[str]
+    payload: Dict[str, Any] = field(default_factory=dict)
+    confidence: float = 0.0
+    reason: str = ""
+
+
 class NLPBotIntegration:
-    def __init__(self, config: Optional[PipelineConfig] = None, min_confidence: float = 0.5):
+    def __init__(self, config: Optional[Any] = None, min_confidence: float = 0.5):
+        from app.nlp.pipeline import PipelineConfig
         self.config = config or PipelineConfig()
         self.min_confidence = min_confidence
-        self._pipeline: Optional[NLPPipeline] = None
+        self._pipeline = None
         self._classifier = None
         logger.info("NLPBotIntegration initialized")
 
     @property
-    def pipeline(self) -> NLPPipeline:
+    def pipeline(self):
         if self._pipeline is None:
+            from app.nlp.pipeline import NLPPipeline
             self._pipeline = NLPPipeline(self.config)
         return self._pipeline
 
@@ -34,7 +42,7 @@ class NLPBotIntegration:
         intent, confidence = self.classifier.classify(text)
         return intent is not None and confidence >= self.min_confidence
 
-    def process_message(self, text: str) -> Optional[PipelineResult]:
+    def process_message(self, text: str):
         if not text or not text.strip():
             return None
         try:
@@ -46,7 +54,7 @@ class NLPBotIntegration:
             logger.error(f"NLP processing failed: {e}")
             return None
 
-    def get_action_for_message(self, text: str) -> Optional[ActionParseResult]:
+    def get_action_for_message(self, text: str):
         result = self.process_message(text)
         if result and result.action_result.action_id:
             if result.action_result.confidence >= self.min_confidence:
@@ -66,14 +74,14 @@ class NLPBotIntegration:
 _integration_instance: Optional[NLPBotIntegration] = None
 
 
-def get_nlp_integration(config: Optional[PipelineConfig] = None, min_confidence: float = 0.5) -> NLPBotIntegration:
+def get_nlp_integration(config: Optional[Any] = None, min_confidence: float = 0.5) -> NLPBotIntegration:
     global _integration_instance
     if _integration_instance is None:
         _integration_instance = NLPBotIntegration(config, min_confidence)
     return _integration_instance
 
 
-def process_nlp_message(text: str) -> Optional[ActionParseResult]:
+def process_nlp_message(text: str):
     return get_nlp_integration().get_action_for_message(text)
 
 

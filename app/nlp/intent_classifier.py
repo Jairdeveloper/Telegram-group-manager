@@ -52,6 +52,30 @@ class IntentClassifier:
             "action_keywords": ["cambiar", "cambia", "configurar", "establecer", "definir", 
                                "nuevo", "crear", "poner", "actualizar", "modificar"],
         },
+        "get_status": {
+            "description": "Consultar estado de funciones",
+            "keywords": ["como esta", "como estan", "estado", "status", "esta activo", 
+                        "estan activos", "esta enabled", "como funciona", "como va"],
+            "action_keywords": ["ver", "consultar", "preguntar", "saber", "verificar", "check"],
+        },
+        "get_settings": {
+            "description": "Ver configuracion actual",
+            "keywords": ["configuracion", "settings", "opciones", "preferencias", "cuales son", 
+                        "que tienes", "que tienes configurado", "ver configuracion"],
+            "action_keywords": ["ver", "mostrar", "listar", "display"],
+        },
+        "help": {
+            "description": "Pedir ayuda",
+            "keywords": ["ayuda", "help", "comandos", "como usar", "como hago", "instrucciones",
+                        "guia", "guia", "manual", "que puedo hacer", "que comandos"],
+            "action_keywords": ["ayudame", "ayudarme", "dime", "explicalo", "explicame"],
+        },
+        "list_actions": {
+            "description": "Listar acciones disponibles",
+            "keywords": ["acciones", "funciones", "que puedes hacer", "que sabes hacer",
+                        "que puedo pedirte", "que acciones"],
+            "action_keywords": ["listar", "mostrar", "ver", "cuales"],
+        },
     }
 
     FEATURE_KEYWORDS = {
@@ -146,6 +170,8 @@ class IntentClassifier:
 
 
 _classifier_instance: Optional[IntentClassifier] = None
+_classify_cache: dict = {}
+
 
 def get_classifier() -> IntentClassifier:
     global _classifier_instance
@@ -153,5 +179,20 @@ def get_classifier() -> IntentClassifier:
         _classifier_instance = IntentClassifier()
     return _classifier_instance
 
+
 def classify_intent(text: str) -> Tuple[Optional[str], float]:
-    return get_classifier().classify(text)
+    cache_key = text.strip().lower()
+    if cache_key in _classify_cache:
+        return _classify_cache[cache_key]
+    
+    result = get_classifier().classify(text)
+    
+    if len(_classify_cache) < 1000:
+        _classify_cache[cache_key] = result
+    
+    return result
+
+
+def clear_classify_cache() -> None:
+    global _classify_cache
+    _classify_cache = {}

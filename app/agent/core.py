@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
+import logging
 
 from app.config.settings import load_api_settings
 from app.ops.chat_integration import ChatContext, ChatService
@@ -24,6 +25,8 @@ from app.monitoring.agent_metrics import (
 )
 from chat_service.llm.factory import LLMFactory, config_from_settings
 from chat_service.llm.base import LLMError
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -53,6 +56,8 @@ class AgentCore:
         llm_enabled: Optional[bool] = None,
         llm_provider: Optional[str] = None,
         llm_model: Optional[str] = None,
+        nlp_enabled: Optional[bool] = None,
+        nlp_min_confidence: Optional[float] = None,
     ):
         settings = load_api_settings()
         self.llm_enabled = settings.llm_enabled if llm_enabled is None else llm_enabled
@@ -77,6 +82,37 @@ class AgentCore:
         )
         self.action_parser = ActionParser() if self.actions_enabled else None
         self.slot_resolver = SlotResolver() if self.actions_enabled else None
+        
+        self.nlp_enabled = settings.nlp_enabled if nlp_enabled is None else nlp_enabled
+        self.nlp_min_confidence = settings.nlp_min_confidence if nlp_min_confidence is None else nlp_min_confidence
+        self._nlp_integration = None
+        
+        if self.nlp_enabled:
+            logger.info("NLP integration enabled")
+            self._init_nlp_integration()
+
+    def _init_nlp_integration(self):
+        try:
+            from app.nlp import NLPBotIntegration
+            from app.nlp.pipeline import PipelineConfig
+            from app.config.settings import load_api_settings
+            settings = load_api_settings()
+            config = PipelineConfig(
+                enable_llm_fallback=settings.nlp_llm_fallback,
+                min_confidence_threshold=self.nlp_min_confidence
+            )
+            self._nlp_integration = NLPBotIntegration(
+                config=config,
+                min_confidence=self.nlp_min_confidence
+            )
+            logger.info("NLP integration initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize NLP integration: {e}")
+            self._nlp_integration = None
+
+    @property
+    def nlp_integration(self):
+        return self._nlp_integration
 
     def process(self, message: str, context: AgentContext) -> AgentResponse:
         message = (message or "").strip()
@@ -84,6 +120,12 @@ class AgentCore:
         session_id = str(context.chat_id)
         context_window = self.context_builder.build(tenant_id=tenant_id, session_id=session_id)
         rendered_context = context_window.render()
+        
+        if self.nlp_enabled and self.nlp_integration:
+            nlp_response = self._process_nlp(message, context)
+            if nlp_response:
+                return nlp_response
+        
         if self.react_enabled:
             react_response = self._process_react(message, rendered_context, context)
             if react_response:
@@ -164,6 +206,12 @@ class AgentCore:
         session_id = str(context.chat_id)
         context_window = self.context_builder.build(tenant_id=tenant_id, session_id=session_id)
         rendered_context = context_window.render()
+        
+        if self.nlp_enabled and self.nlp_integration:
+            nlp_response = self._process_nlp(message, context)
+            if nlp_response:
+                return nlp_response
+        
         if self.react_enabled:
             react_response = self._process_react(message, rendered_context, context)
             if react_response:
@@ -178,6 +226,98 @@ class AgentCore:
     def _process_actions_sync(self, message: str, context: AgentContext) -> Optional[AgentResponse]:
         # Avoid blocking if no running loop available for async actions.
         return None
+
+    def _process_nlp(self, message: str, context: AgentContext) -> Optional[AgentResponse]:
+        if not self.nlp_integration:
+            return None
+        
+        try:
+            should_use = self.nlp_integration.should_use_nlp(message)
+            if not should_use:
+                logger.debug(f"NLP: message not classified as NLP command: {message}")
+                return None
+            
+            result = self.nlp_integration.process_message(message)
+            if not result or not result.action_result.action_id:
+                logger.debug(f"NLP: no action result for: {message}")
+                return None
+            
+            action_result = result.action_result
+            logger.info(f"NLP: detected action {action_result.action_id} (confidence: {action_result.confidence})")
+            
+            action_def = self.action_registry.get(action_result.action_id) if self.action_registry else None
+            if not action_def:
+                logger.debug(f"NLP: action {action_result.action_id} not found in registry")
+                return None
+            
+            resolution = self.slot_resolver.missing(action_def.schema, action_result.payload) if self.slot_resolver else None
+            if resolution and resolution.missing_fields:
+                return AgentResponse(
+                    response=resolution.prompt,
+                    source="nlp_slots",
+                    metadata={
+                        "action_id": action_result.action_id,
+                        "missing_fields": resolution.missing_fields,
+                        "nlp_confidence": action_result.confidence,
+                    },
+                )
+            
+            roles = []
+            if context.metadata and isinstance(context.metadata, dict):
+                roles = context.metadata.get("roles", []) or []
+            
+            action_context = AgentActionContext(
+                chat_id=context.chat_id,
+                tenant_id=context.tenant_id,
+                user_id=int(context.user_id) if context.user_id else None,
+                roles=roles,
+            )
+            
+            import asyncio
+            if asyncio.get_event_loop().is_running():
+                result_sync = asyncio.create_task(
+                    self.action_executor.execute(
+                        action_result.action_id,
+                        action_context,
+                        action_result.payload,
+                    )
+                )
+            else:
+                result_sync = self.action_executor.execute(
+                    action_result.action_id,
+                    action_context,
+                    action_result.payload,
+                )
+            
+            if asyncio.iscoroutine(result_sync):
+                return None
+            
+            response_text = result_sync.message or "Accion ejecutada."
+            self.memory.add_exchange(
+                tenant_id=context.tenant_id,
+                session_id=str(context.chat_id),
+                user_message=message,
+                bot_response=response_text,
+                metadata={
+                    "source": "nlp_action",
+                    "action_id": action_result.action_id,
+                    "nlp_confidence": action_result.confidence,
+                    "status": result_sync.status,
+                },
+            )
+            return AgentResponse(
+                response=response_text,
+                source="nlp_action",
+                metadata={
+                    "action_id": action_result.action_id,
+                    "nlp_confidence": action_result.confidence,
+                    "status": result_sync.status,
+                    "data": result_sync.data,
+                },
+            )
+        except Exception as e:
+            logger.error(f"NLP processing error: {e}")
+            return None
 
     async def _process_actions_async(
         self,

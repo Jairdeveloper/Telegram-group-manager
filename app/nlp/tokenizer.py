@@ -26,10 +26,16 @@ class TokenizationResult:
 
 
 class NLPTokenizer:
-    def __init__(self, model_name: str = "es_core_news_sm"):
+    def __init__(self, model_name: str = "es_core_news_sm", lazy_load: bool = True):
         self.model_name = model_name
         self._nlp = None
-        self._load_model()
+        self._lazy_load = lazy_load
+        if not lazy_load:
+            self._ensure_model_loaded()
+    
+    def _ensure_model_loaded(self) -> None:
+        if self._nlp is None:
+            self._load_model()
     
     def _load_model(self) -> None:
         try:
@@ -48,6 +54,9 @@ class NLPTokenizer:
             return TokenizationResult(tokens=[], pos_tags=[], lemmas=[], text="")
         
         logger.debug(f"Tokenizing text: {text}")
+        
+        if self._lazy_load:
+            self._ensure_model_loaded()
         
         if self._nlp is not None:
             return self._tokenize_spacy(text)

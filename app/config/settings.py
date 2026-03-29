@@ -37,6 +37,9 @@ class ApiSettings(BaseSettings):
     agent_max_iterations: int = 3
     agent_actions_enabled: bool = False
     action_parser_llm_enabled: bool = False
+    nlp_enabled: bool = True
+    nlp_min_confidence: float = 0.5
+    nlp_llm_fallback: bool = True
     search_api_url: str = "https://api.duckduckgo.com/"
     search_api_key: Optional[str] = None
     search_provider: str = "duckduckgo"
