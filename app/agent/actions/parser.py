@@ -74,7 +74,7 @@ class ActionParser:
         return ActionParseResult(None, {}, 0.0, "no_match")
 
     def _rule_based(self, message: str) -> Optional[ActionParseResult]:
-        normalized = self.normalizer.normalize(message)
+        normalized = self.normalizer.normalize_keep_numbers(message)
         logger.debug(f"Normalized message: {normalized}")
         lowered = normalized.lower()
 

@@ -1017,6 +1017,30 @@
       "bot": "Hello! It's nice to meet you",
       "ts": null,
       "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
     }
   ],
   "default:debug1": [
@@ -1170,6 +1194,26 @@
     }
   ],
   "default:40": [
+    {
+      "user": "activar antispam",
+      "bot": "Antispam actualizado",
+      "ts": null,
+      "metadata": {
+        "source": "action",
+        "action_id": "antispam.toggle",
+        "status": "ok"
+      }
+    },
+    {
+      "user": "activar antispam",
+      "bot": "Antispam actualizado",
+      "ts": null,
+      "metadata": {
+        "source": "action",
+        "action_id": "antispam.toggle",
+        "status": "ok"
+      }
+    },
     {
       "user": "activar antispam",
       "bot": "Antispam actualizado",
