@@ -1017,6 +1017,30 @@
       "bot": "Hello! It's nice to meet you",
       "ts": null,
       "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
     }
   ],
   "default:debug1": [
@@ -1149,9 +1173,47 @@
       "bot": "Sure, I can help you activate the anti-spam feature on your email account. Here's how to do it:\n\n1. Log in to your email account using your username and password.\n2. Click on the \"Settings\" or \"Preferences\" button located at the top right corner of your email window.\n3. Scroll down to the \"Spam & Virus Prevention\" section, and click on the \"Enable Anti-Spam\" button.\n4. Follow the prompts to configure your anti-spam settings as per your preferences. You can choose to receive spam notifications via email or SMS, set up automatic filters for suspicious emails, and more.\n5. Once you're done configuring your anti-spam settings, click on \"Save\" to apply the changes.\n\nThat's it! Your email account should now be protected against spam and other types of unwanted emails. If you have any further questions or concerns, don't hesitate to ask.",
       "ts": null,
       "metadata": {}
+    },
+    {
+      "user": "activar antispam",
+      "bot": "Sure, here's an example of how to activate the \"anti-spam\" feature in your email client:\n\n1. Open your email client and click on the \"Settings\" or \"Preferences\" button located at the top left corner of the screen.\n2. Scroll down to the \"Spam\" section and click on it.\n3. Under \"Anti-spam settings\", you'll find options for \"Block all incoming emails from unknown senders\" and \"Block all incoming emails from known spammers\".\n4. Select the option that best fits your needs, such as \"Block all incoming emails from unknown senders\" or \"Block all incoming emails from known spammers\".\n5. Once you've selected an option, click on \"Save\" to apply the changes.\n6. If you want to test if the anti-spam feature is working properly, try sending a few emails to your contacts and see if they receive them without getting marked as spam.\n\nThat's it! You should now have activated the anti-spam feature in your email client.",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "Activa bienvenida con Hola equipo",
+      "bot": "Hola, compañeros! Bienvenidos a la nueva reunión de Holanda Equipo. Espero que estemos todos listos para compartir nuestras ideas y conocer más sobre nuestra empresa.\n\nNuestro equipo está compuesto por:\n\n-",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "pon antiflood",
+      "bot": "Sure, here's an example of how to use the \"anti\" modifier in a sentence:\n\nAnti-fluoride fluoridation is a common practice used by many cities and water providers to reduce the level of fluoride in drinking water. This practice has been criticized for its potential negative impact on public health, including dental issues and neurological damage.",
+      "ts": null,
+      "metadata": {}
     }
   ],
   "default:40": [
+    {
+      "user": "activar antispam",
+      "bot": "Antispam actualizado",
+      "ts": null,
+      "metadata": {
+        "source": "action",
+        "action_id": "antispam.toggle",
+        "status": "ok"
+      }
+    },
+    {
+      "user": "activar antispam",
+      "bot": "Antispam actualizado",
+      "ts": null,
+      "metadata": {
+        "source": "action",
+        "action_id": "antispam.toggle",
+        "status": "ok"
+      }
+    },
     {
       "user": "activar antispam",
       "bot": "Antispam actualizado",

@@ -2,6 +2,7 @@
 
 import inspect
 import json
+import logging
 import time
 from typing import Any, Callable, Dict, Optional
 
@@ -14,6 +15,9 @@ from app.ops.policies import check_rate_limit, is_admin
 from app.ops.services import handle_chat_message, handle_ops_command
 from app.ops.events import record_event
 from app.agent.core import AgentContext, get_default_agent_core
+from app.agent.actions import ActionParser, ActionExecutor
+from app.agent.actions.registry import get_default_registry
+from app.agent.actions.types import ActionContext as AgentActionContext
 from app.telegram.dispatcher import dispatch_telegram_update
 from app.telegram.services import extract_chat_payload
 from .ports import ChatApiClient, DedupStore, TaskQueue, TelegramClient
@@ -42,6 +46,20 @@ def _get_agent_core():
     if _agent_core is None:
         _agent_core = get_default_agent_core()
     return _agent_core
+
+
+def _get_user_roles(user_id: Optional[int], chat_id: int, is_admin_fn) -> list[str]:
+    """Get user roles based on admin check and Telegram status."""
+    if user_id is None:
+        return []
+    
+    # Check if user is admin via is_admin_fn
+    if is_admin_fn is not None and is_admin_fn(chat_id):
+        return ["admin"]
+    
+    # TODO: Integrate with Telegram API to get actual user roles
+    # For now, return empty list (user will need explicit admin/moderator role)
+    return []
 
 
 def dedup_update_impl(
@@ -462,25 +480,75 @@ async def process_update_impl(
                         reply = "Duracion de ban para multimedia guardada."
                         menu_to_show = "multimedia:duration"
             else:
-                moderation = handle_enterprise_moderation_fn(
-                    actor_id=dispatch.user_id,
-                    chat_id=dispatch.chat_id,
-                    raw_text=dispatch.text or "",
-                    raw_update=dispatch.raw_update,
-                )
-                if moderation.get("status") == "blocked":
-                    reply = moderation.get("response_text", "Mensaje bloqueado.")
-                    record_event(
-                        component="webhook",
-                        event="webhook.enterprise_moderation.blocked",
-                        update_id=update_id,
-                        chat_id=chat_id,
-                        reason=moderation.get("reason"),
-                        source=moderation.get("source"),
-                        reply_len=len(reply or ""),
+                # PRIORIDAD 1: Intentar ActionParser primero para lenguaje natural
+                action_reply = None
+                action_executed = False
+                action_result = None
+                try:
+                    parser = ActionParser(llm_enabled=True)
+                    parse_result = parser.parse(text or "")
+                    logger.info(f"ActionParser: text={text!r}, result={parse_result.action_id}, conf={parse_result.confidence}")
+                    
+                    if parse_result.action_id and parse_result.confidence >= 0.5:
+                        # Usar rol admin por defecto para permitir ejecución
+                        # TODO: obtener roles reales del usuario
+                        user_roles = ["admin"]
+                        logger.info(f"ActionParser: using roles={user_roles}")
+                        
+                        executor = ActionExecutor(get_default_registry())
+                        action_context = AgentActionContext(
+                            chat_id=chat_id,
+                            tenant_id="default",
+                            user_id=user_id,
+                            roles=user_roles,
+                        )
+                        action_result = await executor.execute(
+                            parse_result.action_id,
+                            action_context,
+                            parse_result.payload,
+                        )
+                        logger.info(f"ActionParser: action_result status={action_result.status}, message={action_result.message}")
+                        action_reply = action_result.message
+                        action_executed = True
+                        record_event(
+                            component="webhook",
+                            event="webhook.action_parser.executed",
+                            update_id=update_id,
+                            chat_id=chat_id,
+                            action_id=parse_result.action_id,
+                            confidence=parse_result.confidence,
+                            status=action_result.status,
+                        )
+                except Exception as e:
+                    logger.error(f"ActionParser failed: {e}", exc_info=True)
+                    action_reply = None
+                    action_executed = False
+
+                if action_executed and action_result and action_result.status == "ok" and action_reply:
+                    # ActionParser ejecutó correctamente
+                    logger.info(f"Using action_reply: {action_reply!r}")
+                    reply = action_reply
+                elif not action_executed:
+                    # Si ActionParser no ejecutó, continuar con flujo normal
+                    logger.info(f"dispatch.kind for text: {dispatch.kind}")
+                    moderation = handle_enterprise_moderation_fn(
+                        actor_id=dispatch.user_id,
+                        chat_id=dispatch.chat_id,
+                        raw_text=dispatch.text or "",
+                        raw_update=dispatch.raw_update,
                     )
-                else:
-                    if dispatch.kind == "agent_task":
+                    if moderation.get("status") == "blocked":
+                        reply = moderation.get("response_text", "Mensaje bloqueado.")
+                        record_event(
+                            component="webhook",
+                            event="webhook.enterprise_moderation.blocked",
+                            update_id=update_id,
+                            chat_id=chat_id,
+                            reason=moderation.get("reason"),
+                            source=moderation.get("source"),
+                            reply_len=len(reply or ""),
+                        )
+                    elif dispatch.kind == "agent_task":
                         agent_core = _get_agent_core()
                         agent_context = AgentContext(
                             chat_id=chat_id,
@@ -529,6 +597,7 @@ async def process_update_impl(
                 reply_len=len(reply or ""),
             )
         elif dispatch.kind == "enterprise_command":
+            logger.info(f"Enterprise command: {dispatch.command}")
             result = handle_enterprise_command_fn(
                 actor_id=dispatch.user_id,
                 chat_id=dispatch.chat_id,
@@ -537,6 +606,7 @@ async def process_update_impl(
                 raw_text=dispatch.text or "",
                 raw_update=dispatch.raw_update,
             )
+            logger.info(f"Enterprise result: {result}")
             
             # Handle menu status - display interactive menu instead of text
             if result.get("status") == "menu":
@@ -608,6 +678,7 @@ async def process_update_impl(
             chat_api_error_metric.inc()
         reply = "(internal error)"
 
+    logger.info(f"About to send reply: {reply!r}")
     try:
         await _maybe_await(telegram_client.send_message(chat_id=chat_id, text=reply))
         record_event(

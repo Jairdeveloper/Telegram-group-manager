@@ -317,7 +317,10 @@ def handle_enterprise_command(
         return {"status": "ok", "response_text": "Welcome actualizado"}
 
     if normalized == "/welcome":
+        import logging
+        logger = logging.getLogger(__name__)
         welcome = content_service.get_welcome(chat_id)
+        logger.info(f"/welcome: welcome={welcome}")
         if not welcome:
             return {"status": "ok", "response_text": "No hay welcome configurado."}
         return {"status": "ok", "response_text": welcome.welcome_text}
