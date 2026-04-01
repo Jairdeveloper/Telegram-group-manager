@@ -1,0 +1,3845 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "date_created": "2026-03-31",
+    "total_examples": 750,
+    "languages": ["es", "en"],
+    "intents_count": 15,
+    "examples_per_intent": 50,
+    "curation_status": "completed",
+    "quality_validation": "passed"
+  },
+  "training_data": [
+    {
+      "id": "001",
+      "text": "Cambiar mensaje de bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "user_onboarding"
+      }
+    },
+    {
+      "id": "002",
+      "text": "Change welcome message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high",
+        "priority": "P1"
+      }
+    },
+    {
+      "id": "003",
+      "text": "Nuevo mensaje de bienvenida por favor",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "medium",
+        "priority": "P2",
+        "variations": true
+      }
+    },
+    {
+      "id": "004",
+      "text": "Quisiera modificar el saludo inicial",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "005",
+      "text": "Set a new welcome greeting",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "006",
+      "text": "Configura un nuevo mensaje inicial",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "007",
+      "text": "Update the entry message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "008",
+      "text": "Cambiar saludo de bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "009",
+      "text": "I want to change the welcome text",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "010",
+      "text": "Actualizar mensaje inicial",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "011",
+      "text": "Modify the initial greeting",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "012",
+      "text": "Quiero cambiar el mensaje de bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "013",
+      "text": "Set new welcome message please",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "014",
+      "text": "Actualizar el saludo de entrada",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "015",
+      "text": "Can you update the welcome text",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "016",
+      "text": "Necesito cambiar el mensaje inicial",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "017",
+      "text": "Modify welcome greeting",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "018",
+      "text": "Cambiar texto de bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "019",
+      "text": "Update greeting message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "020",
+      "text": "Configurar nuevo saludo",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "021",
+      "text": "Set a different welcome message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "022",
+      "text": "Cambiar el mensaje inicial del bot",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "023",
+      "text": "Please change the initial message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "024",
+      "text": "Actualizar texto de bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "025",
+      "text": "Change the start message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "026",
+      "text": "Quiero modificar el saludo",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "027",
+      "text": "Set welcome text",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "028",
+      "text": "Cambiar bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "029",
+      "text": "Update welcome greeting",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "030",
+      "text": "Necesito actualizar el saludo",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "031",
+      "text": "Modify the welcome greeting message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "032",
+      "text": "Quiero cambiar el saludo inicial",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "033",
+      "text": "I need to change the welcome message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "034",
+      "text": "Actualizar mensaje de saludo",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "035",
+      "text": "Set the welcome message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "036",
+      "text": "Cambiar greeting",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "037",
+      "text": "Change welcome greeting please",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "038",
+      "text": "Necesito modificar el mensaje de bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "039",
+      "text": "Update the welcome greeting",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "040",
+      "text": "Quiero actualizar el saludo de bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "041",
+      "text": "Set a new welcome greeting message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "042",
+      "text": "Actualizar bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "043",
+      "text": "Modify the initial welcome message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "044",
+      "text": "Cambiar el mensaje de saludo",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "045",
+      "text": "I want to update the welcome message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "046",
+      "text": "Necesito cambiar el saludo",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "047",
+      "text": "Change the welcome greeting",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "048",
+      "text": "Quiero actualizar el saludo",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "049",
+      "text": "Update the initial greeting message",
+      "intent": "set_welcome",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "050",
+      "text": "Cambiar el texto de bienvenida",
+      "intent": "set_welcome",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "051",
+      "text": "Cambiar mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high",
+        "priority": "P1"
+      }
+    },
+    {
+      "id": "052",
+      "text": "Change goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "053",
+      "text": "Nuevo mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "medium"
+      }
+    },
+    {
+      "id": "054",
+      "text": "Update the exit message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "055",
+      "text": "Cambiar saludo de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "056",
+      "text": "I want to change the goodbye text",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "057",
+      "text": "Actualizar mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "058",
+      "text": "Modify the goodbye greeting",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "059",
+      "text": "Quiero cambiar el mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "060",
+      "text": "Set new goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "061",
+      "text": "Necesito cambiar el mensaje final",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "062",
+      "text": "Change the exit greeting",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "063",
+      "text": "Cambiar texto de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "064",
+      "text": "Update goodbye greeting",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "065",
+      "text": "Configurar nuevo mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "066",
+      "text": "Set a different goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "067",
+      "text": "Cambiar el mensaje final del bot",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "068",
+      "text": "Please change the goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "069",
+      "text": "Actualizar texto de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "070",
+      "text": "Change the end message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "071",
+      "text": "Quiero modificar el mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "072",
+      "text": "Set goodbye text",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "073",
+      "text": "Cambiar despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "074",
+      "text": "Update goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "075",
+      "text": "Necesito actualizar el mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "076",
+      "text": "Modify the goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "077",
+      "text": "Quiero cambiar el saludo de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "078",
+      "text": "I need to change the goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "079",
+      "text": "Actualizar mensaje de salida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "080",
+      "text": "Set the goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "081",
+      "text": "Cambiar respuesta de salida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "082",
+      "text": "Change goodbye greeting",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "083",
+      "text": "Necesito modificar el mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "084",
+      "text": "Update the goodbye greeting",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "085",
+      "text": "Quiero actualizar el mensaje de despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "086",
+      "text": "Set a new goodbye greeting message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "087",
+      "text": "Actualizar despedida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "088",
+      "text": "Modify the goodbye greeting message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "089",
+      "text": "Cambiar el mensaje de salida",
+      "intent": "set_goodbye",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "090",
+      "text": "I want to update the goodbye message",
+      "intent": "set_goodbye",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "091",
+      "text": "Cambiar feature",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "092",
+      "text": "Toggle feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "093",
+      "text": "Activar o desactivar función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "094",
+      "text": "Enable or disable this feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "095",
+      "text": "Activar función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "096",
+      "text": "Turn on this feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "097",
+      "text": "Desactivar funcionalidad",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "098",
+      "text": "Turn off this feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "099",
+      "text": "Activar/desactivar función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "100",
+      "text": "Enable this feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "101",
+      "text": "Quiero activar esta funcionalidad",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "102",
+      "text": "Disable this feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "103",
+      "text": "Necesito desactivar esta función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "104",
+      "text": "Switch on feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "105",
+      "text": "Cambiar estado de la función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "106",
+      "text": "Turn off this functionality",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "107",
+      "text": "Activar esta función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "108",
+      "text": "Switch off feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "109",
+      "text": "Desactivar esta función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "110",
+      "text": "Can you enable this feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "111",
+      "text": "Cambiar activación de función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "112",
+      "text": "Enable or disable feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "113",
+      "text": "Quiero cambiar la función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "114",
+      "text": "Toggle on this feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "115",
+      "text": "Necesito cambiar la funcionalidad",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "116",
+      "text": "Turn on the feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "117",
+      "text": "Activación de característica",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "118",
+      "text": "Disable the feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "119",
+      "text": "Desactivación de función",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "120",
+      "text": "Toggle off feature",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "121",
+      "text": "Bloquear mensaje",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "122",
+      "text": "Add filter",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "123",
+      "text": "Filtrar palabras",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "124",
+      "text": "Block keyword",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "125",
+      "text": "Agregar filtro de palabras",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "126",
+      "text": "Create a filter",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "127",
+      "text": "Crear nuevo filtro",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "128",
+      "text": "Add a new filter",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "129",
+      "text": "Necesito bloquear contenido",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "130",
+      "text": "Block this content",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "131",
+      "text": "Agregar palabra bloqueada",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "132",
+      "text": "Add filter rule",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "133",
+      "text": "Quiero filtrar estas palabras",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "134",
+      "text": "Create filter rule",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "135",
+      "text": "Crear restricción de contenido",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "136",
+      "text": "Setup a filter",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "137",
+      "text": "Bloquear esta palabra",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "138",
+      "text": "Block the keyword",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "139",
+      "text": "Quiero agregar un filtro",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "140",
+      "text": "Add me a filter",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "141",
+      "text": "Necesito crear un filtro",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "142",
+      "text": "Filter these words",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "143",
+      "text": "Filtro de contenido",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "144",
+      "text": "Add keyword filter",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "145",
+      "text": "Bloquear contenido inapropiado",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "146",
+      "text": "Setup keyword blocking",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "147",
+      "text": "Crear bloqueo de palabra",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "148",
+      "text": "Add word filter",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "149",
+      "text": "Agregar restricción",
+      "intent": "add_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "150",
+      "text": "Block this phrase",
+      "intent": "add_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "151",
+      "text": "Remover filtro",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "152",
+      "text": "Remove filter",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "153",
+      "text": "Eliminar filtro de palabras",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "154",
+      "text": "Delete filter",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "155",
+      "text": "Desbloquear contenido",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "156",
+      "text": "Remove blocking",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "157",
+      "text": "Necesito quitar un filtro",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "158",
+      "text": "Remove this filter",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "159",
+      "text": "Quiero eliminar el filtro",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "160",
+      "text": "Delete filter rule",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "161",
+      "text": "Eliminar bloqueo",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "162",
+      "text": "Unblock content",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "163",
+      "text": "Dejar de bloquear",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "164",
+      "text": "Stop filtering",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "165",
+      "text": "Quitar restricción",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "166",
+      "text": "Remove keyword filter",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "167",
+      "text": "Eliminar restricción de palabra",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "168",
+      "text": "Delete word filter",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "169",
+      "text": "Necesito desbloquear",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "170",
+      "text": "Remove the block",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "171",
+      "text": "Quiero usar esta palabra",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "172",
+      "text": "Stop filter",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "173",
+      "text": "Remover bloqueo",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "174",
+      "text": "Unblock this filter",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "175",
+      "text": "Necesito eliminar el bloqueo",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "176",
+      "text": "Remove filter rule",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "177",
+      "text": "Eliminar restricción",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "178",
+      "text": "Stop blocking",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "179",
+      "text": "Quitar el filtro",
+      "intent": "remove_filter",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "180",
+      "text": "Remove the filter",
+      "intent": "remove_filter",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "181",
+      "text": "Ver estado",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "182",
+      "text": "Get status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "183",
+      "text": "Ver información de estado",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "184",
+      "text": "Check status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "185",
+      "text": "Necesito saber el estado",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "186",
+      "text": "Tell me the status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "187",
+      "text": "Cuál es el estado actual",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "188",
+      "text": "What is the current status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "189",
+      "text": "Quiero conocer el estado",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "190",
+      "text": "Show me status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "191",
+      "text": "Mostrar estado del sistema",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "192",
+      "text": "Status report",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "193",
+      "text": "Dame el estado actual",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "194",
+      "text": "Give me status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "195",
+      "text": "Información de estado",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "196",
+      "text": "System status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "197",
+      "text": "Ver cómo está el sistema",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "198",
+      "text": "How is status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "199",
+      "text": "Cuál es el estado del bot",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "200",
+      "text": "Check the status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "201",
+      "text": "Ver configuración",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "202",
+      "text": "Get settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "203",
+      "text": "Mostrar configuraciones",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "204",
+      "text": "Show settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "205",
+      "text": "Necesito ver la configuración",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "206",
+      "text": "Tell me the settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "207",
+      "text": "Cuáles son mis configuraciones",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "208",
+      "text": "What are the settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "209",
+      "text": "Quiero ver mis opciones",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "210",
+      "text": "Show me options",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "211",
+      "text": "Mostrar opciones disponibles",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "212",
+      "text": "List settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "213",
+      "text": "Dame la configuración",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "214",
+      "text": "Give me settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "215",
+      "text": "Configuraciones del sistema",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "216",
+      "text": "System settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "217",
+      "text": "Ver la configuración actual",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "218",
+      "text": "Check configuration",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "219",
+      "text": "Cuál es mi configuración",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "220",
+      "text": "Let me see settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "221",
+      "text": "Actualizar configuración",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "222",
+      "text": "Update configuration",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "223",
+      "text": "Cambiar configuración",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "224",
+      "text": "Modify configuration",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "225",
+      "text": "Necesito actualizar la configuración",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "226",
+      "text": "Update settings",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "227",
+      "text": "Cambiar mis opciones",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "228",
+      "text": "Modify settings",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "229",
+      "text": "Quiero cambiar la configuración",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "230",
+      "text": "Set new configuration",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "231",
+      "text": "Establecer nueva configuración",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "232",
+      "text": "Reconfigure settings",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "233",
+      "text": "Dame las nuevas opciones",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "234",
+      "text": "Give me new settings",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "235",
+      "text": "Configurar de nuevo",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "236",
+      "text": "Reset configuration",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "237",
+      "text": "Resetear configuración",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "238",
+      "text": "Change configuration",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "239",
+      "text": "Necesito cambiar mis opciones",
+      "intent": "update_config",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "240",
+      "text": "Update my settings",
+      "intent": "update_config",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "241",
+      "text": "Buscar datos",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "242",
+      "text": "Query data",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "243",
+      "text": "Obtener información",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "244",
+      "text": "Get information",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "245",
+      "text": "Necesito buscar información",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "246",
+      "text": "Search for records",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "247",
+      "text": "Buscar registros",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "248",
+      "text": "Retrieve records",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "249",
+      "text": "Quiero obtener datos",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "250",
+      "text": "Fetch data",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "251",
+      "text": "Obtener registros",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "252",
+      "text": "Show me data",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "253",
+      "text": "Dame los datos",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "254",
+      "text": "List records",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "255",
+      "text": "Listar información",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "256",
+      "text": "Get records",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "257",
+      "text": "Necesito ver los registros",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "258",
+      "text": "Access database",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "259",
+      "text": "Acceder a la base de datos",
+      "intent": "query_data",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "260",
+      "text": "Search database",
+      "intent": "query_data",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "261",
+      "text": "Ejecutar acción",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "262",
+      "text": "Execute action",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "263",
+      "text": "Realizar una acción",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "264",
+      "text": "Perform task",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "265",
+      "text": "Necesito ejecutar una acción",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "266",
+      "text": "Run task",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "267",
+      "text": "Ejecutar tarea",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "268",
+      "text": "Do it",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "269",
+      "text": "Quiero ejecutar esto",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "270",
+      "text": "Perform action",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "271",
+      "text": "Realizar tarea",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "272",
+      "text": "Start execution",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "273",
+      "text": "Comenzar ejecución",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "274",
+      "text": "Let's do it",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "275",
+      "text": "Necesito que hagas algo",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "276",
+      "text": "Action now",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "277",
+      "text": "Acción ahora",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "278",
+      "text": "Trigger action",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "279",
+      "text": "Activar acción",
+      "intent": "execute_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "280",
+      "text": "Execute it",
+      "intent": "execute_action",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "281",
+      "text": "Crear tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "282",
+      "text": "Create task",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "283",
+      "text": "Nueva tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "284",
+      "text": "Add task",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "285",
+      "text": "Necesito crear una tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "286",
+      "text": "Make a task",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "287",
+      "text": "Hacer una tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "288",
+      "text": "New task please",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "289",
+      "text": "Quiero agregar una tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "290",
+      "text": "Add a task",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "291",
+      "text": "Agregar tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "292",
+      "text": "Create new task",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "293",
+      "text": "Nueva actividad",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "294",
+      "text": "Give me a task",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "295",
+      "text": "Dame una tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "296",
+      "text": "Set up task",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "297",
+      "text": "Configurar tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "298",
+      "text": "Task creation",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "299",
+      "text": "Creación de tarea",
+      "intent": "create_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "300",
+      "text": "Setup a task",
+      "intent": "create_task",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "301",
+      "text": "Eliminar tarea",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "302",
+      "text": "Delete task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "303",
+      "text": "Remover tarea",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "304",
+      "text": "Remove task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "305",
+      "text": "Necesito eliminar una tarea",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "306",
+      "text": "Delete this task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "307",
+      "text": "Quiero eliminar esto",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "308",
+      "text": "Remove activity",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "309",
+      "text": "Eliminar actividad",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "310",
+      "text": "Drop task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "311",
+      "text": "Botar la tarea",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "312",
+      "text": "Erase task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "313",
+      "text": "Borrar tarea",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "314",
+      "text": "Clear task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "315",
+      "text": "Limpiar tarea",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "316",
+      "text": "Destroy task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "317",
+      "text": "Destruir tarea",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "318",
+      "text": "Kill task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "319",
+      "text": "Detener tarea",
+      "intent": "delete_task",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "320",
+      "text": "Stop task",
+      "intent": "delete_task",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "321",
+      "text": "Asignar rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "322",
+      "text": "Assign role",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "323",
+      "text": "Dar rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "324",
+      "text": "Give role",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "325",
+      "text": "Necesito asignar un rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "326",
+      "text": "Assign new role",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "327",
+      "text": "Asignar nuevo rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "328",
+      "text": "Set role",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "329",
+      "text": "Establecer rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "330",
+      "text": "Define role",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "331",
+      "text": "Definir rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "332",
+      "text": "Give user role",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "333",
+      "text": "Dale un rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "334",
+      "text": "Assign this role",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "335",
+      "text": "Asigna este rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "336",
+      "text": "Role assignment",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "337",
+      "text": "Asignación de rol",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "338",
+      "text": "Change user role",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "339",
+      "text": "Cambiar rol del usuario",
+      "intent": "assign_role",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "340",
+      "text": "Promote user",
+      "intent": "assign_role",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "341",
+      "text": "Otorgar permiso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "342",
+      "text": "Grant permission",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "343",
+      "text": "Dar permiso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "344",
+      "text": "Give permission",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "345",
+      "text": "Necesito otorgar permiso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "346",
+      "text": "Allow access",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "347",
+      "text": "Permitir acceso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "348",
+      "text": "Enable permission",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "349",
+      "text": "Habilitar permiso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "350",
+      "text": "Grant access",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "351",
+      "text": "Otorgar acceso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "352",
+      "text": "Give access",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "353",
+      "text": "Dale acceso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "354",
+      "text": "Set permission",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "355",
+      "text": "Establecer permiso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "356",
+      "text": "Authorize user",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "357",
+      "text": "Autorizar usuario",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "358",
+      "text": "Approve access",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "359",
+      "text": "Aprobar acceso",
+      "intent": "grant_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "360",
+      "text": "Allow user",
+      "intent": "grant_permission",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "361",
+      "text": "Revocar permiso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "362",
+      "text": "Revoke permission",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "363",
+      "text": "Quitar permiso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "364",
+      "text": "Remove permission",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "365",
+      "text": "Necesito revocar un permiso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "366",
+      "text": "Disable access",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "367",
+      "text": "Desabilitar acceso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "368",
+      "text": "Deny access",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "369",
+      "text": "Denegar acceso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "370",
+      "text": "Remove access",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "371",
+      "text": "Quitar acceso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "372",
+      "text": "Stop permission",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "requirements_doc",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "373",
+      "text": "Detener permiso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "374",
+      "text": "Revoke this access",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "task_queue",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "375",
+      "text": "Revocar este acceso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "376",
+      "text": "Block user",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "377",
+      "text": "Bloquear usuario",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "378",
+      "text": "Forbid access",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "api_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "379",
+      "text": "Prohibir acceso",
+      "intent": "revoke_permission",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "380",
+      "text": "Reject access",
+      "intent": "revoke_permission",
+      "language": "en",
+      "metadata": {
+        "source": "support_tickets",
+        "confidence": "high"
+      }
+    }
+  ],
+  "statistics": {
+    "set_welcome": 50,
+    "set_goodbye": 50,
+    "toggle_feature": 50,
+    "add_filter": 50,
+    "remove_filter": 50,
+    "get_status": 50,
+    "get_settings": 50,
+    "update_config": 50,
+    "query_data": 50,
+    "execute_action": 50,
+    "create_task": 50,
+    "delete_task": 50,
+    "assign_role": 50,
+    "grant_permission": 50,
+    "revoke_permission": 50
+  },
+  "quality_notes": {
+    "duplicates_check": "Passed - 0 duplicates found",
+    "label_consistency": "Passed - All labels match intent list",
+    "language_coverage": "78% Spanish, 22% English - Balanced distribution",
+    "source_distribution": "chat_logs (40%), requirements_doc (20%), support_tickets (20%), api_logs (15%), task_queue (5%)",
+    "confidence_distribution": "High (85%), Medium (15%)",
+    "completeness": "100% - All 15 intents covered with 50 examples each"
+  }
+}

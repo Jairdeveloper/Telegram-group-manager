@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-31T18:14:41.292043",
+  "models": {
+    "intent_classifier": {
+      "filepath": "models/intent_classifier.joblib",
+      "checksum": "db01a60711b23e1e0ce53f993a12d691",
+      "saved_at": "2026-03-31T18:14:41.292043"
+    },
+    "feature_extractor": {
+      "filepath": "models/feature_extractor.joblib",
+      "checksum": "b624d4e2edc188a0935b1ae52f3e54ca",
+      "saved_at": "2026-03-31T18:14:41.292043"
+    },
+    "confidence_calibrator": {
+      "filepath": "models/confidence_calibrator.joblib",
+      "checksum": "a64cca1bdfdd5cdbdcfea03455958e2e",
+      "saved_at": "2026-03-31T18:14:41.292043"
+    }
+  },
+  "pipeline_version": "FASE2",
+  "training_result": {
+    "best_params": {
+      "C": 10,
+      "max_iter": 1000,
+      "solver": "lbfgs"
+    },
+    "best_cv_score": 0.7401092896174862
+  },
+  "evaluation_result": {
+    "accuracy": 0.8026315789473685,
+    "precision": 0.8210317460317461,
+    "recall": 0.7833333333333332,
+    "f1": 0.7846272246272246
+  }
+}
