@@ -139,7 +139,19 @@ async def webhook(token: str, request: Request):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    redis_status = {"status": "unavailable", "error": "not_configured"}
+    
+    try:
+        from app.config.redis import get_redis_manager
+        redis_manager = get_redis_manager()
+        redis_status = redis_manager.health_check()
+    except Exception as e:
+        redis_status = {"status": "error", "error": str(e)}
+    
+    return {
+        "status": "ok",
+        "redis": redis_status,
+    }
 
 
 @app.get("/metrics")

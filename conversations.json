@@ -1053,6 +1053,30 @@
       "bot": "Hello! It's nice to meet you",
       "ts": null,
       "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
     }
   ],
   "default:debug1": [
@@ -1207,6 +1231,12 @@
     {
       "user": "actualizar saludo a hello users",
       "bot": "Hola a todos,\n\n¡Hablaremos de Hello Users!\n\nHello Users es un programa que permite a los usuarios interactuar con un sistema de información y comunicarse con otros usuarios. Este programa se basa en la interacción entre el usuario y el sistema, permitiendo que ambos compartan información y comunicándose.\n\nEl programa Hello Users ofrece una variedad de funcionalidades, incluyendo:\n\n- Intercambio de mensajes\n- Compartir imágenes y videos\n- Compartir archivos\n- Compartir datos personales\n- Compartir contenido multimedia\n- Compartir eventos\n- Compartir contactos\n- Compartir calendarios\n- Compartir lugares\n- Compartir notas de trabajo\n- Compartir información sobre la vida cotidiana\n- Compartir información sobre la cultura y los eventos\n\nPor supuesto, Hello Users ofrece una amplia gama de opciones para que los usuarios puedan interactuar con el sistema. Además, esta aplicación permite a los usuarios compartir contenido multimedia como imágenes, videos y archivos.\n\n¡Espero que sea útil para ti!\n\nSaludos,\n\n[Nombre completo]",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "actualizar saludo a hello users",
+      "bot": "That's interesting, tell me more",
       "ts": null,
       "metadata": {}
     }

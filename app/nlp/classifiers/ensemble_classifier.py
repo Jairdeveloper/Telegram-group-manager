@@ -12,33 +12,51 @@ class RegexIntentClassifier:
         'set_welcome': [
             r'cambiar.*bienvenida', r'mensaje.*bienvenida', r'welcome.*message',
             r'configurar.*bienvenida', r'modificar.*bienvenida', r'set.*welcome',
-            r'cambiar.*saludo', r'mensaje.*saludo', r'editar.*bienvenida'
+            r'cambiar.*saludo', r'mensaje.*saludo', r'editar.*bienvenida',
+            r'bienvenida:\s*', r'establecer.*bienvenida', r'nuevo.*bienvenida',
+            r'poner.*bienvenida', r'establecer.*mensaje.*entrada'
         ],
         'set_goodbye': [
             r'cambiar.*despedida', r'mensaje.*despedida', r'goodbye.*message',
             r'configurar.*despedida', r'modificar.*despedida', r'set.*goodbye',
-            r'cambiar.*salida', r'mensaje.*salida', r'editar.*despedida'
+            r'cambiar.*salida', r'mensaje.*salida', r'editar.*despedida',
+            r'despedida:\s*', r'establecer.*despedida', r'nueva.*despedida'
         ],
         'toggle_feature': [
-            r'activar\b', r'desactivar\b', r'enable\b', r'disable\b', r'toggle\b',
-            r'encender\b', r'apagar\b', r'turn.*on\b', r'turn.*off\b',
-            r'modo.*oscuro', r'modo.*mantenimiento'
+            r'\bactivar\b', r'\bdesactivar\b', r'\benable\b', r'\bdisable\b', r'\btoggle\b',
+            r'\bencender\b', r'\bapagar\b', r'turn.*on\b', r'turn.*off\b',
+            r'modo.*oscuro', r'modo.*mantenimiento',
+            r'\bactiva\b', r'\bdesactiva\b', r'\bactive\b', r'\bdesactive\b',
+            r'\bpon\b', r'\bquit\b', r'\bon\b', r'\boff\b',
+            r'\benciende\b', r'\bapaga\b'
+        ],
+        'set_limit': [
+            r'limite.*mensajes', r'mensajes.*limite', r'poner.*limite',
+            r'configurar.*limite', r'ajustar.*limite', r'limite.*segundos',
+            r'antiflood.*limite', r'flood.*limite', r'pon.*limite',
+            r'limite de \d+', r'\d+.*mensajes', r'\d+.*segundos'
         ],
         'add_filter': [
             r'\bbloquear\b', r'agregar.*filtro', r'add.*filter', r'\bblock\b',
-            r'\bfiltrar\b', r'crear.*filtro', r'anadir.*filtro', r'blacklist'
+            r'\bfiltrar\b', r'crear.*filtro', r'anadir.*filtro', r'blacklist',
+            r'\bbloquea\b', r'\bbloqueo\b', r'palabra.*bloquear',
+            r'bloquear.*palabra', r'agregar.*palabra', r'aniadir.*palabra'
         ],
         'remove_filter': [
             r'\bdesbloquear\b', r'quitar.*filtro', r'remove.*filter', r'unblock',
-            r'eliminar.*filtro', r'borrar.*filtro', r'whitelist'
+            r'eliminar.*filtro', r'borrar.*filtro', r'whitelist',
+            r'\bdesbloquea\b', r'\beliminar\b', r'\bquitar\b',
+            r'\bborrar\b', r'desbloquear.*palabra'
         ],
         'get_status': [
             r'ver.*estado\b', r'estado.*sistema\b', r'\bget.*status\b', r'\bcheck.*status\b',
-            r'\bcomo.*esta\b', r'\bhow.*is\b', r'\bmonitoring\b', r'verificar.*estado\b'
+            r'\bcomo.*esta\b', r'\bhow.*is\b', r'\bmonitoring\b', r'verificar.*estado\b',
+            r'estado.*bienvenida', r'estado.*antiflood', r'estado.*filtro'
         ],
         'get_settings': [
             r'ver.*configuracion\b', r'\bget.*settings\b', r'\bpreferencias\b',
-            r'configuracion.*actual\b', r'ver.*opciones\b', r'\blist.*settings\b'
+            r'configuracion.*actual\b', r'ver.*opciones\b', r'\blist.*settings\b',
+            r'que.*configurado', r'cuales.*opciones'
         ],
         'update_config': [
             r'actualizar.*config', r'cambiar.*config', r'modificar.*config',
@@ -137,7 +155,7 @@ class LLMIntentClassifier:
         self.timeout = timeout
         self.available = False
 
-    async def predict(self, text: str) -> Dict[str, Any]:
+    def predict(self, text: str) -> Dict[str, Any]:
         """
         Predecir intent usando LLM con timeout
         
@@ -159,25 +177,7 @@ class LLMIntentClassifier:
 
     def predict_sync(self, text: str) -> Dict[str, Any]:
         """Versión síncrona con timeout"""
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        
-        try:
-            result = asyncio.run_coroutine_threadsafe(
-                self.predict(text),
-                loop
-            ).result(timeout=self.timeout)
-            return result
-        except asyncio.TimeoutError:
-            return {
-                'intent': None,
-                'confidence': 0.0,
-                'method': 'llm_fallback',
-                'error': 'timeout'
-            }
+        return self.predict(text)
 
 
 class EnsembleIntentClassifier:
@@ -207,11 +207,12 @@ class EnsembleIntentClassifier:
         Pipeline de predicción con fallback inteligente
         
         Flujo:
-        1. ML predict
-        2. If confidence >= 0.75: Return ML
-        3. If 0.5 <= confidence < 0.75: Try ensemble
-        4. If confidence < 0.5: Try LLM fallback
-        5. Else: Human review queue
+        1. Try regex classifier first (baseline)
+        2. If regex has good confidence: return regex
+        3. If ML classifier available with features: try ML
+        4. If ML + regex agreement: return ensemble
+        5. If low confidence: Try LLM fallback
+        6. Else: Return best available
         
         Returns:
             {
@@ -221,6 +222,24 @@ class EnsembleIntentClassifier:
                 'confidence_level': str
             }
         """
+        # Always try regex first (baseline classifier)
+        regex_result = self.regex_classifier.predict(text)
+        regex_confidence = regex_result.get('confidence', 0.0)
+        regex_intent = regex_result.get('intent')
+
+        logger.debug(f"Regex confidence: {regex_confidence:.2f}, intent: {regex_intent}")
+
+        # If regex has high confidence, return it directly
+        if regex_confidence >= self.high_confidence_threshold and regex_intent:
+            return {
+                'intent': regex_intent,
+                'confidence': regex_confidence,
+                'probabilities': regex_result.get('probabilities', {}),
+                'method': 'regex_classifier',
+                'confidence_level': 'high'
+            }
+
+        # Try ML classifier if tokenization_result provided
         ml_result = None
         ml_confidence = 0.0
         
@@ -235,6 +254,7 @@ class EnsembleIntentClassifier:
 
         logger.debug(f"ML confidence: {ml_confidence:.2f}")
 
+        # If ML has high confidence, return it
         if ml_confidence >= self.high_confidence_threshold:
             return {
                 'intent': ml_result.get('intent'),
@@ -244,38 +264,50 @@ class EnsembleIntentClassifier:
                 'confidence_level': 'high'
             }
 
-        regex_result = self.regex_classifier.predict(text)
-        regex_confidence = regex_result.get('confidence', 0.0)
-        regex_intent = regex_result.get('intent')
+        # Check for agreement between ML and regex
+        ml_intent = ml_result.get('intent') if ml_result else None
+        
+        if ml_intent and regex_intent and ml_intent == regex_intent:
+            return {
+                'intent': ml_intent,
+                'confidence': (ml_confidence + regex_confidence) / 2,
+                'probabilities': ml_result.get('probabilities', {}),
+                'method': 'ensemble_agreement',
+                'confidence_level': 'medium'
+            }
 
-        if ml_confidence >= self.medium_confidence_threshold:
-            ml_intent = ml_result.get('intent') if ml_result else None
-            if ml_intent and ml_intent == regex_intent:
-                return {
-                    'intent': ml_intent,
-                    'confidence': (ml_confidence + regex_confidence) / 2,
-                    'probabilities': ml_result.get('probabilities', {}),
-                    'method': 'ensemble_agreement',
-                    'confidence_level': 'medium'
-                }
-            elif ml_intent and ml_confidence > regex_confidence:
-                return {
-                    'intent': ml_intent,
-                    'confidence': ml_confidence,
-                    'probabilities': ml_result.get('probabilities', {}),
-                    'method': 'ensemble_ml_preferred',
-                    'confidence_level': 'medium'
-                }
-            elif regex_intent:
-                return {
-                    'intent': regex_intent,
-                    'confidence': regex_confidence,
-                    'probabilities': regex_result.get('probabilities', {}),
-                    'method': 'regex_classifier',
-                    'confidence_level': 'medium'
-                }
+        # If regex has medium confidence, return it
+        if regex_confidence >= self.medium_confidence_threshold and regex_intent:
+            return {
+                'intent': regex_intent,
+                'confidence': regex_confidence,
+                'probabilities': regex_result.get('probabilities', {}),
+                'method': 'regex_classifier',
+                'confidence_level': 'medium'
+            }
 
-        logger.warning(f"Low confidence ({ml_confidence:.2f}), attempting LLM fallback")
+        # If ML has medium confidence, return it
+        if ml_confidence >= self.medium_confidence_threshold and ml_intent:
+            return {
+                'intent': ml_intent,
+                'confidence': ml_confidence,
+                'probabilities': ml_result.get('probabilities', {}),
+                'method': ml_result.get('method', 'ml_classifier'),
+                'confidence_level': 'medium'
+            }
+
+        # If regex has any intent found, use it with lower confidence
+        if regex_intent:
+            return {
+                'intent': regex_intent,
+                'confidence': regex_confidence,
+                'probabilities': regex_result.get('probabilities', {}),
+                'method': 'regex_classifier',
+                'confidence_level': 'low'
+            }
+
+        # Try LLM fallback as last resort
+        logger.warning(f"Low confidence (regex: {regex_confidence:.2f}, ml: {ml_confidence:.2f}), attempting LLM fallback")
 
         llm_result = self.llm_classifier.predict_sync(text)
         
@@ -297,3 +329,15 @@ class EnsembleIntentClassifier:
     def set_ml_classifier(self, ml_classifier):
         """Set ML classifier after initialization"""
         self.ml_classifier = ml_classifier
+
+    def classify(self, text: str, tokenization_result=None) -> tuple:
+        """
+        Adapter method that wraps predict() to return a tuple compatible with legacy code.
+        
+        Returns:
+            Tuple[str or None, float]: (intent, confidence)
+        """
+        result = self.predict(text, tokenization_result)
+        intent = result.get('intent')
+        confidence = result.get('confidence', 0.0)
+        return intent, confidence

@@ -20,6 +20,12 @@ from app.webhook.infrastructure import (
 )
 
 try:
+    from app.celery_app import get_celery_app, CELERY_AVAILABLE
+except ImportError:
+    get_celery_app = None
+    CELERY_AVAILABLE = False
+
+try:
     from robot_ptb_compat.runtime import CompatApplicationBuilder, WebhookRunner, WebhookHandler
     HAS_ROBOT_PTB_COMPAT = True
 except ImportError:
@@ -55,6 +61,7 @@ class WebhookRuntime:
     process_time_metric: Histogram
     chat_api_error_metric: Counter
     telegram_send_error_metric: Counter
+    celery_app: object | None
 
 
 def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegram_tasks") -> WebhookRuntime:
@@ -93,10 +100,16 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
         else None
     )
 
-    if process_async and task_queue is None:
-        logger.warning(
-            "webhook.async_queue_unavailable_on_startup"
-        )
+    celery_app = None
+    celery_enabled = os.getenv("CELERY_ENABLED", "false").lower() == "true"
+    if celery_enabled and get_celery_app is not None:
+        try:
+            celery_app = get_celery_app()
+            logger.info("Celery app initialized successfully", extra={
+                "broker": celery_app.conf.broker_url,
+            })
+        except Exception as e:
+            logger.error(f"Failed to initialize Celery app: {e}")
 
     # Initialize menu engine
     try:
@@ -196,6 +209,7 @@ def build_webhook_runtime(*, process_update_callable, queue_name: str = "telegra
         process_time_metric=process_time_metric,
         chat_api_error_metric=chat_api_error_metric,
         telegram_send_error_metric=telegram_send_error_metric,
+        celery_app=celery_app,
     )
 
 

@@ -14,7 +14,7 @@ class ActionParseResult:
 
 
 class NLPBotIntegration:
-    def __init__(self, config: Optional[Any] = None, min_confidence: float = 0.5):
+    def __init__(self, config: Optional[Any] = None, min_confidence: float = 0.30):
         from app.nlp.pipeline import PipelineConfig
         self.config = config or PipelineConfig()
         self.min_confidence = min_confidence
@@ -32,8 +32,17 @@ class NLPBotIntegration:
     @property
     def classifier(self):
         if self._classifier is None:
-            from app.nlp.intent_classifier import IntentClassifier
-            self._classifier = IntentClassifier()
+            from app.nlp.classifiers.ensemble_classifier import EnsembleIntentClassifier
+            from app.nlp.classifiers.ml_classifier import MLIntentClassifier
+            
+            # Inicializar ensemble con todos los componentes
+            ml_classifier = MLIntentClassifier()  # Carga modelo entrenado
+            
+            self._classifier = EnsembleIntentClassifier(
+                ml_classifier=ml_classifier,
+                ml_weight=0.5,
+                regex_weight=0.5
+            )
         return self._classifier
 
     def should_use_nlp(self, text: str) -> bool:
@@ -74,7 +83,7 @@ class NLPBotIntegration:
 _integration_instance: Optional[NLPBotIntegration] = None
 
 
-def get_nlp_integration(config: Optional[Any] = None, min_confidence: float = 0.5) -> NLPBotIntegration:
+def get_nlp_integration(config: Optional[Any] = None, min_confidence: float = 0.30) -> NLPBotIntegration:
     global _integration_instance
     if _integration_instance is None:
         _integration_instance = NLPBotIntegration(config, min_confidence)

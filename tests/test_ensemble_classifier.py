@@ -20,7 +20,7 @@ class TestRegexIntentClassifier:
     def test_initialization(self, classifier):
         """Test: RegexIntentClassifier debe inicializar correctamente"""
         assert classifier.intents is not None
-        assert len(classifier.intents) == 15
+        assert len(classifier.intents) == 16
 
     def test_predict_returns_correct_structure(self, classifier):
         """Test: predict() debe retornar estructura correcta"""
@@ -102,20 +102,18 @@ class TestLLMIntentClassifier:
         assert classifier.timeout == 2.0
         assert classifier.available is False
 
-    @pytest.mark.asyncio
-    async def test_predict_returns_fallback_structure(self, classifier):
+    def test_predict_returns_fallback_structure(self, classifier):
         """Test: predict() debe retornar estructura de fallback"""
-        result = await classifier.predict("test text")
+        result = classifier.predict("test text")
         
         assert 'intent' in result
         assert 'confidence' in result
         assert 'method' in result
         assert result['method'] == 'llm_fallback'
 
-    @pytest.mark.asyncio
-    async def test_predict_returns_none_when_unavailable(self, classifier):
+    def test_predict_returns_none_when_unavailable(self, classifier):
         """Test: Debe retornar None cuando LLM no disponible"""
-        result = await classifier.predict("test text")
+        result = classifier.predict("test text")
         
         assert result['intent'] is None
 

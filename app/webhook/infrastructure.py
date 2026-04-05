@@ -33,6 +33,12 @@ class _LegacyRequestsTelegramClient(PortTelegramClient):
         if reply_markup:
             payload["reply_markup"] = reply_markup
         response = self._requests.post(url, json=payload, timeout=self._timeout)
+        
+        # Validar que Telegram respondió exitosamente
+        if response.status_code >= 400:
+            error_msg = f"Telegram API error {response.status_code}: {response.text[:200]}"
+            raise Exception(error_msg)
+        
         return {"status_code": response.status_code, "text": response.text}
 
     def edit_message_text(self, *, chat_id: int, message_id: int, text: str, reply_markup: Optional[Dict] = None) -> Dict[str, Any]:
@@ -41,6 +47,12 @@ class _LegacyRequestsTelegramClient(PortTelegramClient):
         if reply_markup:
             payload["reply_markup"] = reply_markup
         response = self._requests.post(url, json=payload, timeout=self._timeout)
+        
+        # Validar que Telegram respondió exitosamente
+        if response.status_code >= 400:
+            error_msg = f"Telegram API error {response.status_code}: {response.text[:200]}"
+            raise Exception(error_msg)
+        
         return {"status_code": response.status_code, "text": response.text}
 
     def answer_callback_query(self, *, callback_query_id: str, text: Optional[str] = None, show_alert: bool = False) -> Dict[str, Any]:
@@ -51,6 +63,12 @@ class _LegacyRequestsTelegramClient(PortTelegramClient):
         if show_alert:
             payload["show_alert"] = True
         response = self._requests.post(url, json=payload, timeout=self._timeout)
+        
+        # Validar que Telegram respondió exitosamente
+        if response.status_code >= 400:
+            error_msg = f"Telegram API error {response.status_code}: {response.text[:200]}"
+            raise Exception(error_msg)
+        
         return {"status_code": response.status_code, "text": response.text}
 
 
@@ -106,6 +124,12 @@ class RequestsTelegramClient(PortTelegramClient):
         if reply_markup:
             payload["reply_markup"] = reply_markup
         response = self._requests.post(url, json=payload, timeout=self._timeout)
+        
+        # Validar que Telegram respondió exitosamente
+        if response.status_code >= 400:
+            error_msg = f"Telegram API error {response.status_code}: {response.text[:200]}"
+            raise Exception(error_msg)
+        
         return {"status_code": response.status_code, "text": response.text}
 
     def edit_message_text(self, *, chat_id: int, message_id: int, text: str, reply_markup: Optional[Dict] = None) -> Dict[str, Any]:
@@ -114,6 +138,12 @@ class RequestsTelegramClient(PortTelegramClient):
         if reply_markup:
             payload["reply_markup"] = reply_markup
         response = self._requests.post(url, json=payload, timeout=self._timeout)
+        
+        # Validar que Telegram respondió exitosamente
+        if response.status_code >= 400:
+            error_msg = f"Telegram API error {response.status_code}: {response.text[:200]}"
+            raise Exception(error_msg)
+        
         return {"status_code": response.status_code, "text": response.text}
 
     def answer_callback_query(self, *, callback_query_id: str, text: Optional[str] = None, show_alert: bool = False) -> Dict[str, Any]:
@@ -124,6 +154,12 @@ class RequestsTelegramClient(PortTelegramClient):
         if show_alert:
             payload["show_alert"] = True
         response = self._requests.post(url, json=payload, timeout=self._timeout)
+        
+        # Validar que Telegram respondió exitosamente
+        if response.status_code >= 400:
+            error_msg = f"Telegram API error {response.status_code}: {response.text[:200]}"
+            raise Exception(error_msg)
+        
         return {"status_code": response.status_code, "text": response.text}
 
 
