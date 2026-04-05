@@ -52,13 +52,13 @@ python-dotenv==1.2.1
 python-telegram-bot==22.6
 pytz==2025.2
 PyYAML==6.0.3
-redis==7.2.1
+redis==5.0.8
 celery[redis]==5.4.0
 eventlet==0.40.1
 regex==2026.2.19
 requests==2.32.5
 rich==14.3.3
-rq==1.16.2
+rq==2.0.0
 safetensors==0.7.0
 scikit-learn==1.8.0
 scipy==1.17.1
