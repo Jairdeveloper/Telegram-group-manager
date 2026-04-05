@@ -10,6 +10,9 @@ class _DummyLogger:
     def warning(self, *_args, **_kwargs):
         return None
 
+    def error(self, *_args, **_kwargs):
+        return None
+
     def exception(self, *_args, **_kwargs):
         return None
 
@@ -71,6 +74,11 @@ def test_enterprise_blacklist_blocks_chat_message(monkeypatch):
     monkeypatch.setenv("ENTERPRISE_ENABLED", "1")
     monkeypatch.setenv("ENTERPRISE_MODERATION_ENABLED", "1")
     monkeypatch.setenv("ENTERPRISE_OWNER_IDS", "42")
+    
+    # Reset the blacklist repo to start fresh
+    import app.enterprise.infrastructure.moderation_repositories as repos
+    repos._blacklist_repo = None
+    
     telegram = _FakeTelegramClientRecorder()
     chat_service = _FakeChatServiceStatic("chat-ok")
 
@@ -95,6 +103,8 @@ def test_enterprise_blacklist_blocks_chat_message(monkeypatch):
         )
     )
 
+    # Check that chat_service was NOT called (blocked by moderation)
     assert chat_service.calls == []
+    # Check that telegram was called with blocked message
     assert telegram.calls
     assert "Mensaje bloqueado" in telegram.calls[0]["text"]

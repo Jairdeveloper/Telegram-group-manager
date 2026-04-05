@@ -88,7 +88,7 @@ class ActionParser:
             has_intent = any(word in lowered for word in intent_words)
             
             # If user is asking to SET a message but no clear text is provided,
-            # return toggle ON with default text - let the LLM handle the actual text
+            # return set_creative_text to generate a message automatically
             if has_intent:
                 # Check if there's explicit text after colon or "con"
                 if re.search(r"(?:welcome|bienvenida)\s*:\s*(.+)", message, re.IGNORECASE):
@@ -96,13 +96,13 @@ class ActionParser:
                 elif re.search(r"(?:welcome|bienvenida)\s+(?:con|with)\s+(.+)", lowered):
                     pass  # Has "con texto", continue
                 else:
-                    # No explicit text - return toggle ON to enable welcome
+                    # No explicit text - return set_creative_text to generate message automatically
                     # The user wants to set up welcome but didn't provide the text
                     return ActionParseResult(
-                        action_id="welcome.toggle",
-                        payload={"enabled": True},
-                        confidence=0.6,
-                        reason="welcome_intent_no_text",
+                        action_id="welcome.set_creative_text",
+                        payload={},
+                        confidence=0.7,
+                        reason="welcome_intent_no_text_creative",
                     )
 
             # PRIORITY: Check for set_text patterns FIRST (before toggle)

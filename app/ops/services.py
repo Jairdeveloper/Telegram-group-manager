@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from functools import lru_cache
@@ -12,6 +13,8 @@ from app.ops.events import get_event_store, record_event
 
 from . import checks as ops_checks
 
+logger = logging.getLogger(__name__)
+
 
 @lru_cache(maxsize=1)
 def _get_default_api_runtime():
@@ -21,25 +24,56 @@ def _get_default_api_runtime():
 
 def handle_chat_message(chat_id: int, text: str, *, agent=None, storage=None) -> Dict[str, Any]:
     """Process a chat message using the chatbot domain service."""
-    runtime = None
-    if agent is None or storage is None:
-        runtime = _get_default_api_runtime()
-    agent = agent or runtime.agent
-    storage = storage or runtime.storage
+    try:
+        runtime = None
+        if agent is None or storage is None:
+            runtime = _get_default_api_runtime()
+        agent = agent or runtime.agent
+        storage = storage or runtime.storage
 
-    session_id = str(chat_id)
-    response = agent.process(text)
-    storage.save(session_id, text, response.text)
+        session_id = str(chat_id)
+        response = agent.process(text)
+        
+        # Validar que response no sea None
+        if response is None:
+            logger.error(f"Agent returned None for text: {text}")
+            return {
+                "chat_id": chat_id,
+                "session_id": str(chat_id),
+                "message": text,
+                "response": "No se pudo procesar el mensaje.",
+                "confidence": 0.0,
+                "source": "error",
+                "pattern_matched": False,
+            }
+        
+        storage.save(session_id, text, response.text)
 
-    return {
-        "chat_id": chat_id,
-        "session_id": session_id,
-        "message": text,
-        "response": response.text,
-        "confidence": response.confidence,
-        "source": response.source,
-        "pattern_matched": response.pattern_matched,
-    }
+        return {
+            "chat_id": chat_id,
+            "session_id": session_id,
+            "message": text,
+            "response": response.text,
+            "confidence": response.confidence,
+            "source": response.source,
+            "pattern_matched": response.pattern_matched,
+        }
+    except Exception as e:
+        import traceback
+        logger.error(f"🔴 CRITICAL ERROR in handle_chat_message: {type(e).__name__}: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        logger.error(f"Chat ID: {chat_id}, Text: {text}")
+        return {
+            "chat_id": chat_id,
+            "session_id": str(chat_id),
+            "message": text,
+            "response": "Ocurrió un error procesando tu mensaje. Por favor intenta de nuevo.",
+            "confidence": 0.0,
+            "source": "error",
+            "pattern_matched": False,
+            "error": str(e),
+            "error_type": type(e).__name__,
+        }
 
 
 def format_health_response(api_health: Dict[str, Any], webhook_health: Dict[str, Any]) -> str:
