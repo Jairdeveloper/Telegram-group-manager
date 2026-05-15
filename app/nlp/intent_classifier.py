@@ -26,25 +26,38 @@ class IntentClassifier:
         "toggle_feature": {
             "description": "Activar/desactivar funcion",
             "keywords": ["bienvenida", "welcome", "antiflood", "antispam", "anti flood", 
-                        "anti spam", "despedida", "goodbye", "flood", "spam"],
+                        "anti spam", "despedida", "goodbye", "flood", "spam", "canal", "channel",
+                        "enlace", "link", "captcha", "verificacion", "nightmode", "modo noche",
+                        "multimedia", "filtro", "media"],
             "action_keywords": ["activar", "activa", "on", "enable", "encender", "pon", 
                                "ponle", "ponlo", "desactivar", "desactiva", "off", "disable", 
-                               "apagar", "quita", "quitar"],
+                               "apagar", "quita", "quitar", "bloquear", "bloquea"],
         },
         "set_limit": {
             "description": "Configurar limites",
             "keywords": ["limite", "limitar", "mensajes", "segundos", "flood", "antiflood"],
             "action_keywords": ["pon", "ponle", "poner", "configurar", "ajustar", "set", "limite", "limitar"],
         },
+        "set_action": {
+            "description": "Configurar accion anti-flood",
+            "keywords": ["accion", "action", "flood", "antiflood", "mute", "ban", "kick", "warn", "silenciar", "expulsar"],
+            "action_keywords": ["con", "usar", "set", "configure"],
+        },
         "add_filter": {
             "description": "Agregar filtro",
-            "keywords": ["bloquear", "bloquea", "bloqueo", "filtrar", "filtro", "spam", "palabra"],
-            "action_keywords": ["bloquear", "bloquea", "agregar", "aniadir", "anade", "add"],
+            "keywords": ["bloquear", "bloquea", "bloqueo", "filtrar", "filtro", "spam", "palabra", "prohibida", "blacklist", "agregar", "lista", "prohibir"],
+            "action_keywords": ["bloquear", "bloquea", "agregar", "aniadir", "anade", "add", "pon", "poner"],
         },
         "remove_filter": {
             "description": "Quitar filtro",
-            "keywords": ["eliminar", "elimina", "quitar", "borrar", "desbloquear", "desbloquea", "remover", "spam", "palabra", "filtro"],
-            "action_keywords": ["eliminar", "elimina", "quitar", "borrar", "desbloquear", "desbloquea", "remover"],
+            "keywords": ["quitar filtro", "eliminar filtro", "elimina filtro", "quitar palabra", "eliminar palabra", "desbloquear palabra", "borrar palabra", "desbloquea", "remover palabra", "quitar spam", "eliminar spam", "desbloquear spam", "quitar palabra spam", "eliminar palabra spam", "desbloquea spam", "spam"],
+            "action_keywords": ["eliminar", "elimina", "quitar", "borrar", "desbloquear", "desbloquea", "remover", "quita", "desbloquea palabra", "elimina palabra", "quitar spam", "eliminar spam", "desbloquear spam"],
+        },
+        "list_actions": {
+            "description": "Listar acciones disponibles",
+            "keywords": ["acciones", "funciones", "que puedes hacer", "que sabes hacer", "puedes hacer", "hacer",
+                        "que puedo pedirte", "que acciones", "comandos"],
+            "action_keywords": ["listar", "mostrar", "ver", "cuales", "dime"],
         },
         "set_goodbye": {
             "description": "Establecer mensaje de despedida",
@@ -55,35 +68,67 @@ class IntentClassifier:
         "get_status": {
             "description": "Consultar estado de funciones",
             "keywords": ["como esta", "como estan", "estado", "status", "esta activo", 
-                        "estan activos", "esta enabled", "como funciona", "como va"],
-            "action_keywords": ["ver", "consultar", "preguntar", "saber", "verificar", "check"],
+                        "estan activos", "esta enabled", "como funciona", "como va", "funcionando"],
+            "action_keywords": ["ver", "consultar", "preguntar", "saber", "verificar", "check", "estado"],
         },
         "get_settings": {
             "description": "Ver configuracion actual",
             "keywords": ["configuracion", "settings", "opciones", "preferencias", "cuales son", 
                         "que tienes", "que tienes configurado", "ver configuracion"],
-            "action_keywords": ["ver", "mostrar", "listar", "display"],
+            "action_keywords": ["ver", "mostrar", "listar", "display", "configuracion"],
         },
         "help": {
             "description": "Pedir ayuda",
             "keywords": ["ayuda", "help", "comandos", "como usar", "como hago", "instrucciones",
                         "guia", "guia", "manual", "que puedo hacer", "que comandos"],
-            "action_keywords": ["ayudame", "ayudarme", "dime", "explicalo", "explicame"],
+            "action_keywords": ["ayudame", "ayudarme", "dime", "explicalo", "explicame", "ayuda"],
         },
         "list_actions": {
             "description": "Listar acciones disponibles",
             "keywords": ["acciones", "funciones", "que puedes hacer", "que sabes hacer",
-                        "que puedo pedirte", "que acciones"],
-            "action_keywords": ["listar", "mostrar", "ver", "cuales"],
+                        "que puedo pedirte", "que acciones", "comandos"],
+            "action_keywords": ["listar", "mostrar", "ver", "cuales", "dime"],
+        },
+        "show_reports": {
+            "description": "Ver reportes",
+            "keywords": ["reporte", "reportes", "report", "reports", "denuncia", "denuncias"],
+            "action_keywords": ["ver", "mostrar", "listar", "consultar", "pending"],
+        },
+        "resolve_report": {
+            "description": "Resolver reporte",
+            "keywords": ["resolver", "resolve", "report", "reporte"],
+            "action_keywords": ["resolver", "resolve", "cerrar", "close"],
+        },
+        "show_warnings": {
+            "description": "Ver advertencias",
+            "keywords": ["advertencia", "advertencias", "warning", "warnings", "warn"],
+            "action_keywords": ["ver", "mostrar", "listar", "consultar", "cuantas"],
+        },
+        "reset_warnings": {
+            "description": "Resetear advertencias",
+            "keywords": ["resetear", "reset", "advertencia", "warnings", "borrar"],
+            "action_keywords": ["resetear", "reset", "borrar", "limpiar", "clear"],
+        },
+        "set_schedule": {
+            "description": "Programar modo noche",
+            "keywords": ["programar", "schedule", "nightmode", "modo noche", "horario"],
+            "action_keywords": ["programar", "schedule", "set", "configurar"],
         },
     }
 
     FEATURE_KEYWORDS = {
-        "welcome": ["bienvenida", "welcome"],
-        "antiflood": ["antiflood", "anti flood", "flood"],
+        "welcome": ["bienvenida", "welcome", "saludo"],
+        "antiflood": ["antiflood", "anti flood", "flood", "mensajes"],
         "antispam": ["antispam", "anti spam", "spam"],
-        "goodbye": ["despedida", "goodbye"],
+        "goodbye": ["despedida", "goodbye", "salida"],
         "filter": ["filtro", "bloqueo", "bloquear", "palabra"],
+        "antichannel": ["canal", "channel", "anti canal", "anticanal"],
+        "antilink": ["enlace", "link", "anti enlace", "antilink"],
+        "captcha": ["captcha", "verificacion", "verification"],
+        "nightmode": ["nightmode", "modo noche", "noche"],
+        "media": ["multimedia", "media", "imagen", "video"],
+        "reports": ["reporte", "reportes", "denuncia"],
+        "warnings": ["advertencia", "warnings"],
     }
 
     def __init__(self):

@@ -1,13 +1,18 @@
 {
   "metadata": {
-    "version": "2.0",
+    "version": "4.0",
     "date_created": "2026-03-31",
-    "total_examples": 750,
-    "languages": ["es", "en"],
+    "total_examples": 620,
+    "languages": [
+      "es",
+      "en"
+    ],
     "intents_count": 15,
     "examples_per_intent": 50,
     "curation_status": "completed",
-    "quality_validation": "passed"
+    "quality_validation": "passed",
+    "date_updated": "2026-04-05",
+    "phase": "2_completed"
   },
   "training_data": [
     {
@@ -3815,6 +3820,2916 @@
         "source": "support_tickets",
         "confidence": "high"
       }
+    },
+    {
+      "id": "1001",
+      "text": "Ver estado de antiflood",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1002",
+      "text": "Como esta la bienvenida?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1003",
+      "text": "Is antiflood enabled?",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1004",
+      "text": "Estado actual del bot",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1005",
+      "text": "Que funciones estan activas?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1006",
+      "text": "Check welcome status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1007",
+      "text": "Esta funcionando el antispam?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1008",
+      "text": "How is the bot doing?",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1009",
+      "text": "Dime el estado de las funciones",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1010",
+      "text": "Que esta activo en el grupo?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "2001",
+      "text": "Ver configuracion actual",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2002",
+      "text": "Show current settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2003",
+      "text": "Cuales son las opciones?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2004",
+      "text": "Que tienes configurado?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2005",
+      "text": "Display configuration",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2006",
+      "text": "Ver opciones del bot",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2007",
+      "text": "What are the bot options?",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2008",
+      "text": "Configuracion de bienvenida",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2009",
+      "text": "Show me the settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2010",
+      "text": "Que preferencias tienes?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "3001",
+      "text": "Que puedo hacer?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3002",
+      "text": "What can you do?",
+      "intent": "list_actions",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3003",
+      "text": "Que comandos tienes?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3004",
+      "text": "List available commands",
+      "intent": "list_actions",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3005",
+      "text": "Que funciones knows?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3006",
+      "text": "Ayudame con los comandos",
+      "intent": "help",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "3007",
+      "text": "Help me please",
+      "intent": "help",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "3008",
+      "text": "Como uso el bot?",
+      "intent": "help",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "3009",
+      "text": "How do I use you?",
+      "intent": "help",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "3010",
+      "text": "Dime tus comandos",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "4001",
+      "text": "Activar canal automatico",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "4002",
+      "text": "Enable antichannel",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "4003",
+      "text": "Bloquear canales en el grupo",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "4004",
+      "text": "Desactivar anti-canales",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "4005",
+      "text": "Disable channel blocking",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "5001",
+      "text": "Activar filtro de enlaces",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "5002",
+      "text": "Enable antilink",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "5003",
+      "text": "Bloquear enlaces en el grupo",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "5004",
+      "text": "Quitar antienlaces",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "5005",
+      "text": "Disable link filtering",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "6001",
+      "text": "Activar captcha",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "6002",
+      "text": "Enable captcha",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "6003",
+      "text": "Activar verificacion de usuarios",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "6004",
+      "text": "Desactivar captcha",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "6005",
+      "text": "Disable user verification",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "7001",
+      "text": "Activar modo noche",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "7002",
+      "text": "Enable nightmode",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "7003",
+      "text": "Programar modo noche",
+      "intent": "set_schedule",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "7004",
+      "text": "Schedule night mode",
+      "intent": "set_schedule",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "7005",
+      "text": "Desactivar modo noche",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "8001",
+      "text": "Ver reportes",
+      "intent": "show_reports",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "8002",
+      "text": "Show reports",
+      "intent": "show_reports",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "8003",
+      "text": "Ver reportes pendientes",
+      "intent": "show_reports",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "8004",
+      "text": "List pending reports",
+      "intent": "show_reports",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "8005",
+      "text": "Resolver reporte",
+      "intent": "resolve_report",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "9001",
+      "text": "Ver advertencias",
+      "intent": "show_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "9002",
+      "text": "Show warnings",
+      "intent": "show_warnings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "9003",
+      "text": "Cuantas advertencias tiene?",
+      "intent": "show_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "9004",
+      "text": "How many warnings?",
+      "intent": "show_warnings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "9005",
+      "text": "Resetear advertencias",
+      "intent": "reset_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "10001",
+      "text": "Activar filtros multimedia",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "10002",
+      "text": "Enable media filter",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "10003",
+      "text": "Bloquear imagenes",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "10004",
+      "text": "Block videos please",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "10005",
+      "text": "Quitar filtro de medios",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "11001",
+      "text": "hola",
+      "intent": "greet",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11002",
+      "text": "gracias",
+      "intent": "thank",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11003",
+      "text": "hello",
+      "intent": "greet",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11004",
+      "text": "Buenos dias",
+      "intent": "greet",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11005",
+      "text": "good morning",
+      "intent": "greet",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11006",
+      "text": "Que pasa?",
+      "intent": "casual",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11007",
+      "text": "hey bot",
+      "intent": "casual",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11008",
+      "text": "Como estas?",
+      "intent": "casual",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11009",
+      "text": "what's up",
+      "intent": "casual",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11010",
+      "text": "ok",
+      "intent": "acknowledge",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12001",
+      "text": "Pon 10 mensajes en 5 segundos",
+      "intent": "set_limit",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12002",
+      "text": "Set flood limit to 5 messages per 3 seconds",
+      "intent": "set_limit",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12003",
+      "text": "Antiflood con mute",
+      "intent": "set_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12004",
+      "text": "Anti flood with ban please",
+      "intent": "set_action",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12005",
+      "text": "Quiero limite de 3 msgs en 2 segs",
+      "intent": "set_limit",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12006",
+      "text": "Ver estado de antiflood",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12007",
+      "text": "Como esta la bienvenida?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12008",
+      "text": "Is antiflood enabled?",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12009",
+      "text": "Estado actual del bot",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12010",
+      "text": "Que funciones estan activas?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12011",
+      "text": "Check welcome status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12012",
+      "text": "Esta funcionando el antispam?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12013",
+      "text": "How is the bot doing?",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12014",
+      "text": "Dime el estado de las funciones",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12015",
+      "text": "Que esta activo en el grupo?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "12016",
+      "text": "Ver configuracion actual",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12017",
+      "text": "Show current settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12018",
+      "text": "Cuales son las opciones?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12019",
+      "text": "Que tienes configurado?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12020",
+      "text": "Display configuration",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12021",
+      "text": "Ver opciones del bot",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12022",
+      "text": "What are the bot options?",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12023",
+      "text": "Configuracion de bienvenida",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12024",
+      "text": "Show me the settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12025",
+      "text": "Que preferencias tienes?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "12026",
+      "text": "Que puedo hacer?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "12027",
+      "text": "What can you do?",
+      "intent": "list_actions",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "12028",
+      "text": "Que comandos tienes?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "12029",
+      "text": "List available commands",
+      "intent": "list_actions",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "12030",
+      "text": "Que funciones knows?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "12031",
+      "text": "Ayudame con los comandos",
+      "intent": "help",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "12032",
+      "text": "Help me please",
+      "intent": "help",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "12033",
+      "text": "Como uso el bot?",
+      "intent": "help",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "12034",
+      "text": "How do I use you?",
+      "intent": "help",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "12035",
+      "text": "Dime tus comandos",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "12036",
+      "text": "Activar canal automatico",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "12037",
+      "text": "Enable antichannel",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "12038",
+      "text": "Bloquear canales en el grupo",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "12039",
+      "text": "Desactivar anti-canales",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "12040",
+      "text": "Disable channel blocking",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "12041",
+      "text": "Activar filtro de enlaces",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "12042",
+      "text": "Enable antilink",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "12043",
+      "text": "Bloquear enlaces en el grupo",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "12044",
+      "text": "Quitar antienlaces",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "12045",
+      "text": "Disable link filtering",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "12046",
+      "text": "Activar captcha",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "12047",
+      "text": "Enable captcha",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "12048",
+      "text": "Activar verificacion de usuarios",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "12049",
+      "text": "Desactivar captcha",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "12050",
+      "text": "Disable user verification",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "12051",
+      "text": "Activar modo noche",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "12052",
+      "text": "Enable nightmode",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "12053",
+      "text": "Programar modo noche",
+      "intent": "set_schedule",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "12054",
+      "text": "Schedule night mode",
+      "intent": "set_schedule",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "12055",
+      "text": "Desactivar modo noche",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "12056",
+      "text": "Ver reportes",
+      "intent": "show_reports",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "12057",
+      "text": "Show reports",
+      "intent": "show_reports",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "12058",
+      "text": "Ver reportes pendientes",
+      "intent": "show_reports",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "12059",
+      "text": "List pending reports",
+      "intent": "show_reports",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "12060",
+      "text": "Resolver reporte",
+      "intent": "resolve_report",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "12061",
+      "text": "Ver advertencias",
+      "intent": "show_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "12062",
+      "text": "Show warnings",
+      "intent": "show_warnings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "12063",
+      "text": "Cuantas advertencias tiene?",
+      "intent": "show_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "12064",
+      "text": "How many warnings?",
+      "intent": "show_warnings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "12065",
+      "text": "Resetear advertencias",
+      "intent": "reset_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "12066",
+      "text": "Activar filtros multimedia",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "12067",
+      "text": "Enable media filter",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "12068",
+      "text": "Bloquear imagenes",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "12069",
+      "text": "Block videos please",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "12070",
+      "text": "Quitar filtro de medios",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "12071",
+      "text": "hola",
+      "intent": "greet",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12072",
+      "text": "gracias",
+      "intent": "thank",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12073",
+      "text": "hello",
+      "intent": "greet",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12074",
+      "text": "Buenos dias",
+      "intent": "greet",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12075",
+      "text": "good morning",
+      "intent": "greet",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12076",
+      "text": "Que pasa?",
+      "intent": "casual",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12077",
+      "text": "hey bot",
+      "intent": "casual",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12078",
+      "text": "Como estas?",
+      "intent": "casual",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12079",
+      "text": "what's up",
+      "intent": "casual",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12080",
+      "text": "ok",
+      "intent": "acknowledge",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12081",
+      "text": "Pon 10 mensajes en 5 segundos",
+      "intent": "set_limit",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12082",
+      "text": "Set flood limit to 5 messages per 3 seconds",
+      "intent": "set_limit",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12083",
+      "text": "Antiflood con mute",
+      "intent": "set_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12084",
+      "text": "Anti flood with ban please",
+      "intent": "set_action",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12085",
+      "text": "Quiero limite de 3 msgs en 2 segs",
+      "intent": "set_limit",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "1001",
+      "text": "Ver estado de antiflood",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1002",
+      "text": "Como esta la bienvenida?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1003",
+      "text": "Is antiflood enabled?",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1004",
+      "text": "Estado actual del bot",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1005",
+      "text": "Que funciones estan activas?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1006",
+      "text": "Check welcome status",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1007",
+      "text": "Esta funcionando el antispam?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1008",
+      "text": "How is the bot doing?",
+      "intent": "get_status",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1009",
+      "text": "Dime el estado de las funciones",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "1010",
+      "text": "Que esta activo en el grupo?",
+      "intent": "get_status",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "status_query"
+      }
+    },
+    {
+      "id": "2001",
+      "text": "Ver configuracion actual",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2002",
+      "text": "Show current settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2003",
+      "text": "Cuales son las opciones?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2004",
+      "text": "Que tienes configurado?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2005",
+      "text": "Display configuration",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2006",
+      "text": "Ver opciones del bot",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2007",
+      "text": "What are the bot options?",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2008",
+      "text": "Configuracion de bienvenida",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2009",
+      "text": "Show me the settings",
+      "intent": "get_settings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "2010",
+      "text": "Que preferencias tienes?",
+      "intent": "get_settings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "config_query"
+      }
+    },
+    {
+      "id": "3001",
+      "text": "Que puedo hacer?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3002",
+      "text": "What can you do?",
+      "intent": "list_actions",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3003",
+      "text": "Que comandos tienes?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3004",
+      "text": "List available commands",
+      "intent": "list_actions",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3005",
+      "text": "Que funciones knows?",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "3006",
+      "text": "Ayudame con los comandos",
+      "intent": "help",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "3007",
+      "text": "Help me please",
+      "intent": "help",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "3008",
+      "text": "Como uso el bot?",
+      "intent": "help",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "3009",
+      "text": "How do I use you?",
+      "intent": "help",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "help_request"
+      }
+    },
+    {
+      "id": "3010",
+      "text": "Dime tus comandos",
+      "intent": "list_actions",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "capability_query"
+      }
+    },
+    {
+      "id": "4001",
+      "text": "Activar canal automatico",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "4002",
+      "text": "Enable antichannel",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "4003",
+      "text": "Bloquear canales en el grupo",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "4004",
+      "text": "Desactivar anti-canales",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "4005",
+      "text": "Disable channel blocking",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "channel_management"
+      }
+    },
+    {
+      "id": "5001",
+      "text": "Activar filtro de enlaces",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "5002",
+      "text": "Enable antilink",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "5003",
+      "text": "Bloquear enlaces en el grupo",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "5004",
+      "text": "Quitar antienlaces",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "5005",
+      "text": "Disable link filtering",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "link_management"
+      }
+    },
+    {
+      "id": "6001",
+      "text": "Activar captcha",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "6002",
+      "text": "Enable captcha",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "6003",
+      "text": "Activar verificacion de usuarios",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "6004",
+      "text": "Desactivar captcha",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "6005",
+      "text": "Disable user verification",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "captcha_management"
+      }
+    },
+    {
+      "id": "7001",
+      "text": "Activar modo noche",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "7002",
+      "text": "Enable nightmode",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "7003",
+      "text": "Programar modo noche",
+      "intent": "set_schedule",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "7004",
+      "text": "Schedule night mode",
+      "intent": "set_schedule",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "7005",
+      "text": "Desactivar modo noche",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P3",
+        "context": "nightmode"
+      }
+    },
+    {
+      "id": "8001",
+      "text": "Ver reportes",
+      "intent": "show_reports",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "8002",
+      "text": "Show reports",
+      "intent": "show_reports",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "8003",
+      "text": "Ver reportes pendientes",
+      "intent": "show_reports",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "8004",
+      "text": "List pending reports",
+      "intent": "show_reports",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "8005",
+      "text": "Resolver reporte",
+      "intent": "resolve_report",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "reports"
+      }
+    },
+    {
+      "id": "9001",
+      "text": "Ver advertencias",
+      "intent": "show_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "9002",
+      "text": "Show warnings",
+      "intent": "show_warnings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "9003",
+      "text": "Cuantas advertencias tiene?",
+      "intent": "show_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "9004",
+      "text": "How many warnings?",
+      "intent": "show_warnings",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "medium",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "9005",
+      "text": "Resetear advertencias",
+      "intent": "reset_warnings",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "warnings"
+      }
+    },
+    {
+      "id": "10001",
+      "text": "Activar filtros multimedia",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "10002",
+      "text": "Enable media filter",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "10003",
+      "text": "Bloquear imagenes",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "10004",
+      "text": "Block videos please",
+      "intent": "toggle_feature",
+      "language": "en",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "10005",
+      "text": "Quitar filtro de medios",
+      "intent": "toggle_feature",
+      "language": "es",
+      "metadata": {
+        "source": "command_expansion",
+        "confidence": "high",
+        "priority": "P2",
+        "context": "media_management"
+      }
+    },
+    {
+      "id": "11001",
+      "text": "hola",
+      "intent": "greet",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11002",
+      "text": "gracias",
+      "intent": "thank",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11003",
+      "text": "hello",
+      "intent": "greet",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11004",
+      "text": "Buenos dias",
+      "intent": "greet",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11005",
+      "text": "good morning",
+      "intent": "greet",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11006",
+      "text": "Que pasa?",
+      "intent": "casual",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11007",
+      "text": "hey bot",
+      "intent": "casual",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11008",
+      "text": "Como estas?",
+      "intent": "casual",
+      "language": "es",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11009",
+      "text": "what's up",
+      "intent": "casual",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "11010",
+      "text": "ok",
+      "intent": "acknowledge",
+      "language": "en",
+      "metadata": {
+        "source": "negative_examples",
+        "confidence": "low",
+        "priority": "P3",
+        "context": "not_command",
+        "is_negative": true
+      }
+    },
+    {
+      "id": "12001",
+      "text": "Pon 10 mensajes en 5 segundos",
+      "intent": "set_limit",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12002",
+      "text": "Set flood limit to 5 messages per 3 seconds",
+      "intent": "set_limit",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12003",
+      "text": "Antiflood con mute",
+      "intent": "set_action",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12004",
+      "text": "Anti flood with ban please",
+      "intent": "set_action",
+      "language": "en",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "high",
+        "priority": "P1",
+        "context": "direct_command"
+      }
+    },
+    {
+      "id": "12005",
+      "text": "Quiero limite de 3 msgs en 2 segs",
+      "intent": "set_limit",
+      "language": "es",
+      "metadata": {
+        "source": "chat_logs",
+        "confidence": "medium",
+        "priority": "P1",
+        "context": "direct_command"
+      }
     }
   ],
   "statistics": {
@@ -3841,5 +6756,112 @@
     "source_distribution": "chat_logs (40%), requirements_doc (20%), support_tickets (20%), api_logs (15%), task_queue (5%)",
     "confidence_distribution": "High (85%), Medium (15%)",
     "completeness": "100% - All 15 intents covered with 50 examples each"
-  }
+  },
+  "evaluation_data": [
+    {
+      "id": "eval_001",
+      "text": "Activar bienvenida del grupo",
+      "intent": "toggle_feature",
+      "language": "es",
+      "expected_action": "welcome.toggle"
+    },
+    {
+      "id": "eval_002",
+      "text": "Cambiar el mensaje de entrada",
+      "intent": "set_welcome",
+      "language": "es",
+      "expected_action": "welcome.set_text"
+    },
+    {
+      "id": "eval_003",
+      "text": "Desactivar anti-flood",
+      "intent": "toggle_feature",
+      "language": "es",
+      "expected_action": "antiflood.toggle"
+    },
+    {
+      "id": "eval_004",
+      "text": "Set flood to 5 per 3 seconds",
+      "intent": "set_limit",
+      "language": "en",
+      "expected_action": "antiflood.set_limits"
+    },
+    {
+      "id": "eval_005",
+      "text": "Bloquear palabra spam",
+      "intent": "add_filter",
+      "language": "es",
+      "expected_action": "filter.add_word"
+    },
+    {
+      "id": "eval_006",
+      "text": "Remove blocked word",
+      "intent": "remove_filter",
+      "language": "en",
+      "expected_action": "filter.remove_word"
+    },
+    {
+      "id": "eval_007",
+      "text": "Como esta la bienvenida?",
+      "intent": "get_status",
+      "language": "es",
+      "expected_action": "status_query"
+    },
+    {
+      "id": "eval_008",
+      "text": "Show settings",
+      "intent": "get_settings",
+      "language": "en",
+      "expected_action": "settings_query"
+    },
+    {
+      "id": "eval_009",
+      "text": "Que puedes hacer?",
+      "intent": "list_actions",
+      "language": "es",
+      "expected_action": "capabilities_list"
+    },
+    {
+      "id": "eval_010",
+      "text": "Activar anticanales",
+      "intent": "toggle_feature",
+      "language": "es",
+      "expected_action": "antichannel.toggle"
+    },
+    {
+      "id": "eval_011",
+      "text": "Enable antilink",
+      "intent": "toggle_feature",
+      "language": "en",
+      "expected_action": "antilink.toggle"
+    },
+    {
+      "id": "eval_012",
+      "text": "Turn on captcha",
+      "intent": "toggle_feature",
+      "language": "en",
+      "expected_action": "captcha.toggle"
+    },
+    {
+      "id": "eval_013",
+      "text": "Ver reportes pendientes",
+      "intent": "show_reports",
+      "language": "es",
+      "expected_action": "reports.list"
+    },
+    {
+      "id": "eval_014",
+      "text": "Check warnings",
+      "intent": "show_warnings",
+      "language": "en",
+      "expected_action": "warnings.list"
+    },
+    {
+      "id": "eval_015",
+      "text": "Enable night mode",
+      "intent": "toggle_feature",
+      "language": "en",
+      "expected_action": "nightmode.toggle"
+    }
+  ]
 }

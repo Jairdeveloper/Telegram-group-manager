@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def load_training_data(data_path: str = "data/intent_training_data.json"):
+def load_training_data(data_path: str = "data/intent_training_data_expanded.json"):
     """Cargar datos de entrenamiento desde JSON"""
     with open(data_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -60,9 +60,9 @@ def main():
     y = np.array(labels)
     logger.info(f"  Feature matrix shape: {X.shape}")
 
-    logger.info("\n[4/6] Splitting data (80/20 stratified)...")
+    logger.info("\n[4/6] Splitting data (80/20)...")
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
+        X, y, test_size=0.2, random_state=42
     )
     logger.info(f"  Train set: {X_train.shape[0]} samples")
     logger.info(f"  Test set: {X_test.shape[0]} samples")
@@ -77,10 +77,12 @@ def main():
 
     logger.info("\n[5.5/6] Training confidence calibrator...")
     calibrator = ConfidenceCalibrator()
-    calibrator.class_labels = list(classifier.classes)
+    calibrator.class_labels = [str(c) for c in classifier.classes]
+    label_to_idx = {label: i for i, label in enumerate(calibrator.class_labels)}
+    y_test_indices = np.array([label_to_idx.get(str(label), -1) for label in y_test])
     calibrator.fit(
         classifier.model.predict_proba(X_test),
-        np.array([list(classifier.classes).index(label) for label in y_test])
+        y_test_indices
     )
     logger.info("  Calibrator trained")
 

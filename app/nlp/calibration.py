@@ -22,11 +22,14 @@ class ConfidenceCalibrator:
         """Cargar calibrador preentrenado si existe"""
         try:
             data = joblib.load(self.calibrator_path)
-            self.calibrator = data['calibrator']
-            self.class_labels = data['class_labels']
-            self.is_fitted = True
-            logger.info(f"Calibrator loaded from {self.calibrator_path}")
-        except FileNotFoundError:
+            if isinstance(data, dict) and 'calibrator' in data:
+                self.calibrator = data['calibrator']
+                self.class_labels = data['class_labels']
+                self.is_fitted = True
+                logger.info(f"Calibrator loaded from {self.calibrator_path}")
+            else:
+                logger.warning("Calibrator file has invalid format, will need fitting")
+        except Exception:
             logger.warning("Calibrator not found, will need fitting")
 
     def fit(self, probabilities: np.ndarray, true_labels: np.ndarray) -> Dict[str, float]:
@@ -48,6 +51,17 @@ class ConfidenceCalibrator:
 
         binary_labels = (predicted_labels == true_labels).astype(int)
 
+        unique_classes = np.unique(binary_labels)
+        if len(unique_classes) < 2:
+            logger.warning(f"Only one class present in calibration labels ({unique_classes}). Skipping calibration.")
+            self.is_fitted = False
+            return {
+                'accuracy_before_calibration': np.mean(binary_labels),
+                'samples_used': len(probabilities),
+                'n_classes': probabilities.shape[1],
+                'skipped': True
+            }
+
         self.calibrator.fit(max_probs.reshape(-1, 1), binary_labels)
         self.is_fitted = True
 
@@ -60,7 +74,8 @@ class ConfidenceCalibrator:
         return {
             'accuracy_before_calibration': accuracy_before,
             'samples_used': len(probabilities),
-            'n_classes': probabilities.shape[1]
+            'n_classes': probabilities.shape[1],
+            'skipped': False
         }
 
     def set_class_labels(self, class_labels: List[str]):

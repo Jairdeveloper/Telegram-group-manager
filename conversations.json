@@ -1077,6 +1077,24 @@
       "bot": "Hello! It's nice to meet you",
       "ts": null,
       "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hello",
+      "bot": "Hello! It's nice to meet you",
+      "ts": null,
+      "metadata": {}
     }
   ],
   "default:debug1": [
@@ -1239,6 +1257,12 @@
       "bot": "That's interesting, tell me more",
       "ts": null,
       "metadata": {}
+    },
+    {
+      "user": "agrega la palabra nombre como palabra prohibida.",
+      "bot": "La palabra \"agresta\" es una palabra prohibida en el texto anterior.",
+      "ts": null,
+      "metadata": {}
     }
   ],
   "default:40": [
@@ -1281,6 +1305,38 @@
         "action_id": "antispam.toggle",
         "status": "ok"
       }
+    }
+  ],
+  "default:123": [
+    {
+      "user": "activar bienvenida",
+      "bot": "That's interesting, tell me more",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "desactivar antiflood",
+      "bot": "I see. Could you elaborate?",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "ver estado",
+      "bot": "That's a great point",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hola",
+      "bot": "I understand. What else?",
+      "ts": null,
+      "metadata": {}
+    },
+    {
+      "user": "hola",
+      "bot": "That's interesting, tell me more",
+      "ts": null,
+      "metadata": {}
     }
   ]
 }

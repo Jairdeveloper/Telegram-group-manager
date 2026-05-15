@@ -40,6 +40,11 @@ class ActionMapper:
             "default_action_id": "antiflood.toggle",
             "extract_limits": True,
         },
+        "set_action": {
+            "action_id": "antiflood.set_action",
+            "default_action_id": "antiflood.toggle",
+            "extract_action": True,
+        },
         "add_filter": {
             "action_id": "filter.add_word",
             "extract_word": True,
@@ -53,6 +58,47 @@ class ActionMapper:
             "default_action_id": "goodbye.toggle",
             "extract_text": True,
         },
+        "get_status": {
+            "action_id": "status.query",
+            "default_action_id": "status.query",
+            "query_mode": True,
+        },
+        "get_settings": {
+            "action_id": "settings.query",
+            "default_action_id": "settings.query",
+            "query_mode": True,
+        },
+        "list_actions": {
+            "action_id": "capabilities.list",
+            "default_action_id": "capabilities.list",
+            "query_mode": True,
+        },
+        "help": {
+            "action_id": "help.show",
+            "default_action_id": "help.show",
+            "query_mode": True,
+        },
+        "show_reports": {
+            "action_id": "reports.list",
+            "default_action_id": "reports.list",
+            "query_mode": True,
+        },
+        "resolve_report": {
+            "action_id": "reports.resolve",
+            "extract_report_id": True,
+        },
+        "show_warnings": {
+            "action_id": "warnings.list",
+            "default_action_id": "warnings.list",
+            "query_mode": True,
+        },
+        "reset_warnings": {
+            "action_id": "warnings.reset",
+        },
+        "set_schedule": {
+            "action_id": "nightmode.schedule",
+            "extract_schedule": True,
+        },
     }
 
     FEATURE_ACTIONS = {
@@ -61,6 +107,13 @@ class ActionMapper:
         "antispam": ["antispam.toggle"],
         "goodbye": ["goodbye.toggle", "goodbye.set_text"],
         "filter": ["filter.add_word", "filter.remove_word"],
+        "antichannel": ["antichannel.toggle"],
+        "antilink": ["antilink.toggle"],
+        "captcha": ["captcha.toggle"],
+        "nightmode": ["nightmode.toggle", "nightmode.schedule"],
+        "media": ["media.toggle"],
+        "reports": ["reports.list", "reports.resolve"],
+        "warnings": ["warnings.list", "warnings.reset"],
     }
 
     def __init__(self):
@@ -108,12 +161,26 @@ class ActionMapper:
             return self._map_toggle_feature(text, mapping, text_lower)
         elif intent == "set_limit":
             return self._map_set_limit(text, mapping, text_lower)
+        elif intent == "set_action":
+            return self._map_set_action(text, mapping, text_lower)
         elif intent == "add_filter":
             return self._map_add_filter(text, mapping, text_lower)
         elif intent == "remove_filter":
             return self._map_remove_filter(text, mapping, text_lower)
         elif intent == "set_goodbye":
             return self._map_goodbye(text, mapping, text_lower)
+        elif intent in ("get_status", "get_settings", "list_actions", "help"):
+            return self._map_query_intent(intent, mapping, text_lower)
+        elif intent == "show_reports":
+            return self._map_show_reports(text, mapping, text_lower)
+        elif intent == "resolve_report":
+            return self._map_resolve_report(text, mapping, text_lower)
+        elif intent == "show_warnings":
+            return self._map_show_warnings(text, mapping, text_lower)
+        elif intent == "reset_warnings":
+            return self._map_reset_warnings(text, mapping, text_lower)
+        elif intent == "set_schedule":
+            return self._map_set_schedule(text, mapping, text_lower)
 
         return ActionParseResult(None, {}, 0.0, f"unhandled_intent_{intent}")
 
@@ -391,6 +458,74 @@ class ActionMapper:
                     "definir", "define", "nuevo", "nueva", "crear", "crea", "poner", "pon",
                     "actualizar", "actualiza", "modificar", "modifica", "set", "change"]
         return any(word in text_lower for word in set_words)
+
+    def _map_query_intent(self, intent: str, mapping: Dict, text_lower: str) -> ActionParseResult:
+        return ActionParseResult(
+            action_id=mapping.get("action_id"),
+            payload={},
+            confidence=0.85,
+            reason=f"{intent}_query",
+        )
+
+    def _map_show_reports(self, text: str, mapping: Dict, text_lower: str) -> ActionParseResult:
+        return ActionParseResult(
+            action_id=mapping.get("action_id"),
+            payload={},
+            confidence=0.85,
+            reason="show_reports",
+        )
+
+    def _map_resolve_report(self, text: str, mapping: Dict, text_lower: str) -> ActionParseResult:
+        report_id = self.extractor.extract_report_id(text)
+        return ActionParseResult(
+            action_id=mapping.get("action_id"),
+            payload={"report_id": report_id} if report_id else {},
+            confidence=0.8,
+            reason="resolve_report",
+        )
+
+    def _map_show_warnings(self, text: str, mapping: Dict, text_lower: str) -> ActionParseResult:
+        return ActionParseResult(
+            action_id=mapping.get("action_id"),
+            payload={},
+            confidence=0.85,
+            reason="show_warnings",
+        )
+
+    def _map_reset_warnings(self, text: str, mapping: Dict, text_lower: str) -> ActionParseResult:
+        user_match = re.search(r'(@\w+|[0-9]+)', text)
+        user_id = user_match.group(1) if user_match else None
+        return ActionParseResult(
+            action_id=mapping.get("action_id"),
+            payload={"user_id": user_id} if user_id else {},
+            confidence=0.8,
+            reason="reset_warnings",
+        )
+
+    def _map_set_schedule(self, text: str, mapping: Dict, text_lower: str) -> ActionParseResult:
+        schedule = self.extractor.extract_schedule(text)
+        return ActionParseResult(
+            action_id=mapping.get("action_id"),
+            payload=schedule if schedule else {},
+            confidence=0.8,
+            reason="set_schedule",
+        )
+
+    def _map_set_action(self, text: str, mapping: Dict, text_lower: str) -> ActionParseResult:
+        action = self.extractor.extract_action(text)
+        if action:
+            return ActionParseResult(
+                action_id="antiflood.set_action",
+                payload={"action": action},
+                confidence=0.85,
+                reason="antiflood_set_action",
+            )
+        return ActionParseResult(
+            action_id="antiflood.set_action",
+            payload={},
+            confidence=0.5,
+            reason="set_action_default",
+        )
 
 
 _mapper_instance: Optional[ActionMapper] = None

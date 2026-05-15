@@ -89,7 +89,36 @@ class RegexIntentClassifier:
         'revoke_permission': [
             r'revocar.*permiso', r'revoke.*permission', r'deny.*access',
             r'remover.*permiso', r'quitar.*acceso'
-        ]
+        ],
+        'list_actions': [
+            r'que puedes hacer', r'que sabes hacer', r'que acciones',
+            r'listar.*acciones', r'mostrar.*acciones', r'comandos disponibles',
+            r'que puedo pedirte', r'funciones disponibles', r'\bacciones\b', r'\bcomandos\b'
+        ],
+        'help': [
+            r'\bayuda\b', r'\bhelp\b', r'como usar', r'como hago',
+            r'instrucciones', r'\bguia\b', r'\bmanual\b'
+        ],
+        'show_reports': [
+            r'ver.*reportes', r'ver.*reporte', r'listar.*reportes',
+            r'mostrar.*reportes', r'consultar.*reportes', r'\breportes\b'
+        ],
+        'resolve_report': [
+            r'resolver.*reporte', r'resolve.*report', r'cerrar.*reporte',
+            r'cerrar.*ticket'
+        ],
+        'show_warnings': [
+            r'ver.*advertencias', r'ver.*warning', r'listar.*warnings',
+            r'\badvertencias\b', r'\bwarnings\b'
+        ],
+        'reset_warnings': [
+            r'resetear.*warnings', r'reset.*warnings', r'borrar.*warnings',
+            r'limpiar.*advertencias', r'resetear.*advertencias'
+        ],
+        'set_schedule': [
+            r'programar.*modo noche', r'schedule.*nightmode',
+            r'horario.*noche', r'configurar.*noche'
+        ],
     }
 
     def __init__(self):

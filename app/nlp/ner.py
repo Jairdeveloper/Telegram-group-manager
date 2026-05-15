@@ -1,7 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +130,7 @@ class EntityExtractor:
     def extract_filter_word(self, text: str) -> Optional[str]:
         text_lower = text.lower()
         patterns = [
+            r'agregar\s+(?:palabra\s+)?(.+)',
             r'bloquear?\s+(?:palabra\s+)?(.+)',
             r'bloquea\s+(?:palabra\s+)?(.+)',
             r'borrar\s+(?:palabra\s+)?(.+)',
@@ -172,6 +173,41 @@ class EntityExtractor:
                 if text_value:
                     return text_value
         return None
+
+    def extract_action(self, text: str) -> Optional[str]:
+        text_lower = text.lower()
+        action_patterns = [
+            (r'\b(mute|silenciar| silenciar)\b', 'mute'),
+            (r'\b(ban|baneo|vetar)\b', 'ban'),
+            (r'\b(kick|expulsar|eject)\b', 'kick'),
+            (r'\b(warn|advertir|advertencia)\b', 'warn'),
+            (r'\b(delete|eliminar|borrar)\b', 'delete'),
+        ]
+        for pattern, action in action_patterns:
+            if re.search(pattern, text_lower):
+                return action
+        return None
+
+    def extract_report_id(self, text: str) -> Optional[str]:
+        match = re.search(r'#?(\d+)', text)
+        if match:
+            return match.group(1)
+        return None
+
+    def extract_schedule(self, text: str) -> Optional[Dict[str, Any]]:
+        text_lower = text.lower()
+        schedule_patterns = [
+            (r'(\d{1,2}):(\d{2})', 'time'),
+            (r'(\d{1,2})\s*(am|pm)', 'time_12h'),
+            (r'desde\s+las\s+(\d{1,2})', 'start'),
+            (r'hasta\s+las\s+(\d{1,2})', 'end'),
+        ]
+        schedule = {}
+        for pattern, key in schedule_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                schedule[key] = match.group(0)
+        return schedule if schedule else None
 
 
 _extractor_instance: Optional[EntityExtractor] = None
